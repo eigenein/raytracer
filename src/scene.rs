@@ -14,7 +14,6 @@ pub struct Scene {
 
     /// Projection viewport.
     /// The eye is located at `(0.0, 0.0, -focal_length)`.
-    #[serde(default)]
     pub viewport: Viewport,
 
     /// Surfaces to render.
@@ -55,17 +54,20 @@ impl Default for OutputSize {
 #[derive(Deserialize)]
 pub struct Viewport {
     /// Viewport width, in meters.
+    #[serde(default = "Viewport::default_width")]
     pub width: f64,
 
     /// Distance between the projection plane and the projection point, in meters.
+    #[serde(default = "Viewport::default_focal_length")]
     pub focal_length: f64,
 }
 
-impl Default for Viewport {
-    fn default() -> Self {
-        Self {
-            width: 1.0,
-            focal_length: 1.0,
-        }
+impl Viewport {
+    pub const fn default_width() -> f64 {
+        1.0
+    }
+
+    pub const fn default_focal_length() -> f64 {
+        1.0
     }
 }

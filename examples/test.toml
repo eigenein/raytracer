@@ -1,4 +1,12 @@
+[viewport]
+width = 1.5
+
 [[surfaces]]
 type = "Sphere"
 center = [0.0, 0.0, 4.0]
 radius = 1.0
+
+[[surfaces]]
+type = "Sphere"
+center = [0.5, 0.5, 3.0]
+radius = 0.5

@@ -1,13 +1,16 @@
 use glam::DVec3;
 use image::{Rgba, RgbaImage};
 use indicatif::ProgressBar;
+use tracing::info;
 
 use crate::ray::Ray;
 use crate::scene::Scene;
 
 pub fn render(scene: &Scene, into: &mut RgbaImage) {
     let progress = ProgressBar::new(into.width() as u64 * into.height() as u64);
+
     let eye_position = DVec3::new(0.0, 0.0, -scene.viewport.focal_length);
+    info!(?eye_position);
 
     for x in 0..into.width() {
         let viewport_x = pixel_index_to_viewport(x, into.width(), scene.viewport.width);
@@ -34,8 +37,8 @@ const fn pixel_index_to_viewport(x: u32, image_size: u32, viewport_size: f64) ->
 
 #[inline]
 fn trace_ray(ray: &Ray, in_: &Scene) -> Rgba<u8> {
-    for body in &in_.surfaces {
-        if let Some(hit) = body.hit(ray) {
+    for surface in &in_.surfaces {
+        if let Some(hit) = surface.hit(ray) {
             return Rgba::from([
                 (hit.normal.x * 255.0) as u8,
                 (hit.normal.y * 255.0) as u8,
