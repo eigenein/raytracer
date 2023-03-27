@@ -23,7 +23,7 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) {
         }
     }
 
-    progress.finish_and_clear();
+    progress.finish();
 }
 
 /// Centers the point inside the pixel and inside the entire viewport.
