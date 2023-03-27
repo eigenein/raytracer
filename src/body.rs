@@ -1,5 +1,6 @@
 pub mod sphere;
 
+use glam::DVec3;
 use serde::Deserialize;
 
 use crate::body::sphere::Sphere;
@@ -12,7 +13,7 @@ pub enum Body {
 }
 
 impl Body {
-    pub fn hit_by(&self, ray: &Ray) -> bool {
+    pub fn hit_by(&self, ray: &Ray) -> Option<DVec3> {
         match self {
             Self::Sphere(sphere) => sphere.hit_by(ray),
         }
