@@ -16,6 +16,7 @@ use tracing_subscriber::FmtSubscriber;
 use crate::args::Args;
 
 mod args;
+mod hit;
 mod prelude;
 mod ray;
 mod scene;
