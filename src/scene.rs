@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
-use crate::body::Body;
 use crate::prelude::*;
+use crate::surface::Surface;
 
 #[derive(Deserialize)]
 pub struct Scene {
@@ -15,7 +15,7 @@ pub struct Scene {
     pub viewport: Viewport,
 
     #[serde(default)]
-    pub bodies: Vec<Body>,
+    pub surfaces: Vec<Surface>,
 }
 
 impl Scene {

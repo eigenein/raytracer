@@ -6,7 +6,7 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn at(&self, t: f64) -> DVec3 {
-        self.origin + self.direction * t
+    pub fn at(&self, time: f64) -> DVec3 {
+        self.origin + self.direction * time
     }
 }

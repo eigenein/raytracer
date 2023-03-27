@@ -16,10 +16,10 @@ use tracing_subscriber::FmtSubscriber;
 use crate::args::Args;
 
 mod args;
-mod body;
 mod prelude;
 mod ray;
 mod scene;
+mod surface;
 mod tracer;
 
 use crate::prelude::*;
