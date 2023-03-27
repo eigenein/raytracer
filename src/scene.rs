@@ -8,12 +8,16 @@ use crate::surface::Surface;
 
 #[derive(Deserialize)]
 pub struct Scene {
+    /// Output image size.
     #[serde(default)]
     pub output_size: OutputSize,
 
+    /// Projection viewport.
+    /// The eye is located at `(0.0, 0.0, -focal_length)`.
     #[serde(default)]
     pub viewport: Viewport,
 
+    /// Surfaces to render.
     #[serde(default)]
     pub surfaces: Vec<Surface>,
 }
@@ -53,7 +57,7 @@ pub struct Viewport {
     /// Viewport width, in meters.
     pub width: f64,
 
-    /// Distance between the projection plane and the projection point.
+    /// Distance between the projection plane and the projection point, in meters.
     pub focal_length: f64,
 }
 

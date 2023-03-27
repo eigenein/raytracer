@@ -31,7 +31,7 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) {
 #[inline]
 fn trace_ray(ray: &Ray, in_: &Scene) -> Rgba<u8> {
     for body in &in_.surfaces {
-        if let Some(normal) = body.hit_by(ray) {
+        if let Some(normal) = body.hit(ray) {
             return Rgba::from([
                 (normal.x * 255.0) as u8,
                 (normal.y * 255.0) as u8,
