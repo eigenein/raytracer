@@ -49,7 +49,7 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) {
 fn trace_ray(ray: &Ray, in_: &Scene) -> colorsys::Rgb {
     in_.surfaces
         .iter()
-        .filter_map(|surface| surface.hit(ray, 0.0, f64::INFINITY))
+        .filter_map(|surface| surface.hit(ray, 0.0..f64::INFINITY))
         .min_by(|hit_1, hit_2| {
             hit_1
                 .time
