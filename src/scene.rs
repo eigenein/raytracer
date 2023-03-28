@@ -13,7 +13,7 @@ pub struct Scene {
     pub output_size: OutputSize,
 
     /// Projection viewport.
-    /// The eye is located at `(0.0, 0.0, -focal_length)`.
+    #[serde(default)]
     pub viewport: Viewport,
 
     /// Surfaces to render.
@@ -27,26 +27,34 @@ impl Scene {
         let buffer = String::from_utf8(buffer)?;
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
     }
-
-    pub const fn viewport_height(&self) -> f64 {
-        self.viewport.width / self.output_size.width as f64 * self.output_size.height as f64
-    }
 }
 
 #[derive(Deserialize)]
 pub struct OutputSize {
     /// Output image width, in pixels.
+    #[serde(default = "OutputSize::default_width")]
     pub width: u32,
 
     /// Output image height, in pixels.
+    #[serde(default = "OutputSize::default_height")]
     pub height: u32,
+}
+
+impl OutputSize {
+    pub const fn default_width() -> u32 {
+        1920
+    }
+
+    pub const fn default_height() -> u32 {
+        1080
+    }
 }
 
 impl Default for OutputSize {
     fn default() -> Self {
         Self {
-            width: 1920,
-            height: 1080,
+            width: Self::default_width(),
+            height: Self::default_height(),
         }
     }
 }
@@ -56,6 +64,10 @@ pub struct Viewport {
     /// Viewport width, in meters.
     #[serde(default = "Viewport::default_width")]
     pub width: f64,
+
+    /// Distance between the projection plane and the world center, in meters.
+    #[serde(default = "Viewport::default_distance")]
+    pub distance: f64,
 
     /// Distance between the projection plane and the projection point, in meters.
     #[serde(default = "Viewport::default_focal_length")]
@@ -67,7 +79,21 @@ impl Viewport {
         1.0
     }
 
+    pub const fn default_distance() -> f64 {
+        1.0
+    }
+
     pub const fn default_focal_length() -> f64 {
         1.0
+    }
+}
+
+impl Default for Viewport {
+    fn default() -> Self {
+        Self {
+            width: Self::default_width(),
+            distance: Self::default_distance(),
+            focal_length: Self::default_focal_length(),
+        }
     }
 }

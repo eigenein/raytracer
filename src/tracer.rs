@@ -7,18 +7,25 @@ use crate::ray::Ray;
 use crate::scene::Scene;
 
 pub fn render(scene: &Scene, into: &mut RgbaImage) {
-    let progress = ProgressBar::new(into.width() as u64 * into.height() as u64);
+    let x_vector = DVec3::new(scene.viewport.width, 0.0, 0.0) / into.width() as f64;
+    let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
+    info!(?x_vector, ?y_vector);
 
-    let eye_position = DVec3::new(0.0, 0.0, -scene.viewport.focal_length);
+    let viewport_center = DVec3::new(0.0, 0.0, -scene.viewport.distance);
+    info!(?viewport_center);
+
+    let eye_position = DVec3::new(0.0, 0.0, -scene.viewport.focal_length - scene.viewport.distance);
     info!(?eye_position);
 
+    let progress = ProgressBar::new(into.width() as u64 * into.height() as u64);
     for x in 0..into.width() {
-        let viewport_x = pixel_index_to_viewport(x, into.width(), scene.viewport.width);
         for y in 0..into.height() {
-            let viewport_y = pixel_index_to_viewport(y, into.height(), scene.viewport_height());
+            let viewport_point = viewport_center
+                + (x as f64 - into.width() as f64 / 2.0) * x_vector
+                + (y as f64 - into.height() as f64 / 2.0) * y_vector;
             let ray = Ray {
                 origin: eye_position,
-                direction: eye_position - DVec3::new(viewport_x, viewport_y, 0.0),
+                direction: eye_position - viewport_point,
             };
             let pixel = trace_ray(&ray, scene);
             into.put_pixel(x, y, pixel);
@@ -27,12 +34,6 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) {
     }
 
     progress.finish();
-}
-
-/// Centers the point inside the pixel and inside the entire viewport.
-#[inline]
-const fn pixel_index_to_viewport(x: u32, image_size: u32, viewport_size: f64) -> f64 {
-    ((x as f64 + 0.5) / image_size as f64 - 0.5) * viewport_size
 }
 
 #[inline]
