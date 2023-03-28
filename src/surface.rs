@@ -13,7 +13,7 @@ pub enum Surface {
 
 impl Surface {
     /// Calculate a hit of the surface by the specified ray.
-    pub fn hit(&self, by_ray: &Ray) -> Option<Hit> {
+    pub fn hit(&self, by_ray: &Ray, min_time: f64, max_time: f64) -> Option<Hit> {
         match *self {
             Self::Sphere { center, radius } => {
                 let oc = by_ray.origin - center;
@@ -22,15 +22,29 @@ impl Surface {
                 let c = oc.length_squared() - radius * radius;
                 let discriminant = half_b * half_b - a * c;
 
-                (discriminant > 0.0).then(|| {
-                    let time = (-half_b - discriminant.sqrt()) / a;
-                    let location = by_ray.at(time);
-                    let normal = (location - center) / radius;
-                    Hit {
-                        time,
-                        location,
-                        normal,
+                if discriminant < 0.0 {
+                    return None;
+                }
+
+                let mut time = (-half_b - discriminant.sqrt()) / a;
+                if (time < min_time) || (time > max_time) {
+                    time = (-half_b + discriminant.sqrt()) / a;
+                    if (time < min_time) || (time > max_time) {
+                        return None;
                     }
+                }
+
+                let location = by_ray.at(time);
+                let outward_normal = (location - center) / radius;
+                let normal = if outward_normal.dot(by_ray.direction) < 0.0 {
+                    outward_normal
+                } else {
+                    -outward_normal
+                };
+                Some(Hit {
+                    time,
+                    location,
+                    normal,
                 })
             }
         }
