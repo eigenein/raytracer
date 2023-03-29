@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use glam::{DVec3, DVec4};
-use image::{Rgba, RgbaImage};
+use image::{Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use tracing::info;
 
@@ -10,7 +10,7 @@ use crate::prelude::*;
 use crate::ray::Ray;
 use crate::scene::Scene;
 
-pub fn render(scene: &Scene, options: &TracerOptions, into: &mut RgbaImage) -> Result {
+pub fn render(scene: &Scene, options: &TracerOptions, into: &mut RgbImage) -> Result {
     // Vectors to convert the image's pixel coordinates to the viewport's ones:
     let x_vector = DVec3::new(scene.viewport.width, 0.0, 0.0) / into.width() as f64;
     let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
@@ -24,8 +24,8 @@ pub fn render(scene: &Scene, options: &TracerOptions, into: &mut RgbaImage) -> R
 
     let half_image_width = into.width() as f64 / 2.0;
     let half_image_height = into.height() as f64 / 2.0;
-    let samples_per_pixel = scene.samples_per_pixel as f64;
-    info!(scene.samples_per_pixel);
+    let samples_per_pixel = options.samples_per_pixel as f64;
+    info!(options.samples_per_pixel);
 
     let progress = ProgressBar::new(into.height() as u64);
     progress.set_style(ProgressStyle::with_template(
@@ -57,11 +57,10 @@ pub fn render(scene: &Scene, options: &TracerOptions, into: &mut RgbaImage) -> R
             into.put_pixel(
                 x,
                 y,
-                Rgba::from([
+                Rgb::from([
                     (color.x * 255.0).round() as u8,
                     (color.y * 255.0).round() as u8,
                     (color.z * 255.0).round() as u8,
-                    (color.w * 255.0).round() as u8,
                 ]),
             );
         }
@@ -84,7 +83,7 @@ fn trace_ray(ray: &Ray, in_: &Scene) -> DVec4 {
                 .partial_cmp(&hit_2.time)
                 .unwrap_or(Ordering::Equal)
         })
-        .map_or(DVec4::new(0.0, 0.0, 0.0, 1.0), |hit| {
+        .map_or(in_.ambient_color, |hit| {
             DVec4::new(hit.normal.x.abs(), hit.normal.y.abs(), hit.normal.z.abs(), 1.0)
         })
 }

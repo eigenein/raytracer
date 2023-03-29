@@ -1,3 +1,5 @@
+ambient_color = [0.5, 0.7, 1.0, 1.0]
+
 [viewport]
 width = 1
 distance = 5

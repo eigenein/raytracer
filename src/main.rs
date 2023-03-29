@@ -11,7 +11,7 @@
 )]
 
 use clap::Parser;
-use image::RgbaImage;
+use image::RgbImage;
 use tracing_subscriber::FmtSubscriber;
 
 use crate::args::Args;
@@ -32,7 +32,7 @@ fn main() -> Result {
     tracing::subscriber::set_global_default(FmtSubscriber::new())?;
     let args = Args::parse();
     let scene = Scene::read_from(&args.input_path)?;
-    let mut output = RgbaImage::new(scene.output_size.width, scene.output_size.height);
+    let mut output = RgbImage::new(scene.output_size.width, scene.output_size.height);
     render(&scene, &args.tracer_options, &mut output)?;
     output
         .save(args.output_path)
