@@ -5,11 +5,12 @@ use image::{Rgba, RgbaImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use tracing::info;
 
+use crate::args::TracerOptions;
 use crate::prelude::*;
 use crate::ray::Ray;
 use crate::scene::Scene;
 
-pub fn render(scene: &Scene, into: &mut RgbaImage) -> Result {
+pub fn render(scene: &Scene, options: &TracerOptions, into: &mut RgbaImage) -> Result {
     // Vectors to convert the image's pixel coordinates to the viewport's ones:
     let x_vector = DVec3::new(scene.viewport.width, 0.0, 0.0) / into.width() as f64;
     let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
@@ -34,11 +35,11 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) -> Result {
     for y in 0..into.height() {
         for x in 0..into.width() {
             // Sum multiple samples for antialiasing:
-            let color = (0..scene.samples_per_pixel)
+            let color = (0..options.samples_per_pixel)
                 .map(|_| {
                     let mut image_x = x as f64 - half_image_width;
                     let mut image_y = y as f64 - half_image_height;
-                    if scene.samples_per_pixel != 1 {
+                    if options.samples_per_pixel != 1 {
                         image_x += fastrand::f64() - 0.5;
                         image_y += fastrand::f64() - 0.5;
                     }
