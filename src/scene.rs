@@ -8,6 +8,10 @@ use crate::surface::Surface;
 
 #[derive(Deserialize)]
 pub struct Scene {
+    /// For antialiasing, the number of rays per pixels to average.
+    #[serde(default = "Scene::default_samples_per_pixel")]
+    pub samples_per_pixel: usize,
+
     /// Output image size.
     #[serde(default)]
     pub output_size: OutputSize,
@@ -26,6 +30,10 @@ impl Scene {
         let buffer = fs::read(path).with_context(|| format!("failed to read `{path:?}`"))?;
         let buffer = String::from_utf8(buffer)?;
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
+    }
+
+    pub const fn default_samples_per_pixel() -> usize {
+        1
     }
 }
 

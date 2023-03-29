@@ -1,4 +1,5 @@
 #![feature(const_fn_floating_point_arithmetic)]
+#![feature(portable_simd)]
 #![warn(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -32,7 +33,7 @@ fn main() -> Result {
     let args = Args::parse();
     let scene = Scene::read_from(&args.input_path)?;
     let mut output = RgbaImage::new(scene.output_size.width, scene.output_size.height);
-    render(&scene, &mut output);
+    render(&scene, &mut output)?;
     output
         .save(args.output_path)
         .context("failed to save the output image")?;

@@ -7,7 +7,7 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 [dependencies]
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 clap = { version = "4.1.13", features = ["env", "unicode", "derive"] }
-colorsys = "0.6.7"
+fastrand = "1.9.0"
 glam = { version = "0.23.0", features = ["fast-math", "core-simd", "serde"] }
 image = { version = "0.24.6", default-features = false, features = ["webp-encoder"] }
 indicatif = { version = "0.17.3", features = ["improved_unicode"] }

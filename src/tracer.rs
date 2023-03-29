@@ -1,15 +1,16 @@
 use std::cmp::Ordering;
 
-use colorsys::ColorAlpha;
-use glam::DVec3;
-use image::RgbaImage;
-use indicatif::ProgressBar;
+use glam::{DVec3, DVec4};
+use image::{Rgba, RgbaImage};
+use indicatif::{ProgressBar, ProgressStyle};
 use tracing::info;
 
+use crate::prelude::*;
 use crate::ray::Ray;
 use crate::scene::Scene;
 
-pub fn render(scene: &Scene, into: &mut RgbaImage) {
+pub fn render(scene: &Scene, into: &mut RgbaImage) -> Result {
+    // Vectors to convert the image's pixel coordinates to the viewport's ones:
     let x_vector = DVec3::new(scene.viewport.width, 0.0, 0.0) / into.width() as f64;
     let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
     info!(?x_vector, ?y_vector);
@@ -20,33 +21,59 @@ pub fn render(scene: &Scene, into: &mut RgbaImage) {
     let eye_position = DVec3::new(0.0, 0.0, -scene.viewport.focal_length - scene.viewport.distance);
     info!(?eye_position);
 
-    let progress = ProgressBar::new(into.width() as u64 * into.height() as u64);
-    for x in 0..into.width() {
-        for y in 0..into.height() {
-            let viewport_point = viewport_center
-                + (x as f64 - into.width() as f64 / 2.0) * x_vector
-                + (y as f64 - into.height() as f64 / 2.0) * y_vector;
-            let ray = Ray {
-                origin: eye_position,
-                direction: viewport_point - eye_position,
-            };
-            let pixel = trace_ray(&ray, scene);
-            let pixel = image::Rgba::from([
-                pixel.red().round() as u8,
-                pixel.green().round() as u8,
-                pixel.blue().round() as u8,
-                pixel.alpha().round() as u8,
-            ]);
-            into.put_pixel(x, y, pixel);
-            progress.inc(1);
-        }
-    }
+    let half_image_width = into.width() as f64 / 2.0;
+    let half_image_height = into.height() as f64 / 2.0;
+    let samples_per_pixel = scene.samples_per_pixel as f64;
+    info!(scene.samples_per_pixel);
 
+    let progress = ProgressBar::new(into.height() as u64);
+    progress.set_style(ProgressStyle::with_template(
+        "{elapsed} {wide_bar:.cyan/blue} {pos}/{len} {eta} {msg}",
+    )?);
+
+    for y in 0..into.height() {
+        for x in 0..into.width() {
+            // Sum multiple samples for antialiasing:
+            let color = (0..scene.samples_per_pixel)
+                .map(|_| {
+                    let mut image_x = x as f64 - half_image_width;
+                    let mut image_y = y as f64 - half_image_height;
+                    if scene.samples_per_pixel != 1 {
+                        image_x += fastrand::f64() - 0.5;
+                        image_y += fastrand::f64() - 0.5;
+                    }
+                    let viewport_point = viewport_center + image_x * x_vector + image_y * y_vector;
+                    trace_ray(
+                        &Ray {
+                            origin: eye_position,
+                            direction: viewport_point - eye_position,
+                        },
+                        scene,
+                    )
+                })
+                .sum::<DVec4>()
+                / samples_per_pixel;
+            into.put_pixel(
+                x,
+                y,
+                Rgba::from([
+                    (color.x * 255.0).round() as u8,
+                    (color.y * 255.0).round() as u8,
+                    (color.z * 255.0).round() as u8,
+                    (color.w * 255.0).round() as u8,
+                ]),
+            );
+        }
+        progress.inc(1);
+    }
     progress.finish();
+
+    Ok(())
 }
 
+/// Trace the ray and return the resulting color.
 #[inline]
-fn trace_ray(ray: &Ray, in_: &Scene) -> colorsys::Rgb {
+fn trace_ray(ray: &Ray, in_: &Scene) -> DVec4 {
     in_.surfaces
         .iter()
         .filter_map(|surface| surface.hit(ray, 0.0..f64::INFINITY))
@@ -56,13 +83,7 @@ fn trace_ray(ray: &Ray, in_: &Scene) -> colorsys::Rgb {
                 .partial_cmp(&hit_2.time)
                 .unwrap_or(Ordering::Equal)
         })
-        .map(|hit| {
-            colorsys::Rgb::from([
-                hit.normal.x.abs() * 255.0,
-                hit.normal.y.abs() * 255.0,
-                hit.normal.z.abs() * 255.0,
-                255.0,
-            ])
+        .map_or(DVec4::new(0.0, 0.0, 0.0, 1.0), |hit| {
+            DVec4::new(hit.normal.x.abs(), hit.normal.y.abs(), hit.normal.z.abs(), 1.0)
         })
-        .unwrap_or(colorsys::Rgb::from([0.0, 0.0, 0.0, 255.0]))
 }
