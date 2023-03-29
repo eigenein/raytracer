@@ -38,6 +38,7 @@ impl Ray {
         let cosine_theta_1 = -hit.normal.dot(incident_direction);
         assert!(cosine_theta_1 >= 0.0);
 
+        // TODO: make reflection/refraction probabilistic, do not trace both.
         let reflected_ray = if diffusion_probability > fastrand::f64() {
             Self {
                 origin: hit.location,
@@ -57,6 +58,7 @@ impl Ray {
             reflected_ray
         };
 
+        // TODO: make reflection/refraction probabilistic, do not trace both.
         if let Some(to_refractive_index) = to_refractive_index {
             let mu = if hit.from_outside {
                 self.refractive_index / to_refractive_index

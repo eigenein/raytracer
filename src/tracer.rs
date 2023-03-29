@@ -93,6 +93,9 @@ impl Tracer {
             hit.material.reflective_fuzz,
             hit.material.diffusion_probability,
         );
+
+        // TODO: since `refract_and_reflect()` would return a single randomly chosen ray,
+        // TODO: kill the recursion: the incident ray could just get transformed in a loop.
         let attenuation = hit.material.albedo * hit.material.attenuation;
         color_sum +=
             self.trace_ray(reflected_ray, n_depth_left, &time_range) * reflectance * attenuation;
