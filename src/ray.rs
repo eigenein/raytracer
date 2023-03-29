@@ -43,7 +43,8 @@ impl Ray {
         }
     }
 
-    /// See also: <https://physics.stackexchange.com/a/436252/11966>.
+    /// See also: <https://physics.stackexchange.com/a/436252/11966>
+    /// and <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>.
     pub fn refract(&self, hit: &Hit, inner_index: f64) -> Self {
         let mu = if hit.from_outside {
             self.refractive_index / inner_index
@@ -51,13 +52,27 @@ impl Ray {
             inner_index / self.refractive_index
         };
         let incident_direction = self.direction.normalize();
-        let incident_dot_normal = incident_direction.dot(hit.normal);
-        let direction = (incident_direction - hit.normal * incident_dot_normal) * mu
-            - hit.normal * (1.0 - mu.powi(2) * (1.0 - incident_dot_normal.powi(2))).sqrt();
-        Self {
-            origin: hit.location,
-            direction,
-            refractive_index: inner_index,
+        let cosine_theta_1 = -hit.normal.dot(incident_direction);
+        assert!(cosine_theta_1 >= 0.0);
+        let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
+
+        if sin_theta_2 <= 1.0 {
+            // Refraction:
+            let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
+            let direction =
+                mu * incident_direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2);
+            Self {
+                origin: hit.location,
+                direction,
+                refractive_index: inner_index,
+            }
+        } else {
+            // Total internal reflection:
+            Self {
+                origin: hit.location,
+                direction: incident_direction + 2.0 * cosine_theta_1 * hit.normal,
+                refractive_index: self.refractive_index,
+            }
         }
     }
 }

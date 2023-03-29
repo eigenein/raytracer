@@ -40,7 +40,7 @@ reflection = { color = [0.8, 1, 0.8, 0.2] }
 
 [[surfaces]]
 type = "Sphere"
-center = [1, 0, -1.5]
+center = [0.75, -0.5, -1.5]
 radius = 0.5
 
 [surfaces.material]
