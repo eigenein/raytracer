@@ -1,6 +1,6 @@
 use glam::DVec3;
 
-use crate::surface::Material;
+use crate::material::Material;
 
 /// Hit result.
 pub struct Hit<'a> {

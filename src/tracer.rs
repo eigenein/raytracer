@@ -49,12 +49,8 @@ impl Tracer {
         for (y, x) in iproduct!(0..output_height, 0..output_width) {
             let color = (0..self.options.samples_per_pixel)
                 .map(|_| {
-                    let mut image_x = x as f64 - half_image_width;
-                    let mut image_y = y as f64 - half_image_height;
-                    if self.options.samples_per_pixel != 1 {
-                        image_x += fastrand::f64() - 0.5;
-                        image_y += fastrand::f64() - 0.5;
-                    }
+                    let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
+                    let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
                     let viewport_point = viewport_center + image_x * x_vector + image_y * y_vector;
                     self.trace_ray(
                         Ray::by_two_points(eye_position, viewport_point),
@@ -94,10 +90,11 @@ impl Tracer {
         let time_range = (0.001 / LIGHT_SPEED)..f64::INFINITY; // FIXME: shadow acne problem
         let mut color_sum = DVec3::ZERO;
 
-        if let Some(reflection_color) = hit.material.reflection_color {
-            color_sum += self.trace_ray(source_ray.reflect(hit), n_depth_left, &time_range)
-                * reflection_color.xyz()
-                * reflection_color.w;
+        if let Some(reflection) = &hit.material.reflection {
+            color_sum +=
+                self.trace_ray(source_ray.reflect(hit, reflection.fuzz), n_depth_left, &time_range)
+                    * reflection.color.xyz()
+                    * reflection.color.w;
         }
 
         if let Some(diffusion_color) = hit.material.diffusion_color {
@@ -107,6 +104,10 @@ impl Tracer {
                 * diffusion_color.xyz()
                 * diffusion_color.w
                 / self.options.n_diffused_rays as f64;
+        }
+
+        if let Some(luminance) = hit.material.luminance {
+            color_sum += luminance;
         }
 
         color_sum

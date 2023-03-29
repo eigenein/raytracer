@@ -1,9 +1,11 @@
-ambient_color = [1.0, 1.0, 1.0]
+ambient_color = [1, 1, 1]
 
 [viewport]
 width = 1
 distance = 10
 focal_length = 1
+
+# Big sphere underneath:
 
 [[surfaces]]
 type = "Sphere"
@@ -11,14 +13,35 @@ center = [0.0, -101.0, 0.0]
 radius = 100.0
 
 [surfaces.material]
-diffusion_color = [1.0, 1.0, 0.0, 0.25]
-reflection_color = [1.0, 1.0, 0.0, 0.2]
+reflection = { color = [1, 1, 0.8, 0.9] }
+
+# Central small sphere:
 
 [[surfaces]]
 type = "Sphere"
-center = [0.0, 0.0, 0.0]
+center = [0.0, 0.1, 0.0]
 radius = 1.0
 
 [surfaces.material]
-diffusion_color = [1.0, 0.0, 0.0, 0.25]
-reflection_color = [1.0, 0.0, 0.0, 0.5]
+reflection = { color = [1, 1, 0, 0.9], fuzz = 0.05 }
+
+# Small sphere on the left:
+
+[[surfaces]]
+type = "Sphere"
+center = [-2.5, 0.0, 0.0]
+radius = 1.0
+
+[surfaces.material]
+diffusion_color = [0.5, 1, 0, 0.8]
+reflection = { color = [0.5, 1, 0, 0.2] }
+
+# Small sphere on the right:
+
+[[surfaces]]
+type = "Sphere"
+center = [2.5, 0.0, 0.0]
+radius = 1.0
+
+[surfaces.material]
+reflection = { color = [1, 0.2, 0, 1] }

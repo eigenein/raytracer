@@ -1,9 +1,10 @@
 use std::ops::Range;
 
-use glam::{DVec3, DVec4};
+use glam::DVec3;
 use serde::Deserialize;
 
 use crate::hit::Hit;
+use crate::material::Material;
 use crate::ray::Ray;
 
 /// Surface that is being rendered.
@@ -20,15 +21,6 @@ impl Surface {
             Self::Sphere(sphere) => sphere.hit(by_ray, time_range),
         }
     }
-}
-
-#[derive(Deserialize)]
-pub struct Material {
-    #[serde(default)]
-    pub reflection_color: Option<DVec4>,
-
-    #[serde(default)]
-    pub diffusion_color: Option<DVec4>,
 }
 
 #[derive(Deserialize)]

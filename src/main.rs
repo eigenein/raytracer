@@ -23,6 +23,7 @@ mod args;
 mod constants;
 mod hit;
 mod image;
+mod material;
 mod math;
 mod prelude;
 mod progress;
@@ -63,7 +64,6 @@ fn convert_pixels_to_image(
     } else {
         1.0
     };
-    info!(max_intensity);
 
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(pixels.len() as u64, "converting to image")?;

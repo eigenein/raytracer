@@ -20,10 +20,14 @@ impl Ray {
         self.origin + self.direction * time
     }
 
-    pub fn reflect(&self, hit: &Hit) -> Self {
+    pub fn reflect(&self, hit: &Hit, fuzz: f64) -> Self {
+        let mut direction = reflect(self.direction, hit.normal);
+        if fuzz != 0.0 {
+            direction += random_unit_vector() * fuzz * direction.length();
+        }
         Self {
             origin: hit.location,
-            direction: reflect(self.direction, hit.normal),
+            direction,
         }
     }
 

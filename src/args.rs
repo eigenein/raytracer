@@ -28,7 +28,6 @@ pub struct Args {
 #[derive(Parser, Debug)]
 pub struct TracerOptions {
     /// Samples per pixel that get averaged for the antialiasing.
-    /// When equals to `1`, no randomization for ray direction is applied.
     #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u16).range(1..))]
     pub samples_per_pixel: u16,
 
