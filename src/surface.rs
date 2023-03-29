@@ -53,10 +53,13 @@ impl Sphere {
 
         let location = by_ray.at(time);
         let outward_normal = (location - self.center) / self.radius;
+        let from_outside = outward_normal.dot(by_ray.direction) < 0.0;
+
         Some(Hit {
             time,
             location,
-            normal: if outward_normal.dot(by_ray.direction) < 0.0 {
+            from_outside,
+            normal: if from_outside {
                 outward_normal
             } else {
                 -outward_normal

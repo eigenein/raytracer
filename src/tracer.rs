@@ -86,24 +86,37 @@ impl Tracer {
     }
 
     #[inline]
-    fn trace_secondary_rays(&self, source_ray: &Ray, hit: &Hit, n_depth_left: u16) -> DVec3 {
-        let time_range = (0.001 / LIGHT_SPEED)..f64::INFINITY; // FIXME: shadow acne problem
+    fn trace_secondary_rays(&self, incident_ray: &Ray, hit: &Hit, n_depth_left: u16) -> DVec3 {
+        let time_range = (0.001 / LIGHT_SPEED)..f64::INFINITY; // FIXME: shadow acne problem.
         let mut color_sum = DVec3::ZERO;
 
         if let Some(reflection) = &hit.material.reflection {
-            color_sum +=
-                self.trace_ray(source_ray.reflect(hit, reflection.fuzz), n_depth_left, &time_range)
-                    * reflection.color.xyz()
-                    * reflection.color.w;
+            color_sum += self.trace_ray(
+                incident_ray.reflect(hit, reflection.fuzz),
+                n_depth_left,
+                &time_range,
+            ) * reflection.color.xyz()
+                * reflection.color.w;
         }
 
         if let Some(diffusion_color) = hit.material.diffusion_color {
             color_sum += (0..self.options.n_diffused_rays)
-                .map(|_| self.trace_ray(Ray::reflect_diffused(hit), n_depth_left, &time_range))
+                .map(|_| {
+                    self.trace_ray(incident_ray.reflect_diffused(hit), n_depth_left, &time_range)
+                })
                 .sum::<DVec3>()
                 * diffusion_color.xyz()
                 * diffusion_color.w
                 / self.options.n_diffused_rays as f64;
+        }
+
+        if let Some(refraction) = &hit.material.refraction {
+            color_sum += self.trace_ray(
+                incident_ray.refract(hit, refraction.index),
+                n_depth_left,
+                &time_range,
+            ) * refraction.color.xyz()
+                * refraction.color.w;
         }
 
         if let Some(luminance) = hit.material.luminance {

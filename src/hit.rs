@@ -13,6 +13,8 @@ pub struct Hit<'a> {
     /// Time travelled by the ray till the hit point.
     pub time: f64,
 
+    pub from_outside: bool,
+
     /// Material at the hit point.
     pub material: &'a Material,
 }

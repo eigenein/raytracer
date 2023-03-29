@@ -13,7 +13,7 @@ center = [0.0, -101.0, 0.0]
 radius = 100.0
 
 [surfaces.material]
-reflection = { color = [1, 1, 0.8, 0.9] }
+reflection = { color = [1, 1, 0.8, 0.9], fuzz = 0.01 }
 
 # Central small sphere:
 
@@ -23,7 +23,7 @@ center = [0.0, 0.1, 0.0]
 radius = 1.0
 
 [surfaces.material]
-reflection = { color = [1, 1, 0, 0.9], fuzz = 0.05 }
+reflection = { color = [1, 1, 0.8, 0.9] }
 
 # Small sphere on the left:
 
@@ -33,15 +33,15 @@ center = [-2.5, 0.0, 0.0]
 radius = 1.0
 
 [surfaces.material]
-diffusion_color = [0.5, 1, 0, 0.8]
-reflection = { color = [0.5, 1, 0, 0.2] }
+diffusion_color = [0.8, 1, 0.8, 0.8]
+reflection = { color = [0.8, 1, 0.8, 0.2] }
 
 # Small sphere on the right:
 
 [[surfaces]]
 type = "Sphere"
-center = [2.5, 0.0, 0.0]
-radius = 1.0
+center = [1, 0, -1.5]
+radius = 0.5
 
 [surfaces.material]
-reflection = { color = [1, 0.2, 0, 1] }
+refraction = { index = 1.54, color = [1.0, 0.8, 0.8, 1.0] }
