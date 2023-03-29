@@ -1,12 +1,14 @@
-use std::cmp::Ordering;
+use std::ops::Range;
 
-use glam::{DVec3, DVec4};
-use image::{Rgb, RgbImage};
-use indicatif::{ProgressBar, ProgressStyle};
+use glam::{DVec3, Vec4Swizzles};
+use itertools::iproduct;
 use tracing::info;
 
 use crate::args::TracerOptions;
+use crate::constants::LIGHT_SPEED;
+use crate::hit::Hit;
 use crate::prelude::*;
+use crate::progress::new_progress;
 use crate::ray::Ray;
 use crate::scene::Scene;
 
@@ -17,12 +19,19 @@ pub struct Tracer {
 
 impl Tracer {
     pub const fn new(scene: Scene, options: TracerOptions) -> Self {
-        Self { scene, options }
+        Self { options, scene }
     }
 
-    pub fn render(&self, into: &mut RgbImage) -> Result {
+    pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
+        info!(
+            self.options.samples_per_pixel,
+            self.options.n_diffused_rays, self.options.max_depth
+        );
+
+        let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
+
         // Vectors to convert the image's pixel coordinates to the viewport's ones:
-        let x_vector = DVec3::new(self.scene.viewport.width, 0.0, 0.0) / into.width() as f64;
+        let x_vector = DVec3::new(self.scene.viewport.width, 0.0, 0.0) / output_width as f64;
         let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
         info!(?x_vector, ?y_vector);
 
@@ -33,65 +42,73 @@ impl Tracer {
             DVec3::new(0.0, 0.0, -self.scene.viewport.focal_length - self.scene.viewport.distance);
         info!(?eye_position);
 
-        let half_image_width = into.width() as f64 / 2.0;
-        let half_image_height = into.height() as f64 / 2.0;
-        let samples_per_pixel = self.options.samples_per_pixel as f64;
-        info!(self.options.samples_per_pixel);
+        let half_image_width = output_width as f64 / 2.0;
+        let half_image_height = output_height as f64 / 2.0;
 
-        let progress = ProgressBar::new(into.height() as u64);
-        progress.set_style(ProgressStyle::with_template(
-            "{elapsed} {wide_bar:.cyan/blue} {pos}/{len} {eta} {msg}",
-        )?);
-
-        for y in 0..into.height() {
-            for x in 0..into.width() {
-                // Sum multiple samples for antialiasing:
-                let color = (0..self.options.samples_per_pixel)
-                    .map(|_| {
-                        let mut image_x = x as f64 - half_image_width;
-                        let mut image_y = y as f64 - half_image_height;
-                        if self.options.samples_per_pixel != 1 {
-                            image_x += fastrand::f64() - 0.5;
-                            image_y += fastrand::f64() - 0.5;
-                        }
-                        let viewport_point =
-                            viewport_center + image_x * x_vector + image_y * y_vector;
-                        self.trace_ray(&Ray::by_two_points(eye_position, viewport_point))
-                    })
-                    .sum::<DVec4>()
-                    / samples_per_pixel;
-                into.put_pixel(
-                    x,
-                    y,
-                    Rgb::from([
-                        (color.x * 255.0).round() as u8,
-                        (color.y * 255.0).round() as u8,
-                        (color.z * 255.0).round() as u8,
-                    ]),
-                );
-            }
+        let progress = new_progress(output_height as u64 * output_width as u64, "tracing")?;
+        for (y, x) in iproduct!(0..output_height, 0..output_width) {
+            let color = (0..self.options.samples_per_pixel)
+                .map(|_| {
+                    let mut image_x = x as f64 - half_image_width;
+                    let mut image_y = y as f64 - half_image_height;
+                    if self.options.samples_per_pixel != 1 {
+                        image_x += fastrand::f64() - 0.5;
+                        image_y += fastrand::f64() - 0.5;
+                    }
+                    let viewport_point = viewport_center + image_x * x_vector + image_y * y_vector;
+                    self.trace_ray(
+                        Ray::by_two_points(eye_position, viewport_point),
+                        self.options.max_depth,
+                        &(0.0..f64::INFINITY),
+                    )
+                })
+                .sum::<DVec3>();
+            pixels.push(color);
             progress.inc(1);
         }
         progress.finish();
 
-        Ok(())
+        Ok(pixels)
     }
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, ray: &Ray) -> DVec4 {
+    fn trace_ray(&self, mut ray: Ray, n_depth_left: u16, time_range: &Range<f64>) -> DVec3 {
+        ray.direction = LIGHT_SPEED * ray.direction.normalize();
         self.scene
             .surfaces
             .iter()
-            .filter_map(|surface| surface.hit(ray, 0.0..f64::INFINITY))
-            .min_by(|hit_1, hit_2| {
-                hit_1
-                    .time
-                    .partial_cmp(&hit_2.time)
-                    .unwrap_or(Ordering::Equal)
-            })
+            .filter_map(|surface| surface.hit(&ray, time_range))
+            .min_by(|hit_1, hit_2| hit_1.time.total_cmp(&hit_2.time))
             .map_or(self.scene.ambient_color, |hit| {
-                DVec4::new(hit.normal.x.abs(), hit.normal.y.abs(), hit.normal.z.abs(), 1.0)
+                if n_depth_left != 0 {
+                    self.trace_secondary_rays(&ray, &hit, n_depth_left - 1)
+                } else {
+                    DVec3::ZERO
+                }
             })
+    }
+
+    #[inline]
+    fn trace_secondary_rays(&self, source_ray: &Ray, hit: &Hit, n_depth_left: u16) -> DVec3 {
+        let time_range = (0.001 / LIGHT_SPEED)..f64::INFINITY; // FIXME: shadow acne problem
+        let mut color_sum = DVec3::ZERO;
+
+        if let Some(reflection_color) = hit.material.reflection_color {
+            color_sum += self.trace_ray(source_ray.reflect(hit), n_depth_left, &time_range)
+                * reflection_color.xyz()
+                * reflection_color.w;
+        }
+
+        if let Some(diffusion_color) = hit.material.diffusion_color {
+            color_sum += (0..self.options.n_diffused_rays)
+                .map(|_| self.trace_ray(Ray::reflect_diffused(hit), n_depth_left, &time_range))
+                .sum::<DVec3>()
+                * diffusion_color.xyz()
+                * diffusion_color.w
+                / self.options.n_diffused_rays as f64;
+        }
+
+        color_sum
     }
 }

@@ -1,7 +1,9 @@
 use glam::DVec3;
 
+use crate::surface::Material;
+
 /// Hit result.
-pub struct Hit {
+pub struct Hit<'a> {
     /// Hit point location.
     pub location: DVec3,
 
@@ -10,4 +12,7 @@ pub struct Hit {
 
     /// Time travelled by the ray till the hit point.
     pub time: f64,
+
+    /// Material at the hit point.
+    pub material: &'a Material,
 }

@@ -1,16 +1,24 @@
-ambient_color = [0.5, 0.7, 1.0, 1.0]
+ambient_color = [1.0, 1.0, 1.0]
 
 [viewport]
 width = 1
-distance = 5
+distance = 10
 focal_length = 1
 
 [[surfaces]]
 type = "Sphere"
-center = [0.0, 0.0, 2.0]
-radius = 1.0
+center = [0.0, -101.0, 0.0]
+radius = 100.0
+
+[surfaces.material]
+diffusion_color = [1.0, 1.0, 0.0, 0.25]
+reflection_color = [1.0, 1.0, 0.0, 0.2]
 
 [[surfaces]]
 type = "Sphere"
-center = [0.0, 0.0, 1.0]
-radius = 0.5
+center = [0.0, 0.0, 0.0]
+radius = 1.0
+
+[surfaces.material]
+diffusion_color = [1.0, 0.0, 0.0, 0.25]
+reflection_color = [1.0, 0.0, 0.0, 0.5]

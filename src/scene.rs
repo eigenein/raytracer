@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use glam::DVec4;
+use glam::DVec3;
 use serde::Deserialize;
 
 use crate::prelude::*;
@@ -9,17 +9,13 @@ use crate::surface::Surface;
 
 #[derive(Deserialize)]
 pub struct Scene {
-    /// Output image size.
-    #[serde(default)]
-    pub output_size: OutputSize,
-
     /// Projection viewport.
     #[serde(default)]
     pub viewport: Viewport,
 
     /// Scene background and ambient color.
     #[serde(default = "Scene::default_ambient_color")]
-    pub ambient_color: DVec4,
+    pub ambient_color: DVec3,
 
     /// Surfaces to render.
     #[serde(default)]
@@ -33,38 +29,8 @@ impl Scene {
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
     }
 
-    pub const fn default_ambient_color() -> DVec4 {
-        DVec4::W
-    }
-}
-
-#[derive(Deserialize)]
-pub struct OutputSize {
-    /// Output image width, in pixels.
-    #[serde(default = "OutputSize::default_width")]
-    pub width: u32,
-
-    /// Output image height, in pixels.
-    #[serde(default = "OutputSize::default_height")]
-    pub height: u32,
-}
-
-impl OutputSize {
-    pub const fn default_width() -> u32 {
-        1920
-    }
-
-    pub const fn default_height() -> u32 {
-        1080
-    }
-}
-
-impl Default for OutputSize {
-    fn default() -> Self {
-        Self {
-            width: Self::default_width(),
-            height: Self::default_height(),
-        }
+    pub const fn default_ambient_color() -> DVec3 {
+        DVec3::ZERO
     }
 }
 

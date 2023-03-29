@@ -13,6 +13,14 @@ pub struct Args {
     #[arg(value_name = "OUTPUT")]
     pub output_path: PathBuf,
 
+    /// Output image width.
+    #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
+    pub output_width: u32,
+
+    /// Output image height.
+    #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
+    pub output_height: u32,
+
     #[clap(flatten)]
     pub tracer_options: TracerOptions,
 }
@@ -21,6 +29,14 @@ pub struct Args {
 pub struct TracerOptions {
     /// Samples per pixel that get averaged for the antialiasing.
     /// When equals to `1`, no randomization for ray direction is applied.
-    #[arg(short, long, default_value = "1", value_parser = value_parser!(u16).range(1..))]
+    #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u16).range(1..))]
     pub samples_per_pixel: u16,
+
+    /// Maximum number of rays traced in depth.
+    #[arg(short = 'd', long = "depth", default_value = "5", value_parser = value_parser!(u16).range(1..))]
+    pub max_depth: u16,
+
+    /// Number of diffused rays.
+    #[arg(long = "diffused-rays", default_value = "1", value_parser = value_parser!(u8).range(1..))]
+    pub n_diffused_rays: u8,
 }

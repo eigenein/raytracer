@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use glam::DVec3;
+use glam::{DVec3, DVec4};
 use serde::Deserialize;
 
 use crate::hit::Hit;
@@ -15,7 +15,7 @@ pub enum Surface {
 
 impl Surface {
     /// Calculate a hit of the surface by the specified ray.
-    pub fn hit(&self, by_ray: &Ray, time_range: Range<f64>) -> Option<Hit> {
+    pub fn hit(&self, by_ray: &Ray, time_range: &Range<f64>) -> Option<Hit> {
         match self {
             Self::Sphere(sphere) => sphere.hit(by_ray, time_range),
         }
@@ -23,13 +23,23 @@ impl Surface {
 }
 
 #[derive(Deserialize)]
+pub struct Material {
+    #[serde(default)]
+    pub reflection_color: Option<DVec4>,
+
+    #[serde(default)]
+    pub diffusion_color: Option<DVec4>,
+}
+
+#[derive(Deserialize)]
 pub struct Sphere {
     center: DVec3,
     radius: f64,
+    material: Material,
 }
 
 impl Sphere {
-    pub fn hit(&self, by_ray: &Ray, time_range: Range<f64>) -> Option<Hit> {
+    pub fn hit(&self, by_ray: &Ray, time_range: &Range<f64>) -> Option<Hit> {
         let oc = by_ray.origin - self.center;
         let a = by_ray.direction.length_squared();
         let half_b = oc.dot(by_ray.direction);
@@ -59,6 +69,7 @@ impl Sphere {
             } else {
                 -outward_normal
             },
+            material: &self.material,
         })
     }
 }
