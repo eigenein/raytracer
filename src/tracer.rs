@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use glam::{DVec3, Vec4Swizzles};
+use glam::DVec3;
 use itertools::iproduct;
 use tracing::info;
 
@@ -23,10 +23,7 @@ impl Tracer {
     }
 
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
-        info!(
-            self.options.samples_per_pixel,
-            self.options.n_diffused_rays, self.options.max_depth
-        );
+        info!(self.options.samples_per_pixel, self.options.max_depth);
 
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
 
@@ -90,37 +87,19 @@ impl Tracer {
         let time_range = (0.001 / LIGHT_SPEED)..f64::INFINITY; // FIXME: shadow acne problem.
         let mut color_sum = DVec3::ZERO;
 
-        if let Some(reflection) = &hit.material.reflection {
-            color_sum += self.trace_ray(
-                incident_ray.reflect(hit, reflection.fuzz),
-                n_depth_left,
-                &time_range,
-            ) * reflection.color.xyz()
-                * reflection.color.w;
-        }
-
-        if let Some(diffusion_color) = hit.material.diffusion_color {
-            color_sum += (0..self.options.n_diffused_rays)
-                .map(|_| {
-                    self.trace_ray(incident_ray.reflect_diffused(hit), n_depth_left, &time_range)
-                })
-                .sum::<DVec3>()
-                * diffusion_color.xyz()
-                * diffusion_color.w
-                / self.options.n_diffused_rays as f64;
-        }
-
-        if let Some(refraction) = &hit.material.refraction {
-            color_sum += self.trace_ray(
-                incident_ray.refract(hit, refraction.index),
-                n_depth_left,
-                &time_range,
-            ) * refraction.color.xyz()
-                * refraction.color.w;
-        }
-
-        if let Some(luminance) = hit.material.luminance {
-            color_sum += luminance;
+        let (reflected_ray, reflectance, refracted_ray) = incident_ray.refract_and_reflect(
+            hit,
+            hit.material.refractive_index,
+            hit.material.reflective_fuzz,
+            hit.material.diffusion_probability,
+        );
+        let attenuation = hit.material.albedo * hit.material.attenuation;
+        color_sum +=
+            self.trace_ray(reflected_ray, n_depth_left, &time_range) * reflectance * attenuation;
+        if let Some(refracted_ray) = refracted_ray {
+            color_sum += self.trace_ray(refracted_ray, n_depth_left, &time_range)
+                * (1.0 - reflectance)
+                * attenuation;
         }
 
         color_sum

@@ -3,17 +3,30 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Material {
-    #[serde(default)]
-    pub reflection: Option<Reflection>,
+    #[serde(default = "Material::default_attenuation")]
+    pub attenuation: DVec3,
+
+    #[serde(default = "Material::default_albedo")]
+    pub albedo: f64,
 
     #[serde(default)]
-    pub diffusion_color: Option<DVec4>,
+    pub refractive_index: Option<f64>,
 
     #[serde(default)]
-    pub luminance: Option<DVec3>,
+    pub reflective_fuzz: Option<f64>,
 
     #[serde(default)]
-    pub refraction: Option<Refraction>,
+    pub diffusion_probability: f64,
+}
+
+impl Material {
+    pub const fn default_attenuation() -> DVec3 {
+        DVec3::ONE
+    }
+
+    pub const fn default_albedo() -> f64 {
+        1.0
+    }
 }
 
 #[derive(Deserialize)]
@@ -33,18 +46,11 @@ impl Reflection {
 
 #[derive(Deserialize)]
 pub struct Refraction {
-    #[serde(default = "Refraction::default_color")]
-    pub color: DVec4,
-
     #[serde(default = "Refraction::default_index")]
     pub index: f64,
 }
 
 impl Refraction {
-    pub const fn default_color() -> DVec4 {
-        DVec4::ONE
-    }
-
     pub const fn default_index() -> f64 {
         1.0
     }

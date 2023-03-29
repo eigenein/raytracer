@@ -34,8 +34,4 @@ pub struct TracerOptions {
     /// Maximum number of rays traced in depth.
     #[arg(short = 'd', long = "depth", default_value = "5", value_parser = value_parser!(u16).range(1..))]
     pub max_depth: u16,
-
-    /// Number of diffused rays.
-    #[arg(long = "diffused-rays", default_value = "1", value_parser = value_parser!(u8).range(1..))]
-    pub n_diffused_rays: u8,
 }
