@@ -27,39 +27,13 @@ impl Ray {
     /// - <https://physics.stackexchange.com/a/436252/11966>
     /// - <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - <https://en.wikipedia.org/wiki/Lambertian_reflectance>
-    pub fn refract_and_reflect(
-        &self,
-        hit: &Hit,
-        to_refractive_index: Option<f64>,
-        reflective_fuzz: Option<f64>,
-        diffusion_probability: f64,
-    ) -> (Self, f64, Option<Self>) {
+    pub fn scatter(&self, hit: &Hit) -> Self {
         let incident_direction = self.direction.normalize();
         let cosine_theta_1 = -hit.normal.dot(incident_direction);
         assert!(cosine_theta_1 >= 0.0);
 
-        // TODO: make reflection/refraction probabilistic, do not trace both.
-        let reflected_ray = if diffusion_probability > fastrand::f64() {
-            Self {
-                origin: hit.location,
-                direction: hit.normal + random_unit_vector(),
-                refractive_index: self.refractive_index,
-            }
-        } else {
-            let mut reflected_ray = Self {
-                origin: hit.location,
-                direction: incident_direction + 2.0 * cosine_theta_1 * hit.normal,
-                refractive_index: self.refractive_index,
-            };
-            if let Some(fuzz) = reflective_fuzz {
-                reflected_ray.direction +=
-                    random_unit_vector() * fuzz * reflected_ray.direction.length();
-            }
-            reflected_ray
-        };
-
-        // TODO: make reflection/refraction probabilistic, do not trace both.
-        if let Some(to_refractive_index) = to_refractive_index {
+        if let Some(to_refractive_index) = hit.material.refractive_index {
+            // Transparent body, consider refracting the ray.
             let mu = if hit.from_outside {
                 self.refractive_index / to_refractive_index
             } else {
@@ -69,26 +43,52 @@ impl Ray {
 
             if sin_theta_2 <= 1.0 {
                 // Refraction is possible.
-                // Schlick's approximation for reflectance:
-                let r0 = ((self.refractive_index - to_refractive_index)
-                    / (self.refractive_index + to_refractive_index))
-                    .powi(2);
-                let reflectance = r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5);
-
-                // Refracted ray:
-                let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
-                let direction =
-                    mu * incident_direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2);
-                let refracted_ray = Self {
-                    origin: hit.location,
-                    direction,
-                    refractive_index: to_refractive_index,
+                let reflectance = {
+                    // Schlick's approximation for reflectance:
+                    let r0 = ((self.refractive_index - to_refractive_index)
+                        / (self.refractive_index + to_refractive_index))
+                        .powi(2);
+                    r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
                 };
 
-                return (reflected_ray, reflectance, Some(refracted_ray));
+                // TODO: consider casting 2 scattered rays:
+                if reflectance < fastrand::f64() {
+                    // The ray got refracted, apply the Shell's law:
+                    let direction = {
+                        let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
+                        mu * incident_direction
+                            + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
+                    };
+                    return Self {
+                        origin: hit.location,
+                        direction,
+                        refractive_index: to_refractive_index,
+                    };
+                }
             }
         }
 
-        (reflected_ray, 1.0, None)
+        // The ray couldn't or didn't get refracted:
+        /// TODO: consider casting 2 scattered rays:
+        if hit.material.diffusion_probability > fastrand::f64() {
+            // Diffused reflection with Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
+            Self {
+                origin: hit.location,
+                direction: hit.normal + random_unit_vector(),
+                refractive_index: self.refractive_index,
+            }
+        } else {
+            // Normal reflectance:
+            let mut reflected_ray = Self {
+                origin: hit.location,
+                direction: incident_direction + 2.0 * cosine_theta_1 * hit.normal,
+                refractive_index: self.refractive_index,
+            };
+            if let Some(fuzz) = hit.material.reflective_fuzz {
+                reflected_ray.direction +=
+                    random_unit_vector() * fuzz * reflected_ray.direction.length();
+            }
+            reflected_ray
+        }
     }
 }
