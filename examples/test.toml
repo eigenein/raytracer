@@ -1,16 +1,17 @@
 ambient_color = [1, 1, 1]
 
-[viewport]
-width = 1
-distance = 10
-focal_length = 1
+[camera]
+location = [0, 4, -5]
+direction = [0, 0, -1]
+vfov = 45
+rotation = -90
 
 # Big sphere underneath:
 
 [[surfaces]]
 type = "Sphere"
-center = [0.0, -101.0, 0.0]
-radius = 100.0
+center = [0.0, -21.0, 0.0]
+radius = 20.0
 
 [surfaces.material]
 albedo = 0.95
@@ -36,7 +37,7 @@ radius = 1.0
 
 [surfaces.material]
 attenuation = [0.8, 1, 0.8]
-diffusion_probability = 0.75
+diffusion = 0.75
 
 # Small sphere on the right:
 

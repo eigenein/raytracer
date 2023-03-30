@@ -1,6 +1,7 @@
+use std::f64::consts::FRAC_PI_2;
 use std::ops::Range;
 
-use glam::DVec3;
+use glam::{DQuat, DVec3};
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -23,26 +24,20 @@ impl Tracer {
 
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
         info!(self.options.samples_per_pixel, self.options.max_depth);
+        info!(?self.scene.camera.location);
+        info!(?self.scene.camera.direction);
+        info!(self.scene.camera.vertical_fov, self.scene.camera.viewport_rotation);
 
-        let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
-
-        // Vectors to convert the image's pixel coordinates to the viewport's ones:
-        let x_vector = DVec3::new(self.scene.viewport.width, 0.0, 0.0) / output_width as f64;
-        let y_vector = DVec3::new(0.0, -x_vector.x, 0.0);
-        info!(?x_vector, ?y_vector);
-
-        let viewport_center = DVec3::new(0.0, 0.0, -self.scene.viewport.distance);
-        info!(?viewport_center);
-
-        let eye_position =
-            DVec3::new(0.0, 0.0, -self.scene.viewport.focal_length - self.scene.viewport.distance);
-        info!(?eye_position);
+        let (viewport_dx, viewport_dy) = self.get_viewport_plane(output_height);
+        info!(?viewport_dx);
+        info!(?viewport_dy);
 
         let half_image_width = output_width as f64 / 2.0;
         let half_image_height = output_height as f64 / 2.0;
         let distance = 0.000001..f64::INFINITY; // FIXME: shadow acne problem.
 
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
+        let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
 
         for y in 0..output_height {
             for x in 0..output_width {
@@ -50,10 +45,11 @@ impl Tracer {
                     .map(|_| {
                         let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
                         let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
-                        let viewport_point =
-                            viewport_center + image_x * x_vector + image_y * y_vector;
+                        let viewport_point = self.scene.camera.direction
+                            + image_x * viewport_dx
+                            + image_y * viewport_dy;
                         self.trace_ray(
-                            Ray::by_two_points(eye_position, viewport_point),
+                            Ray::by_two_points(self.scene.camera.location, viewport_point),
                             self.options.max_depth,
                             &distance,
                         )
@@ -67,6 +63,34 @@ impl Tracer {
         progress.finish();
 
         Ok(pixels)
+    }
+
+    /// Calculate and return the viewport's `dx` and `dy` vectors,
+    /// which represent how much space the image pixel takes in the scene world.
+    ///
+    /// The resulting vectors are relative to the camera direction point.
+    fn get_viewport_plane(&self, output_height: u32) -> (DVec3, DVec3) {
+        let principal_axis = self.scene.camera.location - self.scene.camera.direction;
+        let focal_length = principal_axis.length();
+        let principal_axis = principal_axis / focal_length;
+
+        // This gives us two orthogonal vectors for the viewport plane:
+        let dx = principal_axis.any_orthogonal_vector();
+        let dy = DQuat::from_axis_angle(principal_axis, FRAC_PI_2).mul_vec3(dx);
+
+        // Additionally, rotate the viewport to the specified angle:
+        let rotation = DQuat::from_axis_angle(
+            principal_axis,
+            self.scene.camera.viewport_rotation.to_radians(),
+        );
+        let dx = rotation.mul_vec3(dx);
+        let dy = rotation.mul_vec3(dy);
+
+        // Finally, scale the vectors to the actual field-of-view angle:
+        let viewport_height =
+            2.0 * focal_length * (self.scene.camera.vertical_fov / 2.0).to_radians().sin();
+        let scale = viewport_height / output_height as f64;
+        (dx * scale, dy * scale)
     }
 
     /// Trace the ray and return the resulting color.
@@ -149,7 +173,7 @@ impl Tracer {
             }
         }
 
-        if let Some(diffusion_probability) = hit.material.diffusion_probability {
+        if let Some(diffusion_probability) = hit.material.diffusion_fraction {
             // Diffused reflection with Lambertian reflectance:
             // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
             let ray = Ray {
@@ -174,7 +198,7 @@ impl Tracer {
             }
             total_color += self.trace_ray(ray, depth_left, distance_range)
                 * reflectance
-                * (1.0 - hit.material.diffusion_probability.unwrap_or_default());
+                * (1.0 - hit.material.diffusion_fraction.unwrap_or_default());
         }
 
         total_color * hit.material.attenuation * hit.material.albedo

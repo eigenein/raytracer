@@ -7,11 +7,13 @@ use serde::Deserialize;
 use crate::prelude::*;
 use crate::surface::Surface;
 
+/// A scene to render.
+///
+/// This is a root object in a scene TOML file.
 #[derive(Deserialize)]
 pub struct Scene {
-    /// Projection viewport.
     #[serde(default)]
-    pub viewport: Viewport,
+    pub camera: Camera,
 
     /// Scene background and ambient color.
     #[serde(default = "Scene::default_ambient_color")]
@@ -35,40 +37,39 @@ impl Scene {
 }
 
 #[derive(Deserialize)]
-pub struct Viewport {
-    /// Viewport width, in meters.
-    #[serde(default = "Viewport::default_width")]
-    pub width: f64,
+pub struct Camera {
+    #[serde(default = "Camera::default_location")]
+    pub location: DVec3,
 
-    /// Distance between the projection plane and the world center, in meters.
-    #[serde(default = "Viewport::default_distance")]
-    pub distance: f64,
+    #[serde(default)]
+    pub direction: DVec3,
 
-    /// Distance between the projection plane and the projection point, in meters.
-    #[serde(default = "Viewport::default_focal_length")]
-    pub focal_length: f64,
+    /// Vertical field-of-view angle, in degrees.
+    #[serde(default = "Camera::default_vertical_fov", alias = "vfov")]
+    pub vertical_fov: f64,
+
+    /// Viewport plane rotation along the principal axis, in degrees.
+    #[serde(default, alias = "rotation")]
+    pub viewport_rotation: f64,
 }
 
-impl Viewport {
-    pub const fn default_width() -> f64 {
-        1.0
+impl Camera {
+    pub const fn default_location() -> DVec3 {
+        DVec3::new(0.0, 0.0, -1.0)
     }
 
-    pub const fn default_distance() -> f64 {
-        1.0
-    }
-
-    pub const fn default_focal_length() -> f64 {
-        1.0
+    pub const fn default_vertical_fov() -> f64 {
+        90.0
     }
 }
 
-impl Default for Viewport {
+impl Default for Camera {
     fn default() -> Self {
         Self {
-            width: Self::default_width(),
-            distance: Self::default_distance(),
-            focal_length: Self::default_focal_length(),
+            location: Self::default_location(),
+            direction: DVec3::default(),
+            vertical_fov: Self::default_vertical_fov(),
+            viewport_rotation: f64::default(),
         }
     }
 }
