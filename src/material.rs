@@ -16,7 +16,7 @@ pub struct Material {
     pub reflective_fuzz: Option<f64>,
 
     #[serde(default)]
-    pub diffusion_probability: f64,
+    pub diffusion_probability: Option<f64>,
 }
 
 impl Material {

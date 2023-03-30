@@ -10,8 +10,10 @@ pub struct Hit<'a> {
     /// Normal at the hit point.
     pub normal: DVec3,
 
-    /// Time travelled by the ray till the hit point.
-    pub time: f64,
+    /// Distance travelled by the ray till the hit point.
+    ///
+    /// The ray direction **must** be normalized for this to hold.
+    pub distance: f64,
 
     pub from_outside: bool,
 
