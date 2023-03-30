@@ -19,6 +19,13 @@ pub struct Scene {
     #[serde(default = "Scene::default_ambient_color")]
     pub ambient_color: DVec3,
 
+    /// Scene medium refractive index.
+    ///
+    /// This index is assigned for the primary incident rays originating
+    /// from the camera.
+    #[serde(default = "Scene::default_refractive_index")]
+    pub refractive_index: f64,
+
     /// Surfaces to render.
     #[serde(default)]
     pub surfaces: Vec<Surface>,
@@ -33,6 +40,10 @@ impl Scene {
 
     pub const fn default_ambient_color() -> DVec3 {
         DVec3::ZERO
+    }
+
+    pub const fn default_refractive_index() -> f64 {
+        1.0
     }
 }
 

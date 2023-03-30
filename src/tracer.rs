@@ -48,11 +48,12 @@ impl Tracer {
                         let viewport_point = self.scene.camera.direction
                             + image_x * viewport_dx
                             + image_y * viewport_dy;
-                        self.trace_ray(
-                            Ray::by_two_points(self.scene.camera.location, viewport_point),
-                            self.options.max_depth,
-                            &distance,
-                        )
+                        let ray = Ray::by_two_points(
+                            self.scene.camera.location,
+                            viewport_point,
+                            self.scene.refractive_index,
+                        );
+                        self.trace_ray(ray, self.options.max_depth, &distance)
                     })
                     .sum::<DVec3>()
                     / self.options.samples_per_pixel as f64;
