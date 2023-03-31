@@ -3,6 +3,7 @@ use std::ops::Range;
 use glam::DVec3;
 use serde::Deserialize;
 
+use crate::aabb::Aabb;
 use crate::hit::{Hit, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -15,10 +16,15 @@ pub enum Surface {
 }
 
 impl Hittable for Surface {
-    /// Calculate a hit of the surface by the specified ray.
     fn hit(&self, by_ray: &Ray, distance: &Range<f64>) -> Option<Hit> {
         match self {
             Self::Sphere(sphere) => sphere.hit(by_ray, distance),
+        }
+    }
+
+    fn aabb(&self) -> Option<Aabb> {
+        match self {
+            Self::Sphere(sphere) => sphere.aabb(),
         }
     }
 }
@@ -65,6 +71,13 @@ impl Hittable for Sphere {
                 -outward_normal
             },
             material: &self.material,
+        })
+    }
+
+    fn aabb(&self) -> Option<Aabb> {
+        Some(Aabb {
+            min_point: self.center - self.radius,
+            max_point: self.center - self.radius,
         })
     }
 }

@@ -11,7 +11,7 @@ pub struct Aabb {
 
 impl Aabb {
     /// See the original: <https://gamedev.stackexchange.com/a/18459/171067>.
-    #[inline]
+    #[allow(dead_code)]
     pub fn hit(&self, ray: &Ray) -> bool {
         let min_plane_distances = (self.min_point - ray.origin) / ray.direction;
         let max_plane_distances = (self.max_point - ray.origin) / ray.direction;
