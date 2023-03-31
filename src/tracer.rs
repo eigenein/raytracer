@@ -34,7 +34,7 @@ impl Tracer {
 
         let half_image_width = output_width as f64 / 2.0;
         let half_image_height = output_height as f64 / 2.0;
-        let distance = 0.000001..f64::INFINITY; // FIXME: shadow acne problem.
+        let distance = 0.000001..f64::INFINITY; // TODO: shadow acne problem, make an option.
 
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
@@ -125,6 +125,8 @@ impl Tracer {
     /// - <https://physics.stackexchange.com/a/436252/11966>
     /// - <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - <https://en.wikipedia.org/wiki/Lambertian_reflectance>
+    ///
+    /// TODO: decompose this monstrosity.
     pub fn trace_scattered_rays(
         &self,
         incident_ray: &Ray,
@@ -133,26 +135,26 @@ impl Tracer {
         distance_range: &Range<f64>,
     ) -> DVec3 {
         let mut reflectance = 1.0;
-        let mut total_color = DVec3::ZERO;
+        let mut total_light = DVec3::ZERO;
 
         let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
         assert!(cosine_theta_1 >= 0.0);
 
-        if let Some(to_refractive_index) = hit.material.refractive_index {
+        if let Some(transmittance) = &hit.material.transmittance {
             // Transparent body, the ray may refract:
             let mu = if hit.from_outside {
-                incident_ray.refractive_index / to_refractive_index
+                incident_ray.refractive_index / transmittance.refractive_index
             } else {
-                to_refractive_index / incident_ray.refractive_index
+                transmittance.refractive_index / incident_ray.refractive_index
             };
             let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
 
             if sin_theta_2 <= 1.0 {
-                // Refraction is possible.
+                // Refraction is possible, adjust the reflectance:
                 reflectance = {
                     // Schlick's approximation for reflectance:
-                    let r0 = ((incident_ray.refractive_index - to_refractive_index)
-                        / (incident_ray.refractive_index + to_refractive_index))
+                    let r0 = ((incident_ray.refractive_index - transmittance.refractive_index)
+                        / (incident_ray.refractive_index + transmittance.refractive_index))
                         .powi(2);
                     r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
                 };
@@ -166,15 +168,26 @@ impl Tracer {
                 let ray = Ray {
                     origin: hit.location,
                     direction,
-                    refractive_index: to_refractive_index,
+                    refractive_index: transmittance.refractive_index,
                 };
 
-                total_color +=
+                let mut transmitted_light =
                     self.trace_ray(ray, depth_left, distance_range) * (1.0 - reflectance);
+                if !hit.from_outside {
+                    // Hit from inside, apply the attenuation coefficient:
+                    if let Some(coefficient) = transmittance.coefficient {
+                        // Exponential decay:
+                        transmitted_light *= (-hit.distance * coefficient).exp();
+                    }
+                }
+                total_light += transmitted_light
+                    * transmittance
+                        .attenuation
+                        .unwrap_or(hit.material.reflectance.attenuation);
             }
         }
 
-        if let Some(diffusion_probability) = hit.material.diffusion_fraction {
+        if let Some(diffusion) = hit.material.reflectance.diffusion {
             // Diffused reflection with Lambertian reflectance:
             // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
             let ray = Ray {
@@ -182,9 +195,10 @@ impl Tracer {
                 direction: hit.normal + random_unit_vector(),
                 refractive_index: incident_ray.refractive_index,
             };
-            total_color += self.trace_ray(ray, depth_left, distance_range)
+            total_light += self.trace_ray(ray, depth_left, distance_range)
                 * reflectance
-                * diffusion_probability;
+                * diffusion
+                * hit.material.reflectance.attenuation;
         }
 
         // And finally, normal reflectance:
@@ -194,14 +208,15 @@ impl Tracer {
                 direction: incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
                 refractive_index: incident_ray.refractive_index,
             };
-            if let Some(fuzz) = hit.material.reflective_fuzz {
+            if let Some(fuzz) = hit.material.reflectance.fuzz {
                 ray.direction += random_unit_vector() * fuzz;
             }
-            total_color += self.trace_ray(ray, depth_left, distance_range)
+            total_light += self.trace_ray(ray, depth_left, distance_range)
                 * reflectance
-                * (1.0 - hit.material.diffusion_fraction.unwrap_or_default());
+                * (1.0 - hit.material.reflectance.diffusion.unwrap_or_default())
+                * hit.material.reflectance.attenuation;
         }
 
-        total_color * hit.material.attenuation * hit.material.albedo
+        total_light
     }
 }

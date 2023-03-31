@@ -1,57 +1,59 @@
-use glam::{DVec3, DVec4};
+use glam::DVec3;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Material {
-    #[serde(default = "Material::default_attenuation")]
-    pub attenuation: DVec3,
-
-    #[serde(default = "Material::default_albedo")]
-    pub albedo: f64,
+    #[serde(default)]
+    pub reflectance: Reflectance,
 
     #[serde(default)]
-    pub refractive_index: Option<f64>,
-
-    #[serde(default)]
-    pub reflective_fuzz: Option<f64>,
-
-    #[serde(default, alias = "diffusion")]
-    pub diffusion_fraction: Option<f64>,
+    pub transmittance: Option<Transmittance>,
 }
 
-impl Material {
+#[derive(Deserialize)]
+pub struct Reflectance {
+    #[serde(default = "Reflectance::default_attenuation")]
+    pub attenuation: DVec3,
+
+    #[serde(default)]
+    pub fuzz: Option<f64>,
+
+    #[serde(default)]
+    pub diffusion: Option<f64>,
+}
+
+impl Reflectance {
     pub const fn default_attenuation() -> DVec3 {
         DVec3::ONE
     }
+}
 
-    pub const fn default_albedo() -> f64 {
-        1.0
+impl Default for Reflectance {
+    fn default() -> Self {
+        Self {
+            attenuation: Self::default_attenuation(),
+            fuzz: None,
+            diffusion: None,
+        }
     }
 }
 
 #[derive(Deserialize)]
-pub struct Reflection {
-    #[serde(default = "Reflection::default_color")]
-    pub color: DVec4,
+pub struct Transmittance {
+    #[serde(default = "Transmittance::default_refractive_index")]
+    pub refractive_index: f64,
 
+    /// If not set, defaults to the reflectance attenuation.
     #[serde(default)]
-    pub fuzz: f64,
+    pub attenuation: Option<DVec3>,
+
+    /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
+    #[serde(default)]
+    pub coefficient: Option<f64>,
 }
 
-impl Reflection {
-    pub const fn default_color() -> DVec4 {
-        DVec4::ONE
-    }
-}
-
-#[derive(Deserialize)]
-pub struct Refraction {
-    #[serde(default = "Refraction::default_index")]
-    pub index: f64,
-}
-
-impl Refraction {
-    pub const fn default_index() -> f64 {
+impl Transmittance {
+    pub const fn default_refractive_index() -> f64 {
         1.0
     }
 }

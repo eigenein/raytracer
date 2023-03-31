@@ -14,8 +14,10 @@ center = [0.0, -21.0, 0.0]
 radius = 20.0
 
 [surfaces.material]
-albedo = 0.95
-reflective_fuzz = 0.01
+
+[surfaces.material.reflectance]
+attenuation = [0.95, 0.95, 0.95]
+fuzz = 0.01
 
 # Central small sphere:
 
@@ -25,8 +27,9 @@ center = [0.0, 0.1, 0.0]
 radius = 1.0
 
 [surfaces.material]
-attenuation = [1, 1, 0.8]
-albedo = 0.9
+
+[surfaces.material.reflectance]
+attenuation = [0.9, 0.9, 0.72]
 
 # Small sphere on the left:
 
@@ -36,7 +39,9 @@ center = [-2.5, 0.0, 0.0]
 radius = 1.0
 
 [surfaces.material]
-attenuation = [0.8, 1, 0.8]
+
+[surfaces.material.reflectance]
+attenuation = [0.8, 0.9, 0.8]
 diffusion = 0.75
 
 # Small sphere on the right:
@@ -47,8 +52,13 @@ center = [0.75, -0.5, -1.5]
 radius = 0.5
 
 [surfaces.material]
+
+[surfaces.material.reflectance]
 attenuation = [1.0, 0.8, 0.8]
+
+[surfaces.material.transmittance]
 refractive_index = 1.54
+coefficient = 0.1
 
 # Another small sphere on the right:
 
@@ -58,5 +68,11 @@ center = [1.5, -0.5, 0.0]
 radius = 0.5
 
 [surfaces.material]
+
+[surfaces.material.reflectance]
 attenuation = [0.8, 0.8, 1.0]
+
+[surfaces.material.transmittance]
 refractive_index = 1.54
+coefficient = 0.5
+attenuation = [0.8, 1.0, 1.0]
