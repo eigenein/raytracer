@@ -475,6 +475,7 @@ dependencies = [
  "indicatif",
  "itertools",
  "serde",
+ "smallvec",
  "toml",
  "tracing",
  "tracing-subscriber",

@@ -49,11 +49,7 @@ impl Tracer {
                         let viewport_point = self.scene.camera.look_at
                             + image_x * viewport_dx
                             + image_y * viewport_dy;
-                        let ray = Ray::by_two_points(
-                            self.scene.camera.location,
-                            viewport_point,
-                            self.scene.refractive_index,
-                        );
+                        let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
                         self.trace_ray(ray, self.options.max_depth, &distance)
                     })
                     .sum::<DVec3>()
@@ -134,10 +130,19 @@ impl Tracer {
 
         if let Some(transmittance) = &hit.material.transmittance {
             // Transparent body, the ray may refract:
+            let current_refractive_index = incident_ray
+                .current_refractive_index()
+                .unwrap_or(self.scene.refractive_index);
+
             let mu = if hit.from_outside {
-                incident_ray.refractive_index / transmittance.refractive_index
+                // Entering the medium:
+                current_refractive_index / transmittance.refractive_index
             } else {
-                transmittance.refractive_index / incident_ray.refractive_index
+                // Leaving the medium:
+                let outer_refractive_index = incident_ray
+                    .outer_refractive_index()
+                    .unwrap_or(self.scene.refractive_index);
+                transmittance.refractive_index / outer_refractive_index
             };
             let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
 
@@ -145,8 +150,8 @@ impl Tracer {
                 // Refraction is possible, adjust the reflectance:
                 reflectance = {
                     // Schlick's approximation for reflectance:
-                    let r0 = ((incident_ray.refractive_index - transmittance.refractive_index)
-                        / (incident_ray.refractive_index + transmittance.refractive_index))
+                    let r0 = ((current_refractive_index - transmittance.refractive_index)
+                        / (current_refractive_index + transmittance.refractive_index))
                         .powi(2);
                     r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
                 };
@@ -157,10 +162,24 @@ impl Tracer {
                     mu * incident_ray.direction
                         + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
                 };
-                let ray = Ray {
-                    origin: hit.location,
-                    direction,
-                    refractive_index: transmittance.refractive_index,
+                let ray = {
+                    let mut refractive_indexes = incident_ray.refractive_indexes.clone();
+                    {
+                        // Update the index of the refracted ray:
+                        let refractive_indexes = refractive_indexes.to_mut();
+                        if hit.from_outside {
+                            refractive_indexes.push(transmittance.refractive_index);
+                        } else {
+                            refractive_indexes
+                                .pop()
+                                .expect("cannot leave a medium without entering it first");
+                        }
+                    }
+                    Ray {
+                        origin: hit.location,
+                        direction,
+                        refractive_indexes,
+                    }
                 };
 
                 let mut transmitted_light =
@@ -185,7 +204,7 @@ impl Tracer {
             let ray = Ray {
                 origin: hit.location,
                 direction: hit.normal + random_unit_vector(),
-                refractive_index: incident_ray.refractive_index,
+                refractive_indexes: incident_ray.refractive_indexes.clone(),
             };
             total_light += self.trace_ray(ray, depth_left, distance_range)
                 * reflectance
@@ -198,7 +217,7 @@ impl Tracer {
             let mut ray = Ray {
                 origin: hit.location,
                 direction: incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
-                refractive_index: incident_ray.refractive_index,
+                refractive_indexes: incident_ray.refractive_indexes.clone(),
             };
             if let Some(fuzz) = hit.material.reflectance.fuzz {
                 ray.direction += random_unit_vector() * fuzz;
