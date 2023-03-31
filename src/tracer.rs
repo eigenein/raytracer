@@ -1,5 +1,4 @@
 use std::f64::consts::FRAC_PI_2;
-use std::ops::Range;
 
 use glam::{DQuat, DVec3};
 use tracing::info;
@@ -35,7 +34,6 @@ impl Tracer {
 
         let half_image_width = output_width as f64 / 2.0;
         let half_image_height = output_height as f64 / 2.0;
-        let distance = 0.000001..f64::INFINITY; // TODO: shadow acne problem, make an option.
 
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
@@ -50,7 +48,7 @@ impl Tracer {
                             + image_x * viewport_dx
                             + image_y * viewport_dy;
                         let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                        self.trace_ray(ray, self.options.max_depth, &distance)
+                        self.trace_ray(ray, self.options.max_depth)
                     })
                     .sum::<DVec3>()
                     / self.options.samples_per_pixel as f64;
@@ -84,20 +82,21 @@ impl Tracer {
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, mut ray: Ray, depth_left: u16, distance_range: &Range<f64>) -> DVec3 {
+    fn trace_ray(&self, mut ray: Ray, depth_left: u16) -> DVec3 {
         ray.normalize();
+        let distance_range = 0.000001..f64::INFINITY; // TODO: shadow acne problem, make an option.;
 
         let hit = self
             .scene
             .surfaces
             .iter()
-            .filter_map(|surface| surface.hit(&ray, distance_range))
+            .filter_map(|surface| surface.hit(&ray, &distance_range))
             .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
 
         match hit {
             Some(hit) if depth_left != 0 => {
                 // The ray hit a surface, scatter the ray:
-                self.trace_scattered_rays(&ray, &hit, depth_left - 1, distance_range)
+                self.trace_scattered_rays(&ray, &hit, depth_left - 1)
             }
             Some(_) => DVec3::ZERO,           // the depth limit is reached
             None => self.scene.ambient_color, // the ray didn't hit anything
@@ -110,18 +109,10 @@ impl Tracer {
     ///
     /// See also:
     ///
-    /// - <https://physics.stackexchange.com/a/436252/11966>
-    /// - <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
-    /// - <https://en.wikipedia.org/wiki/Lambertian_reflectance>
-    ///
-    /// TODO: decompose this monstrosity.
-    pub fn trace_scattered_rays(
-        &self,
-        incident_ray: &Ray,
-        hit: &Hit,
-        depth_left: u16,
-        distance_range: &Range<f64>,
-    ) -> DVec3 {
+    /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
+    /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
+    /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
+    pub fn trace_scattered_rays(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
         let mut reflectance = 1.0;
         let mut total_light = DVec3::ZERO;
 
@@ -182,8 +173,7 @@ impl Tracer {
                     }
                 };
 
-                let mut transmitted_light =
-                    self.trace_ray(ray, depth_left, distance_range) * (1.0 - reflectance);
+                let mut transmitted_light = self.trace_ray(ray, depth_left) * (1.0 - reflectance);
                 if !hit.from_outside {
                     // Hit from inside, apply the attenuation coefficient:
                     if let Some(coefficient) = transmittance.coefficient {
@@ -206,7 +196,7 @@ impl Tracer {
                 direction: hit.normal + random_unit_vector(),
                 refractive_indexes: incident_ray.refractive_indexes.clone(),
             };
-            total_light += self.trace_ray(ray, depth_left, distance_range)
+            total_light += self.trace_ray(ray, depth_left)
                 * reflectance
                 * diffusion
                 * hit.material.reflectance.attenuation;
@@ -222,7 +212,7 @@ impl Tracer {
             if let Some(fuzz) = hit.material.reflectance.fuzz {
                 ray.direction += random_unit_vector() * fuzz;
             }
-            total_light += self.trace_ray(ray, depth_left, distance_range)
+            total_light += self.trace_ray(ray, depth_left)
                 * reflectance
                 * (1.0 - hit.material.reflectance.diffusion.unwrap_or_default())
                 * hit.material.reflectance.attenuation;
