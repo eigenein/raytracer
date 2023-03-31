@@ -1,6 +1,8 @@
 use std::f64::consts::FRAC_PI_2;
 
+use fastrand::Rng;
 use glam::{DQuat, DVec3};
+use itertools::iproduct;
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -14,11 +16,16 @@ use crate::scene::Scene;
 pub struct Tracer {
     pub scene: Scene,
     pub options: TracerOptions,
+    rng: Rng,
 }
 
 impl Tracer {
-    pub const fn new(scene: Scene, options: TracerOptions) -> Self {
-        Self { options, scene }
+    pub fn new(scene: Scene, options: TracerOptions) -> Self {
+        Self {
+            options,
+            scene,
+            rng: Rng::new(),
+        }
     }
 
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
@@ -38,23 +45,20 @@ impl Tracer {
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
 
-        for y in 0..output_height {
-            for x in 0..output_width {
-                let color = (0..self.options.samples_per_pixel)
-                    .map(|_| {
-                        let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
-                        let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
-                        let viewport_point = self.scene.camera.look_at
-                            + image_x * viewport_dx
-                            + image_y * viewport_dy;
-                        let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                        self.trace_ray(ray, self.options.max_depth)
-                    })
-                    .sum::<DVec3>()
-                    / self.options.samples_per_pixel as f64;
-                pixels.push(color);
-            }
-            progress.inc(1);
+        for (y, x) in iproduct!(0..output_height, 0..output_width) {
+            let color = (0..self.options.samples_per_pixel)
+                .map(|_| {
+                    let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
+                    let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
+                    let viewport_point =
+                        self.scene.camera.look_at + image_x * viewport_dx + image_y * viewport_dy;
+                    let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
+                    self.trace_ray(ray, self.options.max_depth)
+                })
+                .sum::<DVec3>()
+                / self.options.samples_per_pixel as f64;
+            pixels.push(color);
+            progress.set_position(y as u64);
         }
         progress.finish();
 
@@ -112,9 +116,38 @@ impl Tracer {
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
-    pub fn trace_scattered_rays(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
-        let mut reflectance = 1.0;
+    fn trace_scattered_rays(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
         let mut total_light = DVec3::ZERO;
+
+        match hit.material.reflectance.diffusion {
+            Some(diffusion) if fastrand::f64() < diffusion => {
+                // Diffused reflection with Lambertian reflectance:
+                // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
+                let ray = Ray {
+                    origin: hit.location,
+                    direction: hit.normal + random_unit_vector(&self.rng),
+                    refractive_indexes: incident_ray.refractive_indexes.clone(),
+                };
+                total_light +=
+                    self.trace_ray(ray, depth_left) * hit.material.reflectance.attenuation;
+            }
+            Some(_) | None => {
+                self.trace_reflection_refraction(incident_ray, hit, depth_left, &mut total_light);
+            }
+        }
+
+        total_light
+    }
+
+    fn trace_reflection_refraction(
+        &self,
+        incident_ray: &Ray,
+        hit: &Hit,
+        depth_left: u16,
+        total_light: &mut DVec3,
+    ) {
+        // Refraction and/or normal reflection:
+        let mut reflectance = 1.0;
 
         let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
         assert!(cosine_theta_1 >= 0.0);
@@ -175,49 +208,33 @@ impl Tracer {
 
                 let mut transmitted_light = self.trace_ray(ray, depth_left) * (1.0 - reflectance);
                 if !hit.from_outside {
-                    // Hit from inside, apply the attenuation coefficient:
+                    // Hit from inside, apply the possible attenuation coefficient:
                     if let Some(coefficient) = transmittance.coefficient {
                         // Exponential decay:
                         transmitted_light *= (-hit.distance * coefficient).exp();
                     }
                 }
-                total_light += transmitted_light
+                *total_light += transmitted_light
                     * transmittance
                         .attenuation
                         .unwrap_or(hit.material.reflectance.attenuation);
             }
         }
 
-        if let Some(diffusion) = hit.material.reflectance.diffusion {
-            // Diffused reflection with Lambertian reflectance:
-            // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-            let ray = Ray {
-                origin: hit.location,
-                direction: hit.normal + random_unit_vector(),
-                refractive_indexes: incident_ray.refractive_indexes.clone(),
-            };
-            total_light += self.trace_ray(ray, depth_left)
-                * reflectance
-                * diffusion
-                * hit.material.reflectance.attenuation;
-        }
-
-        // And finally, normal reflectance:
-        {
+        // TODO: make an option.
+        if reflectance >= 0.000001 {
+            // Normal reflectance:
             let mut ray = Ray {
                 origin: hit.location,
                 direction: incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
                 refractive_indexes: incident_ray.refractive_indexes.clone(),
             };
             if let Some(fuzz) = hit.material.reflectance.fuzz {
-                ray.direction += random_unit_vector() * fuzz;
+                ray.direction += random_unit_vector(&self.rng) * fuzz;
             }
-            total_light += self.trace_ray(ray, depth_left)
-                * reflectance
-                * (1.0 - hit.material.reflectance.diffusion.unwrap_or_default())
-                * hit.material.reflectance.attenuation;
+            *total_light += self.trace_ray(ray, depth_left)
+                * hit.material.reflectance.attenuation
+                * reflectance;
         }
-
-        total_light
     }
 }

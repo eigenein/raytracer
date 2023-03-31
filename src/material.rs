@@ -18,7 +18,7 @@ pub struct Reflectance {
     #[serde(default)]
     pub fuzz: Option<f64>,
 
-    #[serde(default)]
+    #[serde(default, alias = "diffuse")]
     pub diffusion: Option<f64>,
 }
 
@@ -40,7 +40,8 @@ impl Default for Reflectance {
 
 #[derive(Deserialize)]
 pub struct Transmittance {
-    #[serde(default = "Transmittance::default_refractive_index")]
+    /// Refractive index of the medium inside the body.
+    #[serde(default = "Transmittance::default_refractive_index", alias = "index")]
     pub refractive_index: f64,
 
     /// If not set, defaults to the reflectance attenuation.
