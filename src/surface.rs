@@ -3,7 +3,7 @@ use std::ops::Range;
 use glam::DVec3;
 use serde::Deserialize;
 
-use crate::hit::Hit;
+use crate::hit::{Hit, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 
@@ -14,9 +14,9 @@ pub enum Surface {
     Sphere(Sphere),
 }
 
-impl Surface {
+impl Hittable for Surface {
     /// Calculate a hit of the surface by the specified ray.
-    pub fn hit(&self, by_ray: &Ray, distance: &Range<f64>) -> Option<Hit> {
+    fn hit(&self, by_ray: &Ray, distance: &Range<f64>) -> Option<Hit> {
         match self {
             Self::Sphere(sphere) => sphere.hit(by_ray, distance),
         }
@@ -30,8 +30,8 @@ pub struct Sphere {
     material: Material,
 }
 
-impl Sphere {
-    pub fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<Hit> {
+impl Hittable for Sphere {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<Hit> {
         let oc = by_ray.origin - self.center;
         let a = by_ray.direction.length_squared();
         let half_b = oc.dot(by_ray.direction);

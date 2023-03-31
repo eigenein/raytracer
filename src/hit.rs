@@ -1,6 +1,9 @@
+use std::ops::Range;
+
 use glam::DVec3;
 
 use crate::material::Material;
+use crate::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
@@ -19,4 +22,8 @@ pub struct Hit<'a> {
 
     /// Material at the hit point.
     pub material: &'a Material,
+}
+
+pub trait Hittable {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<Hit>;
 }

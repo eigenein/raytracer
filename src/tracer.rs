@@ -4,7 +4,7 @@ use itertools::iproduct;
 use tracing::info;
 
 use crate::args::TracerOptions;
-use crate::hit::Hit;
+use crate::hit::{Hit, Hittable};
 use crate::math::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
