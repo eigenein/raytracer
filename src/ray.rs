@@ -4,8 +4,11 @@ use std::ops::Index;
 use glam::DVec3;
 use smallvec::SmallVec;
 
+type RefractiveIndexes = SmallVec<[f64; 4]>;
+
 pub struct Ray<'a> {
     pub origin: DVec3,
+
     pub direction: DVec3,
 
     /// Stack of medium refractive indexes.
@@ -14,30 +17,34 @@ pub struct Ray<'a> {
     ///
     /// When the ray enters a new medium, the new index gets pushed onto stack.
     /// When the ray leaves the medium, the former index gets popped from the stack.
-    pub refractive_indexes: Cow<'a, SmallVec<[f64; 4]>>,
+    pub refractive_indexes: Cow<'a, RefractiveIndexes>,
 }
 
 impl<'a> Ray<'a> {
-    const DEFAULT_REFRACTIVE_INDEXES: Cow<'static, SmallVec<[f64; 4]>> =
+    const DEFAULT_REFRACTIVE_INDEXES: Cow<'static, RefractiveIndexes> =
         Cow::Owned(SmallVec::new_const());
 
     #[inline]
-    pub fn by_two_points(from: DVec3, to: DVec3) -> Self {
+    pub fn new(
+        origin: DVec3,
+        direction: DVec3,
+        refractive_indexes: Cow<'a, RefractiveIndexes>,
+    ) -> Self {
         Self {
-            origin: from,
-            direction: to - from,
-            refractive_indexes: Self::DEFAULT_REFRACTIVE_INDEXES,
+            origin,
+            direction: direction.normalize(),
+            refractive_indexes,
         }
+    }
+
+    #[inline]
+    pub fn by_two_points(from: DVec3, to: DVec3) -> Self {
+        Self::new(from, to - from, Self::DEFAULT_REFRACTIVE_INDEXES)
     }
 
     #[inline]
     pub fn at(&self, distance: f64) -> DVec3 {
         self.origin + self.direction * distance
-    }
-
-    #[inline]
-    pub fn normalize(&mut self) {
-        self.direction = self.direction.normalize();
     }
 
     #[inline]

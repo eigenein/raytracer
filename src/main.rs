@@ -19,6 +19,7 @@ use tracing_subscriber::FmtSubscriber;
 use crate::args::Args;
 use crate::image::Rgb16Image;
 
+mod aabb;
 mod args;
 mod constants;
 mod hit;
