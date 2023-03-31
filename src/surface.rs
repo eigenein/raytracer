@@ -77,7 +77,7 @@ impl Hittable for Sphere {
     fn aabb(&self) -> Option<Aabb> {
         Some(Aabb {
             min_point: self.center - self.radius,
-            max_point: self.center - self.radius,
+            max_point: self.center + self.radius,
         })
     }
 }
