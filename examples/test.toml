@@ -2,9 +2,9 @@ ambient_color = [1, 1, 1]
 
 [camera]
 location = [0, 4, -5]
-direction = [0, 0, -1]
+look_at = [0, 0, -1]
 vfov = 45
-rotation = -90
+up = [0, 1, 0]
 
 # Big sphere underneath:
 

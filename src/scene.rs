@@ -53,15 +53,15 @@ pub struct Camera {
     pub location: DVec3,
 
     #[serde(default)]
-    pub direction: DVec3,
+    pub look_at: DVec3,
 
     /// Vertical field-of-view angle, in degrees.
     #[serde(default = "Camera::default_vertical_fov", alias = "vfov")]
     pub vertical_fov: f64,
 
-    /// Viewport plane rotation along the principal axis, in degrees.
-    #[serde(default, alias = "rotation")]
-    pub viewport_rotation: f64,
+    /// Up direction.
+    #[serde(default = "Camera::default_up")]
+    pub up: DVec3,
 }
 
 impl Camera {
@@ -72,15 +72,19 @@ impl Camera {
     pub const fn default_vertical_fov() -> f64 {
         90.0
     }
+
+    pub const fn default_up() -> DVec3 {
+        DVec3::new(0.0, 1.0, 0.0)
+    }
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
             location: Self::default_location(),
-            direction: DVec3::default(),
+            look_at: DVec3::default(),
             vertical_fov: Self::default_vertical_fov(),
-            viewport_rotation: f64::default(),
+            up: Self::default_up(),
         }
     }
 }

@@ -25,8 +25,9 @@ impl Tracer {
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
         info!(self.options.samples_per_pixel, self.options.max_depth);
         info!(?self.scene.camera.location);
-        info!(?self.scene.camera.direction);
-        info!(self.scene.camera.vertical_fov, self.scene.camera.viewport_rotation);
+        info!(?self.scene.camera.look_at);
+        info!(?self.scene.camera.up);
+        info!(self.scene.camera.vertical_fov);
 
         let (viewport_dx, viewport_dy) = self.get_viewport_plane(output_height);
         info!(?viewport_dx);
@@ -45,7 +46,7 @@ impl Tracer {
                     .map(|_| {
                         let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
                         let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
-                        let viewport_point = self.scene.camera.direction
+                        let viewport_point = self.scene.camera.look_at
                             + image_x * viewport_dx
                             + image_y * viewport_dy;
                         let ray = Ray::by_two_points(
@@ -71,21 +72,12 @@ impl Tracer {
     ///
     /// The resulting vectors are relative to the camera direction point.
     fn get_viewport_plane(&self, output_height: u32) -> (DVec3, DVec3) {
-        let principal_axis = self.scene.camera.location - self.scene.camera.direction;
+        let principal_axis = self.scene.camera.location - self.scene.camera.look_at;
         let focal_length = principal_axis.length();
         let principal_axis = principal_axis / focal_length;
 
-        // This gives us two orthogonal vectors for the viewport plane:
-        let dx = principal_axis.any_orthogonal_vector();
+        let dx = principal_axis.cross(self.scene.camera.up).normalize();
         let dy = DQuat::from_axis_angle(principal_axis, FRAC_PI_2).mul_vec3(dx);
-
-        // Additionally, rotate the viewport to the specified angle:
-        let rotation = DQuat::from_axis_angle(
-            principal_axis,
-            self.scene.camera.viewport_rotation.to_radians(),
-        );
-        let dx = rotation.mul_vec3(dx);
-        let dy = rotation.mul_vec3(dy);
 
         // Finally, scale the vectors to the actual field-of-view angle:
         let viewport_height =
