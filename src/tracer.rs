@@ -1,7 +1,5 @@
-use std::f64::consts::FRAC_PI_2;
-
 use fastrand::Rng;
-use glam::{DQuat, DVec3};
+use glam::DVec3;
 use itertools::iproduct;
 use tracing::info;
 
@@ -12,6 +10,7 @@ use crate::prelude::*;
 use crate::progress::new_progress;
 use crate::ray::Ray;
 use crate::scene::Scene;
+use crate::viewport::Viewport;
 
 pub struct Tracer {
     pub scene: Scene,
@@ -35,12 +34,9 @@ impl Tracer {
         info!(?self.scene.camera.up);
         info!(self.scene.camera.vertical_fov);
 
-        let (viewport_dx, viewport_dy) = self.get_viewport_plane(output_height);
-        info!(?viewport_dx);
-        info!(?viewport_dy);
-
-        let half_image_width = output_width as f64 / 2.0;
-        let half_image_height = output_height as f64 / 2.0;
+        let viewport = Viewport::new(&self.scene.camera, output_width, output_height);
+        info!(?viewport.dx);
+        info!(?viewport.dy);
 
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
@@ -48,10 +44,7 @@ impl Tracer {
         for (y, x) in iproduct!(0..output_height, 0..output_width) {
             let color = (0..self.options.samples_per_pixel)
                 .map(|_| {
-                    let image_x = x as f64 - half_image_width + fastrand::f64() - 0.5;
-                    let image_y = y as f64 - half_image_height + fastrand::f64() - 0.5;
-                    let viewport_point =
-                        self.scene.camera.look_at + image_x * viewport_dx + image_y * viewport_dy;
+                    let viewport_point = self.scene.camera.look_at + viewport.cast_random_ray(x, y);
                     let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
                     self.trace_ray(ray, self.options.max_depth)
                 })
@@ -63,25 +56,6 @@ impl Tracer {
         progress.finish();
 
         Ok(pixels)
-    }
-
-    /// Calculate and return the viewport's `dx` and `dy` vectors,
-    /// which represent how much space the image pixel takes in the scene world.
-    ///
-    /// The resulting vectors are relative to the camera direction point.
-    fn get_viewport_plane(&self, output_height: u32) -> (DVec3, DVec3) {
-        let principal_axis = self.scene.camera.location - self.scene.camera.look_at;
-        let focal_length = principal_axis.length();
-        let principal_axis = principal_axis / focal_length;
-
-        let dx = principal_axis.cross(self.scene.camera.up).normalize();
-        let dy = DQuat::from_axis_angle(principal_axis, FRAC_PI_2).mul_vec3(dx);
-
-        // Finally, scale the vectors to the actual field-of-view angle:
-        let viewport_height =
-            2.0 * focal_length * (self.scene.camera.vertical_fov / 2.0).to_radians().sin();
-        let scale = viewport_height / output_height as f64;
-        (dx * scale, dy * scale)
     }
 
     /// Trace the ray and return the resulting color.

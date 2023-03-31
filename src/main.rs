@@ -31,6 +31,7 @@ mod ray;
 mod scene;
 mod surface;
 mod tracer;
+mod viewport;
 
 use crate::prelude::*;
 use crate::progress::new_progress;
