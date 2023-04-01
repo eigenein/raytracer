@@ -14,7 +14,6 @@ ambient_color = [1, 1, 1]
     radius = 20.0
 
     [surfaces.material]
-
         [surfaces.material.reflectance]
             attenuation = [0.95, 0.95, 0.95]
             fuzz = 0.02
@@ -68,7 +67,7 @@ ambient_color = [1, 1, 1]
     radius = 0.5
 
     [surfaces.material]
-        emittance = [0.1, 0.1, 0.125]
+        # emittance = [0.8, 0.8, 1.0]
 
         [surfaces.material.reflectance]
             attenuation = [0.8, 0.8, 1.0]

@@ -93,13 +93,6 @@ impl Tracer {
             let cosine_theta_1 = -hit.normal.dot(ray.direction);
             assert!(cosine_theta_1 >= 0.0);
 
-            let emittance = if hit.from_outside {
-                // TODO: what about the distance?
-                hit.material.emittance * cosine_theta_1
-            } else {
-                DVec3::ZERO
-            };
-
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
                 Self::trace_refraction(&ray, &hit, cosine_theta_1, &mut refractive_indexes)
             {
@@ -110,7 +103,9 @@ impl Tracer {
                 self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
             };
 
-            total_emitted += total_attenuation * emittance;
+            if hit.from_outside {
+                total_emitted += total_attenuation * hit.material.emittance;
+            }
             total_attenuation *= attenuation;
             ray = scattered_ray;
         }
