@@ -27,7 +27,10 @@ impl Tracer {
     }
 
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<(u32, u32, DVec3)>> {
-        info!(self.options.samples_per_pixel, self.options.n_max_bounces);
+        info!(
+            self.options.samples_per_pixel,
+            self.options.n_max_bounces, self.options.min_hit_distance
+        );
         info!(?self.scene.camera.location);
         info!(?self.scene.camera.look_at);
         info!(?self.scene.camera.up);
@@ -66,8 +69,7 @@ impl Tracer {
     /// Trace the ray and return the resulting color.
     #[inline]
     fn trace_ray(&self, ray: &Ray, n_bounces_left: u16) -> DVec3 {
-        // TODO: shadow acne problem, make an option.
-        let distance_range = 0.000001..f64::INFINITY;
+        let distance_range = self.options.min_hit_distance..f64::INFINITY;
 
         let hit = self
             .scene
@@ -81,7 +83,7 @@ impl Tracer {
                 // The ray hit a surface, scatter the ray:
                 self.trace_scattered_ray(ray, &hit, n_bounces_left - 1)
             }
-            Some(_) => DVec3::ZERO,           // the depth limit is reached
+            Some(_) => DVec3::ZERO,           // the bounce limit is reached
             None => self.scene.ambient_color, // the ray didn't hit anything
         }
     }
@@ -125,7 +127,7 @@ impl Tracer {
     /// # See also
     ///
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-    fn trace_diffusion(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> Option<DVec3> {
+    fn trace_diffusion(&self, incident_ray: &Ray, hit: &Hit, n_bounces_left: u16) -> Option<DVec3> {
         let Some(probability) = hit.material.reflectance.diffusion else { return None };
 
         if fastrand::f64() < probability {
@@ -134,7 +136,7 @@ impl Tracer {
                 hit.normal + random_unit_vector(&self.rng),
                 incident_ray.refractive_indexes.clone(),
             );
-            Some(self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation)
+            Some(self.trace_ray(&ray, n_bounces_left) * hit.material.reflectance.attenuation)
         } else {
             None
         }

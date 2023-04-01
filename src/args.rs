@@ -49,4 +49,9 @@ pub struct TracerOptions {
     /// Maximum number of ray bounces of the scene's surfaces.
     #[arg(short = 'b', long = "max-bounces", default_value = "5", value_parser = value_parser!(u16).range(1..))]
     pub n_max_bounces: u16,
+
+    /// Minimal distance from a ray's origin point to a possible hit.
+    /// This is needed to prevent collision of the ray with its own origin surface.
+    #[arg(long, default_value = "0.000001")]
+    pub min_hit_distance: f64,
 }
