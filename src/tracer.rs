@@ -121,13 +121,10 @@ impl Tracer {
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
     fn trace_diffusion(&self, hit: &Hit) -> Option<(Ray, DVec3)> {
         let Some(probability) = hit.material.reflectance.diffusion else { return None };
-
-        if fastrand::f64() < probability {
+        (fastrand::f64() < probability).then(|| {
             let ray = Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng));
-            Some((ray, hit.material.reflectance.attenuation))
-        } else {
-            None
-        }
+            (ray, hit.material.reflectance.attenuation)
+        })
     }
 
     /// Trace a possible refraction.
