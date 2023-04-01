@@ -87,10 +87,12 @@ impl Tracer {
     ///
     /// - The incident ray **must** be normalized.
     fn trace_scattered_ray(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
+        let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
+        assert!(cosine_theta_1 >= 0.0);
+
         let emittance = if hit.from_outside {
-            // TODO: possibly multiply by `cosine_theta_1`.
-            // TODO: possibly divide by the distance squared.
-            hit.material.emittance
+            // TODO: what about the distance?
+            hit.material.emittance * cosine_theta_1
         } else {
             DVec3::ZERO
         };
@@ -98,9 +100,6 @@ impl Tracer {
         if let Some(light) = self.trace_diffusion(incident_ray, hit, depth_left) {
             return emittance + light;
         }
-
-        let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
-        assert!(cosine_theta_1 >= 0.0);
 
         if let Some(light) = self.trace_refraction(incident_ray, hit, cosine_theta_1, depth_left) {
             return emittance + light;

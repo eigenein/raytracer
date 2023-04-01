@@ -22,7 +22,7 @@ pub struct Args {
     pub output_height: u32,
 
     /// Use logarithmic scaling when converting pixel's light intensity to a color value.
-    #[arg(short = 'l', long = "logarithmic-light")]
+    #[arg(short = 'l', long = "log-light")]
     pub logarithmic_light: bool,
 
     #[clap(flatten)]
