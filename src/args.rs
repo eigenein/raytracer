@@ -21,10 +21,6 @@ pub struct Args {
     #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
     pub output_height: u32,
 
-    /// Use logarithmic scaling when converting pixel's light luminance to a color value.
-    #[arg(short = 'l', long = "log-luminance")]
-    pub log_luminance: bool,
-
     #[clap(flatten)]
     pub tracer_options: TracerOptions,
 }
