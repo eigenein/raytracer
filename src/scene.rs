@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use glam::DVec3;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::prelude::*;
@@ -10,13 +11,14 @@ use crate::surface::Surface;
 /// A scene to render.
 ///
 /// This is a root object in a scene TOML file.
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Scene {
     #[serde(default)]
     pub camera: Camera,
 
     /// Scene background and ambient color.
     #[serde(default = "Scene::default_ambient_color")]
+    #[schemars(with = "[f64; 3]")]
     pub ambient_color: DVec3,
 
     /// Scene medium refractive index.
@@ -47,12 +49,14 @@ impl Scene {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Camera {
     #[serde(default = "Camera::default_location")]
+    #[schemars(with = "[f64; 3]")]
     pub location: DVec3,
 
     #[serde(default)]
+    #[schemars(with = "[f64; 3]")]
     pub look_at: DVec3,
 
     /// Vertical field-of-view angle, in degrees.
@@ -61,6 +65,7 @@ pub struct Camera {
 
     /// Up direction.
     #[serde(default = "Camera::default_up")]
+    #[schemars(with = "[f64; 3]")]
     pub up: DVec3,
 }
 

@@ -1,80 +1,80 @@
 ambient_color = [1, 1, 1]
 
 [camera]
-location = [0, 4, -5]
-look_at = [0, 0, -1]
-vfov = 45
-up = [0, 1, 0]
+    location = [0, 4, -5]
+    look_at = [0, 0, -1]
+    vfov = 45
+    up = [0, 1, 0]
 
 # Big sphere underneath:
 
 [[surfaces]]
-type = "Sphere"
-center = [0.0, -21.0, 0.0]
-radius = 20.0
+    type = "Sphere"
+    center = [0.0, -21.0, 0.0]
+    radius = 20.0
 
-[surfaces.material]
+    [surfaces.material]
 
-[surfaces.material.reflectance]
-attenuation = [0.95, 0.95, 0.95]
-fuzz = 0.02
+        [surfaces.material.reflectance]
+            attenuation = [0.95, 0.95, 0.95]
+            fuzz = 0.02
 
 # Central smaller sphere:
 
 [[surfaces]]
-type = "Sphere"
-center = [0.0, 0.2, 0.0]
-radius = 1.0
+    type = "Sphere"
+    center = [0.0, 0.2, 0.0]
+    radius = 1.0
 
-[surfaces.material]
+    [surfaces.material]
 
-[surfaces.material.reflectance]
-attenuation = [0.9, 0.9, 0.72]
+        [surfaces.material.reflectance]
+        attenuation = [0.9, 0.9, 0.72]
 
 # Small sphere on the left:
 
 [[surfaces]]
-type = "Sphere"
-center = [-2.5, 0.0, 0.0]
-radius = 1.0
+    type = "Sphere"
+    center = [-2.5, 0.0, 0.0]
+    radius = 1.0
 
-[surfaces.material]
+    [surfaces.material]
 
-[surfaces.material.reflectance]
-attenuation = [0.8, 0.9, 0.8]
-diffusion = 0.8
+        [surfaces.material.reflectance]
+        attenuation = [0.8, 0.9, 0.8]
+        diffusion = 0.8
 
 # Small sphere on the right:
 
 [[surfaces]]
-type = "Sphere"
-center = [0.75, -0.5, -1.5]
-radius = 0.5
+    type = "Sphere"
+    center = [0.75, -0.5, -1.5]
+    radius = 0.5
 
-[surfaces.material]
+    [surfaces.material]
 
-[surfaces.material.reflectance]
-attenuation = [1.0, 0.8, 0.8]
+        [surfaces.material.reflectance]
+        attenuation = [1.0, 0.8, 0.8]
 
-[surfaces.material.transmittance]
-refractive_index = 1.54
-coefficient = 0.1
+        [surfaces.material.transmittance]
+        refractive_index = 1.54
+        coefficient = 0.1
 
 # Another small sphere on the right:
 
 [[surfaces]]
-type = "Sphere"
-center = [2, -0.5, 0.0]
-radius = 0.5
+    type = "Sphere"
+    center = [2, -0.5, 0.0]
+    radius = 0.5
 
-[surfaces.material]
-emittance = [0.1, 0.1, 0.125]
+    [surfaces.material]
+        emittance = [0.1, 0.1, 0.125]
 
-[surfaces.material.reflectance]
-attenuation = [0.8, 0.8, 1.0]
-diffusion = 0.01
+        [surfaces.material.reflectance]
+            attenuation = [0.8, 0.8, 1.0]
+            diffusion = 0.01
 
-[surfaces.material.transmittance]
-refractive_index = 1.54
-coefficient = 0.25
-attenuation = [0.8, 1.0, 1.0]
+        [surfaces.material.transmittance]
+            refractive_index = 1.54
+            coefficient = 0.25
+            attenuation = [0.8, 1.0, 1.0]

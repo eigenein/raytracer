@@ -1,34 +1,46 @@
 use std::path::PathBuf;
 
-use clap::{value_parser, Parser};
+use clap::{value_parser, Parser, Subcommand};
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about)]
-pub struct Args {
-    /// Scene configuration, in TOML format.
-    #[arg(value_name = "INPUT")]
-    pub input_path: PathBuf,
+#[derive(Subcommand)]
+pub enum Command {
+    /// Trace and render the scene.
+    Render {
+        /// Scene configuration, in TOML format.
+        #[arg(value_name = "INPUT")]
+        input_path: PathBuf,
 
-    /// Output image path.
-    #[arg(value_name = "OUTPUT")]
-    pub output_path: PathBuf,
+        /// Output image path.
+        #[arg(value_name = "OUTPUT")]
+        output_path: PathBuf,
 
-    /// Output image width.
-    #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
-    pub output_width: u32,
+        /// Output image width.
+        #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
+        output_width: u32,
 
-    /// Output image height.
-    #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
-    pub output_height: u32,
+        /// Output image height.
+        #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
+        output_height: u32,
 
-    #[arg(short = 'g', long = "gamma", default_value = "1.0")]
-    pub gamma: f64,
+        #[arg(short = 'g', long = "gamma", default_value = "1.0")]
+        gamma: f64,
 
-    #[clap(flatten)]
-    pub tracer_options: TracerOptions,
+        #[clap(flatten)]
+        tracer_options: TracerOptions,
+    },
+
+    /// Print the scene JSON schema.
+    Schema,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
+#[command(author, version, about, long_about)]
+pub struct Args {
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+#[derive(Parser)]
 pub struct TracerOptions {
     /// Samples per pixel that get averaged for the antialiasing.
     #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u16).range(1..))]

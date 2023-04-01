@@ -1,6 +1,7 @@
 use std::ops::Range;
 
 use glam::DVec3;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::aabb::Aabb;
@@ -9,7 +10,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 
 /// Surface that is being rendered.
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 #[serde(tag = "type")]
 pub enum Surface {
     Sphere(Sphere),
@@ -29,10 +30,13 @@ impl Hittable for Surface {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Sphere {
+    #[schemars(with = "[f64; 3]")]
     center: DVec3,
+
     radius: f64,
+
     material: Material,
 }
 

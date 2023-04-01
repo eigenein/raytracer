@@ -14,9 +14,10 @@
 use ::image::Rgb;
 use clap::Parser;
 use glam::DVec3;
+use schemars::schema_for;
 use tracing_subscriber::FmtSubscriber;
 
-use crate::args::Args;
+use crate::args::{Args, Command};
 use crate::image::Rgb16Image;
 
 mod aabb;
@@ -42,12 +43,26 @@ use crate::tracer::Tracer;
 fn main() -> Result {
     tracing::subscriber::set_global_default(FmtSubscriber::new())?;
     let args = Args::parse();
-    let scene = Scene::read_from(&args.input_path)?;
-    let pixels =
-        Tracer::new(scene, args.tracer_options).trace(args.output_width, args.output_height)?;
-    convert_pixels_to_image(args.output_width, args.output_height, pixels, args.gamma)?
-        .save(args.output_path)
-        .context("failed to save the output image")?;
+    match args.command {
+        Command::Render {
+            input_path,
+            tracer_options,
+            output_width,
+            output_height,
+            gamma,
+            output_path,
+        } => {
+            let scene = Scene::read_from(&input_path)?;
+            let pixels = Tracer::new(scene, tracer_options).trace(output_width, output_height)?;
+            convert_pixels_to_image(output_width, output_height, pixels, gamma)?
+                .save(output_path)
+                .context("failed to save the output image")?;
+        }
+
+        Command::Schema => {
+            println!("{}", serde_json::to_string_pretty(&schema_for!(Scene))?);
+        }
+    }
     Ok(())
 }
 

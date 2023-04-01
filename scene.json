@@ -1,0 +1,234 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Scene",
+  "description": "A scene to render.\n\nThis is a root object in a scene TOML file.",
+  "type": "object",
+  "properties": {
+    "ambient_color": {
+      "description": "Scene background and ambient color.",
+      "default": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "type": "array",
+      "items": {
+        "type": "number",
+        "format": "double"
+      },
+      "maxItems": 3,
+      "minItems": 3
+    },
+    "camera": {
+      "$ref": "#/definitions/Camera"
+    },
+    "refractive_index": {
+      "description": "Scene medium refractive index.\n\nThis index is assigned for the primary incident rays originating from the camera.",
+      "default": 1.0,
+      "type": "number",
+      "format": "double"
+    },
+    "surfaces": {
+      "description": "Surfaces to render.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Surface"
+      }
+    }
+  },
+  "definitions": {
+    "Camera": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "default": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "look_at": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "up": {
+          "description": "Up direction.",
+          "default": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "vertical_fov": {
+          "description": "Vertical field-of-view angle, in degrees.",
+          "default": 45.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "Material": {
+      "type": "object",
+      "properties": {
+        "emittance": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "reflectance": {
+          "$ref": "#/definitions/Reflectance"
+        },
+        "transmittance": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transmittance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Reflectance": {
+      "type": "object",
+      "properties": {
+        "attenuation": {
+          "default": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "diffusion": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "fuzz": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      }
+    },
+    "Surface": {
+      "description": "Surface that is being rendered.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "center",
+            "material",
+            "radius",
+            "type"
+          ],
+          "properties": {
+            "center": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "format": "double"
+              },
+              "maxItems": 3,
+              "minItems": 3
+            },
+            "material": {
+              "$ref": "#/definitions/Material"
+            },
+            "radius": {
+              "type": "number",
+              "format": "double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Sphere"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Transmittance": {
+      "type": "object",
+      "properties": {
+        "attenuation": {
+          "description": "If not set, defaults to the reflectance attenuation.",
+          "default": null,
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "coefficient": {
+          "description": "Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.",
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "refractive_index": {
+          "description": "Refractive index of the medium inside the body.",
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    }
+  }
+}

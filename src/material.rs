@@ -1,7 +1,8 @@
 use glam::DVec3;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Material {
     #[serde(default)]
     pub reflectance: Reflectance,
@@ -10,12 +11,14 @@ pub struct Material {
     pub transmittance: Option<Transmittance>,
 
     #[serde(default)]
+    #[schemars(with = "[f64; 3]")]
     pub emittance: DVec3,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Reflectance {
     #[serde(default = "Reflectance::default_attenuation")]
+    #[schemars(with = "[f64; 3]")]
     pub attenuation: DVec3,
 
     #[serde(default)]
@@ -41,7 +44,7 @@ impl Default for Reflectance {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Transmittance {
     /// Refractive index of the medium inside the body.
     #[serde(default = "Transmittance::default_refractive_index", alias = "index")]
@@ -49,6 +52,7 @@ pub struct Transmittance {
 
     /// If not set, defaults to the reflectance attenuation.
     #[serde(default)]
+    #[schemars(with = "Option<[f64; 3]>")]
     pub attenuation: Option<DVec3>,
 
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
