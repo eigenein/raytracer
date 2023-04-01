@@ -17,13 +17,13 @@ radius = 20.0
 
 [surfaces.material.reflectance]
 attenuation = [0.95, 0.95, 0.95]
-fuzz = 0.01
+fuzz = 0.02
 
 # Central small sphere:
 
 [[surfaces]]
 type = "Sphere"
-center = [0.0, 0.1, 0.0]
+center = [0.0, 0.2, 0.0]
 radius = 1.0
 
 [surfaces.material]
@@ -42,7 +42,7 @@ radius = 1.0
 
 [surfaces.material.reflectance]
 attenuation = [0.8, 0.9, 0.8]
-diffusion = 0.75
+diffusion = 0.8
 
 # Small sphere on the right:
 
@@ -55,7 +55,6 @@ radius = 0.5
 
 [surfaces.material.reflectance]
 attenuation = [1.0, 0.8, 0.8]
-diffusion = 0.01
 
 [surfaces.material.transmittance]
 refractive_index = 1.54
@@ -69,6 +68,7 @@ center = [1.5, -0.5, 0.0]
 radius = 0.5
 
 [surfaces.material]
+emittance = [0.1, 0.1, 0.125]
 
 [surfaces.material.reflectance]
 attenuation = [0.8, 0.8, 1.0]

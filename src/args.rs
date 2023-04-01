@@ -21,6 +21,10 @@ pub struct Args {
     #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
     pub output_height: u32,
 
+    /// Use logarithmic scaling when converting pixel's light intensity to a color value.
+    #[arg(short = 'l', long = "logarithmic-light")]
+    pub logarithmic_light: bool,
+
     #[clap(flatten)]
     pub tracer_options: TracerOptions,
 }

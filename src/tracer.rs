@@ -61,7 +61,8 @@ impl Tracer {
     /// Trace the ray and return the resulting color.
     #[inline]
     fn trace_ray(&self, ray: &Ray, depth_left: u16) -> DVec3 {
-        let distance_range = 0.000001..f64::INFINITY; // TODO: shadow acne problem, make an option.;
+        // TODO: shadow acne problem, make an option.
+        let distance_range = 0.000001..f64::INFINITY;
 
         let hit = self
             .scene
@@ -90,7 +91,13 @@ impl Tracer {
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
     fn trace_scattered_rays(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
-        let mut total_light = DVec3::ZERO;
+        let mut total_light = if hit.from_outside {
+            // TODO: possibly multiply by `cosine_theta_1`.
+            // TODO: possibly divide by the distance squared.
+            hit.material.emittance
+        } else {
+            DVec3::ZERO
+        };
 
         match hit.material.reflectance.diffusion {
             Some(diffusion) if fastrand::f64() < diffusion => {

@@ -70,7 +70,7 @@ impl Camera {
     }
 
     pub const fn default_vertical_fov() -> f64 {
-        90.0
+        45.0
     }
 
     pub const fn default_up() -> DVec3 {

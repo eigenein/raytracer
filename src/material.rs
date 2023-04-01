@@ -8,6 +8,9 @@ pub struct Material {
 
     #[serde(default)]
     pub transmittance: Option<Transmittance>,
+
+    #[serde(default)]
+    pub emittance: DVec3,
 }
 
 #[derive(Deserialize)]
