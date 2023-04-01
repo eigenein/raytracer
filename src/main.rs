@@ -1,5 +1,6 @@
 #![feature(const_fn_floating_point_arithmetic)]
 #![feature(portable_simd)]
+#![feature(let_chains)]
 #![warn(
     clippy::all,
     clippy::explicit_into_iter_loop,
@@ -30,6 +31,7 @@ mod math;
 mod prelude;
 mod progress;
 mod ray;
+mod refraction;
 mod scene;
 mod surface;
 mod tracer;

@@ -9,6 +9,7 @@ use crate::math::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
 use crate::ray::Ray;
+use crate::refraction::RefractiveIndex;
 use crate::scene::Scene;
 use crate::viewport::Viewport;
 
@@ -117,14 +118,6 @@ impl Tracer {
         total_emitted
     }
 
-    /// Trace a possible diffused ray.
-    ///
-    /// # Returns
-    ///
-    /// Amount of light returned by the scattered ray, or `None` if no diffused ray was traced.
-    ///
-    /// # See also
-    ///
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
     fn trace_diffusion(&self, hit: &Hit) -> Option<(Ray, DVec3)> {
         let Some(probability) = hit.material.reflectance.diffusion else { return None };
@@ -143,7 +136,6 @@ impl Tracer {
     ///
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
-    /// - Schlick's approximation: https://en.wikipedia.org/wiki/Schlick%27s_approximation
     fn trace_refraction(
         incident_ray: &Ray,
         hit: &Hit,
@@ -153,30 +145,27 @@ impl Tracer {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
-        // Check whether we're entering a new medium, or leaving the current medium:
-        let current_refractive_index = *refractive_indexes.last().unwrap();
-        let (incident_index, refracted_index) = if hit.from_outside {
+        let refractive_index = if hit.from_outside {
             // Entering the new medium:
-            (current_refractive_index, transmittance.refractive_index)
+            RefractiveIndex {
+                incident: *refractive_indexes.last().unwrap(),
+                refracted: transmittance.refractive_index,
+            }
         } else {
             // Leaving the current medium.
-            (transmittance.refractive_index, refractive_indexes[refractive_indexes.len() - 2])
+            RefractiveIndex {
+                incident: transmittance.refractive_index,
+                refracted: refractive_indexes[refractive_indexes.len() - 2],
+            }
         };
-        let mu = incident_index / refracted_index;
 
-        let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
+        let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
         if sin_theta_2 > 1.0 {
             // Total internal reflection, refraction is not possible.
             return None;
         }
 
-        let reflectance = {
-            // Schlick's approximation for reflectance:
-            let r0 =
-                ((incident_index - refracted_index) / (incident_index + refracted_index)).powi(2);
-            r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
-        };
-        if reflectance > fastrand::f64() {
+        if refractive_index.reflectance(cosine_theta_1) > fastrand::f64() {
             // Reflectance wins.
             return None;
         }
@@ -191,6 +180,7 @@ impl Tracer {
         };
 
         // Shell's law:
+        let mu = refractive_index.relative();
         let direction = {
             let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
             mu * incident_ray.direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
@@ -200,18 +190,14 @@ impl Tracer {
         let mut attenuation = transmittance
             .attenuation
             .unwrap_or(hit.material.reflectance.attenuation);
-        if !hit.from_outside {
+        if !hit.from_outside && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
-            if let Some(coefficient) = transmittance.coefficient {
-                attenuation *= (-hit.distance * coefficient).exp();
-            }
+            attenuation *= (-hit.distance * coefficient).exp();
         }
 
         Some((ray, attenuation))
     }
 
-    /// # See also
-    ///
     /// Specular reflection: <https://en.wikipedia.org/wiki/Specular_reflection>.
     fn trace_specular_reflection(
         &self,
