@@ -1,5 +1,6 @@
 use fastrand::Rng;
 use glam::DVec3;
+use smallvec::{smallvec, SmallVec};
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -53,7 +54,7 @@ impl Tracer {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
                         let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                        self.trace_ray(&ray, self.options.n_max_bounces)
+                        self.trace_ray(ray, self.options.n_max_bounces)
                     })
                     .sum::<DVec3>()
                     / self.options.samples_per_pixel as f64;
@@ -68,54 +69,52 @@ impl Tracer {
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, ray: &Ray, n_bounces_left: u16) -> DVec3 {
+    fn trace_ray(&self, mut ray: Ray, n_bounces_left: u16) -> DVec3 {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
 
-        let hit = self
-            .scene
-            .surfaces
-            .iter()
-            .filter_map(|surface| surface.hit(ray, &distance_range))
-            .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
+        let mut refractive_indexes = smallvec![self.scene.refractive_index];
+        let mut total_emitted = DVec3::ZERO;
+        let mut total_attenuation = DVec3::ONE;
 
-        match hit {
-            Some(hit) if n_bounces_left != 0 => {
-                // The ray hit a surface, scatter the ray:
-                self.trace_scattered_ray(ray, &hit, n_bounces_left - 1)
-            }
-            Some(_) => DVec3::ZERO,           // the bounce limit is reached
-            None => self.scene.ambient_color, // the ray didn't hit anything
+        for _ in 0..n_bounces_left {
+            let hit = self
+                .scene
+                .surfaces
+                .iter()
+                .filter_map(|surface| surface.hit(&ray, &distance_range))
+                .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
+            let Some(hit) = hit else {
+                // The ray didn't hit anything, finish the tracing:
+                total_emitted += total_attenuation * self.scene.ambient_color;
+                break;
+            };
+
+            let cosine_theta_1 = -hit.normal.dot(ray.direction);
+            assert!(cosine_theta_1 >= 0.0);
+
+            let emittance = if hit.from_outside {
+                // TODO: what about the distance?
+                hit.material.emittance * cosine_theta_1
+            } else {
+                DVec3::ZERO
+            };
+
+            let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
+                Self::trace_refraction(&ray, &hit, cosine_theta_1, &mut refractive_indexes)
+            {
+                (ray, attenuation)
+            } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit) {
+                (ray, attenuation)
+            } else {
+                self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
+            };
+
+            total_emitted += total_attenuation * emittance;
+            total_attenuation *= attenuation;
+            ray = scattered_ray;
         }
-    }
 
-    /// Trace a scattered ray and return amount of light.
-    ///
-    /// Notes:
-    ///
-    /// - The incident ray **must** be normalized.
-    fn trace_scattered_ray(&self, incident_ray: &Ray, hit: &Hit, n_bounces_left: u16) -> DVec3 {
-        let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
-        assert!(cosine_theta_1 >= 0.0);
-
-        let emittance = if hit.from_outside {
-            // TODO: what about the distance?
-            hit.material.emittance * cosine_theta_1
-        } else {
-            DVec3::ZERO
-        };
-
-        if let Some(light) =
-            self.trace_refraction(incident_ray, hit, cosine_theta_1, n_bounces_left)
-        {
-            return emittance + light;
-        }
-
-        if let Some(light) = self.trace_diffusion(incident_ray, hit, n_bounces_left) {
-            return emittance + light;
-        }
-
-        emittance
-            + self.trace_specular_reflection(incident_ray, hit, cosine_theta_1, n_bounces_left)
+        total_emitted
     }
 
     /// Trace a possible diffused ray.
@@ -127,16 +126,12 @@ impl Tracer {
     /// # See also
     ///
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-    fn trace_diffusion(&self, incident_ray: &Ray, hit: &Hit, n_bounces_left: u16) -> Option<DVec3> {
+    fn trace_diffusion(&self, hit: &Hit) -> Option<(Ray, DVec3)> {
         let Some(probability) = hit.material.reflectance.diffusion else { return None };
 
         if fastrand::f64() < probability {
-            let ray = Ray::new(
-                hit.location,
-                hit.normal + random_unit_vector(&self.rng),
-                incident_ray.refractive_indexes.clone(),
-            );
-            Some(self.trace_ray(&ray, n_bounces_left) * hit.material.reflectance.attenuation)
+            let ray = Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng));
+            Some((ray, hit.material.reflectance.attenuation))
         } else {
             None
         }
@@ -150,31 +145,24 @@ impl Tracer {
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - Schlick's approximation: https://en.wikipedia.org/wiki/Schlick%27s_approximation
     fn trace_refraction(
-        &self,
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-        n_bounces_left: u16,
-    ) -> Option<DVec3> {
+        refractive_indexes: &mut SmallVec<[f64; 4]>,
+    ) -> Option<(Ray, DVec3)> {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
-        let current_refractive_index = incident_ray
-            .current_refractive_index()
-            .unwrap_or(self.scene.refractive_index);
-
         // Check whether we're entering a new medium, or leaving the current medium:
-        let (outer_index, inner_index) = if hit.from_outside {
+        let current_refractive_index = *refractive_indexes.last().unwrap();
+        let (incident_index, refracted_index) = if hit.from_outside {
             // Entering the new medium:
             (current_refractive_index, transmittance.refractive_index)
         } else {
-            // Leaving the current medium:
-            let outer_refractive_index = incident_ray
-                .outer_refractive_index()
-                .unwrap_or(self.scene.refractive_index);
-            (transmittance.refractive_index, outer_refractive_index)
+            // Leaving the current medium.
+            (transmittance.refractive_index, refractive_indexes[refractive_indexes.len() - 2])
         };
-        let mu = outer_index / inner_index;
+        let mu = incident_index / refracted_index;
 
         let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
         if sin_theta_2 > 1.0 {
@@ -184,7 +172,8 @@ impl Tracer {
 
         let reflectance = {
             // Schlick's approximation for reflectance:
-            let r0 = ((outer_index - inner_index) / (outer_index + inner_index)).powi(2);
+            let r0 =
+                ((incident_index - refracted_index) / (incident_index + refracted_index)).powi(2);
             r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
         };
         if reflectance > fastrand::f64() {
@@ -192,26 +181,21 @@ impl Tracer {
             return None;
         }
 
+        // Refraction wins, update the refractive index stack:
+        if hit.from_outside {
+            // Entering the new medium:
+            refractive_indexes.push(transmittance.refractive_index);
+        } else {
+            // Leaving the current medium.
+            refractive_indexes.pop();
+        };
+
         // Shell's law:
         let direction = {
             let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
             mu * incident_ray.direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
         };
-        let ray = {
-            let mut refractive_indexes = incident_ray.refractive_indexes.clone();
-            {
-                // Update the index of the refracted ray:
-                let refractive_indexes = refractive_indexes.to_mut();
-                if hit.from_outside {
-                    refractive_indexes.push(transmittance.refractive_index);
-                } else {
-                    refractive_indexes
-                        .pop()
-                        .expect("cannot leave a medium without entering it first");
-                }
-            }
-            Ray::new(hit.location, direction, refractive_indexes)
-        };
+        let ray = Ray::new(hit.location, direction);
 
         let mut attenuation = transmittance
             .attenuation
@@ -222,7 +206,8 @@ impl Tracer {
                 attenuation *= (-hit.distance * coefficient).exp();
             }
         }
-        Some(self.trace_ray(&ray, n_bounces_left) * attenuation)
+
+        Some((ray, attenuation))
     }
 
     /// # See also
@@ -233,16 +218,12 @@ impl Tracer {
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-        n_bounces_left: u16,
-    ) -> DVec3 {
-        let mut ray = Ray::new(
-            hit.location,
-            incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
-            incident_ray.refractive_indexes.clone(),
-        );
+    ) -> (Ray, DVec3) {
+        let mut ray =
+            Ray::new(hit.location, incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal);
         if let Some(fuzz) = hit.material.reflectance.fuzz {
             ray.direction += random_unit_vector(&self.rng) * fuzz;
         }
-        self.trace_ray(&ray, n_bounces_left) * hit.material.reflectance.attenuation
+        (ray, hit.material.reflectance.attenuation)
     }
 }
