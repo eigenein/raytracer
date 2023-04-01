@@ -100,19 +100,35 @@ impl Tracer {
         };
 
         emittance
-            + match hit.material.reflectance.diffusion {
-                Some(diffusion) if fastrand::f64() < diffusion => {
-                    // Diffused reflection with Lambertian reflectance:
-                    // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-                    let ray = Ray::new(
-                        hit.location,
-                        hit.normal + random_unit_vector(&self.rng),
-                        incident_ray.refractive_indexes.clone(),
-                    );
-                    self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation
-                }
-                Some(_) | None => self.trace_reflection_refraction(incident_ray, hit, depth_left),
+            + if let Some(light) = self.trace_diffusion(incident_ray, hit, depth_left) {
+                light
+            } else {
+                self.trace_reflection_refraction(incident_ray, hit, depth_left)
             }
+    }
+
+    /// Trace a possible diffused ray.
+    ///
+    /// # Returns
+    ///
+    /// Amount of light returned by the scattered ray, or `None` if no diffused ray was traced.
+    ///
+    /// # See also
+    ///
+    /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
+    fn trace_diffusion(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> Option<DVec3> {
+        hit.material
+            .reflectance
+            .diffusion
+            .map_or(false, |probability| fastrand::f64() < probability)
+            .then(|| {
+                let ray = Ray::new(
+                    hit.location,
+                    hit.normal + random_unit_vector(&self.rng),
+                    incident_ray.refractive_indexes.clone(),
+                );
+                self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation
+            })
     }
 
     fn trace_reflection_refraction(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
