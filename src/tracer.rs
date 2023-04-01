@@ -138,7 +138,8 @@ impl Tracer {
     /// # See also
     ///
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
-    //  - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
+    /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
+    /// - Schlick's approximation: https://en.wikipedia.org/wiki/Schlick%27s_approximation
     fn trace_refraction(
         &self,
         incident_ray: &Ray,
@@ -154,16 +155,17 @@ impl Tracer {
             .unwrap_or(self.scene.refractive_index);
 
         // Check whether we're entering a new medium, or leaving the current medium:
-        let mu = if hit.from_outside {
+        let (outer_index, inner_index) = if hit.from_outside {
             // Entering the new medium:
-            current_refractive_index / transmittance.refractive_index
+            (current_refractive_index, transmittance.refractive_index)
         } else {
             // Leaving the current medium:
             let outer_refractive_index = incident_ray
                 .outer_refractive_index()
                 .unwrap_or(self.scene.refractive_index);
-            transmittance.refractive_index / outer_refractive_index
+            (transmittance.refractive_index, outer_refractive_index)
         };
+        let mu = outer_index / inner_index;
 
         let sin_theta_2 = mu * (1.0 - cosine_theta_1.powi(2)).sqrt();
         if sin_theta_2 > 1.0 {
@@ -173,9 +175,7 @@ impl Tracer {
 
         let reflectance = {
             // Schlick's approximation for reflectance:
-            let r0 = ((current_refractive_index - transmittance.refractive_index)
-                / (current_refractive_index + transmittance.refractive_index))
-                .powi(2); // FIXME
+            let r0 = ((outer_index - inner_index) / (outer_index + inner_index)).powi(2);
             r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
         };
         if reflectance > fastrand::f64() {
