@@ -77,3 +77,15 @@ ambient_color = [1, 1, 1]
             refractive_index = 1.54
             coefficient = 0.25
             attenuation = [0.8, 1.0, 1.0]
+
+[[surfaces]]
+    type = "UniformFog"
+    density = 0.1
+
+    [surfaces.aabb]
+        min_point = [0, -1, -1]
+        max_point = [3, 1, 1]
+
+    [surfaces.maetrial]
+        [surfaces.material.reflectance]
+        diffusion = 1

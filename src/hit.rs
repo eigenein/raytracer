@@ -41,4 +41,9 @@ pub enum HitType {
 
     /// Ray would have left the body.
     Leave,
+
+    /// Ray would've just gone through the surface.
+    /// There is no body inside.
+    /// Refraction is still possible if configured by the material.
+    Through,
 }

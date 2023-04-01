@@ -90,8 +90,13 @@ impl Tracer {
                 break;
             };
 
-            let cosine_theta_1 = -hit.normal.dot(ray.direction);
-            assert!(cosine_theta_1 >= 0.0);
+            let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
+            assert!(
+                cosine_theta_1 >= 0.0,
+                "cos θ₁ = {cosine_theta_1}, normal: {:?}, ray: {:?}",
+                hit.normal,
+                ray.direction,
+            );
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
                 Self::trace_refraction(&ray, &hit, cosine_theta_1, &mut refractive_indexes)
@@ -102,6 +107,7 @@ impl Tracer {
             } else {
                 self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
             };
+            assert!(scattered_ray.direction.is_finite());
 
             if hit.type_ == HitType::Enter {
                 total_emitted += total_attenuation * hit.material.emittance;
@@ -138,14 +144,17 @@ impl Tracer {
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
         let refractive_index = match hit.type_ {
-            HitType::Enter => RefractiveIndex {
+            HitType::Enter | HitType::Through => RefractiveIndex {
                 incident: *refractive_indexes.last().unwrap(),
                 refracted: transmittance.refractive_index,
             },
-            HitType::Leave => RefractiveIndex {
-                incident: transmittance.refractive_index,
-                refracted: refractive_indexes[refractive_indexes.len() - 2],
-            },
+            HitType::Leave => {
+                assert!(refractive_indexes.len() >= 2);
+                RefractiveIndex {
+                    incident: transmittance.refractive_index,
+                    refracted: refractive_indexes[refractive_indexes.len() - 2],
+                }
+            }
         };
 
         let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
