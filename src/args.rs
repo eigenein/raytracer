@@ -21,6 +21,9 @@ pub struct Args {
     #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
     pub output_height: u32,
 
+    #[arg(short = 'g', long = "gamma", default_value = "1.0")]
+    pub gamma: f64,
+
     #[clap(flatten)]
     pub tracer_options: TracerOptions,
 }

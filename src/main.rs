@@ -46,7 +46,7 @@ fn main() -> Result {
     let scene = Scene::read_from(&args.input_path)?;
     let pixels =
         Tracer::new(scene, args.tracer_options).trace(args.output_width, args.output_height)?;
-    convert_pixels_to_image(args.output_width, args.output_height, pixels)?
+    convert_pixels_to_image(args.output_width, args.output_height, pixels, 1.0 / args.gamma)?
         .save(args.output_path)
         .context("failed to save the output image")?;
     Ok(())
@@ -56,6 +56,7 @@ fn convert_pixels_to_image(
     output_width: u32,
     output_height: u32,
     pixels: Vec<DVec3>,
+    inverse_gamma: f64,
 ) -> Result<Rgb16Image> {
     let max_intensity = pixels
         .iter()
@@ -73,6 +74,8 @@ fn convert_pixels_to_image(
     for ((y, x), pixel) in izip!(iproduct!(0..output_height, 0..output_width), pixels) {
         // Scale to the maximum luminance:
         let color = (pixel * scale).clamp(DVec3::ZERO, DVec3::ONE);
+        // Apply the gamma correction:
+        let color = color.powf(inverse_gamma);
         // Scale to the image sub-pixels:
         let color = color * u16::MAX as f64;
         // And finally, prepare for casting:
