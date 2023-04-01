@@ -7,8 +7,6 @@ use crate::material::Material;
 use crate::ray::Ray;
 
 /// Hit result.
-/// TODO: add `new` and `cosine_theta_1`.
-/// TODO: calculate `from_outside` in the `new()`.
 pub struct Hit<'a> {
     /// Hit point location.
     pub location: DVec3,
