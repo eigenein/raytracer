@@ -11,7 +11,6 @@ fastrand = "1.9.0"
 glam = { version = "0.23.0", features = ["fast-math", "core-simd", "serde"] }
 image = { version = "0.24.6", default-features = false, features = ["png"] }
 indicatif = { version = "0.17.3", features = ["improved_unicode"] }
-itertools = "0.10.5"
 serde = { version = "1.0.158", features = ["derive"] }
 smallvec = { version = "1.10.0", features = ["union", "const_generics", "const_new", "specialization"] }
 toml = { version = "0.7.3", default-features = false, features = ["parse"] }

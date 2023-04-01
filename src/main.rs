@@ -14,7 +14,6 @@
 use ::image::Rgb;
 use clap::Parser;
 use glam::DVec3;
-use itertools::{iproduct, izip};
 use tracing_subscriber::FmtSubscriber;
 
 use crate::args::Args;
@@ -55,12 +54,12 @@ fn main() -> Result {
 fn convert_pixels_to_image(
     output_width: u32,
     output_height: u32,
-    pixels: Vec<DVec3>,
+    pixels: Vec<(u32, u32, DVec3)>,
     gamma: f64,
 ) -> Result<Rgb16Image> {
     let max_intensity = pixels
         .iter()
-        .map(|pixel| pixel.max_element())
+        .map(|(_, _, pixel)| pixel.max_element())
         .max_by(|lhs, rhs| lhs.total_cmp(rhs))
         .unwrap_or(1.0)
         .max(1.0);
@@ -71,7 +70,7 @@ fn convert_pixels_to_image(
 
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(pixels.len() as u64, "converting to image")?;
-    for ((y, x), pixel) in izip!(iproduct!(0..output_height, 0..output_width), pixels) {
+    for (x, y, pixel) in pixels {
         // Scale to the maximum luminance:
         let color = (pixel * scale).clamp(DVec3::ZERO, DVec3::ONE);
         // Apply the gamma correction:

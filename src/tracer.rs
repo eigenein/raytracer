@@ -1,6 +1,5 @@
 use fastrand::Rng;
 use glam::DVec3;
-use itertools::iproduct;
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -27,7 +26,7 @@ impl Tracer {
         }
     }
 
-    pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<DVec3>> {
+    pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<(u32, u32, DVec3)>> {
         info!(self.options.samples_per_pixel, self.options.max_depth);
         info!(?self.scene.camera.location);
         info!(?self.scene.camera.look_at);
@@ -41,17 +40,23 @@ impl Tracer {
         let progress = new_progress(output_height as u64, "tracing (rows)")?;
         let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
 
-        for (y, x) in iproduct!(0..output_height, 0..output_width) {
-            let color = (0..self.options.samples_per_pixel)
-                .map(|_| {
-                    let viewport_point = self.scene.camera.look_at + viewport.cast_random_ray(x, y);
-                    let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                    self.trace_ray(&ray, self.options.max_depth)
-                })
-                .sum::<DVec3>()
-                / self.options.samples_per_pixel as f64;
-            pixels.push(color);
-            progress.set_position(y as u64);
+        let mut y_indices: Vec<u32> = (0..output_height).collect();
+        fastrand::shuffle(&mut y_indices);
+
+        for y in y_indices {
+            for x in 0..output_width {
+                let color = (0..self.options.samples_per_pixel)
+                    .map(|_| {
+                        let viewport_point =
+                            self.scene.camera.look_at + viewport.cast_random_ray(x, y);
+                        let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
+                        self.trace_ray(&ray, self.options.max_depth)
+                    })
+                    .sum::<DVec3>()
+                    / self.options.samples_per_pixel as f64;
+                pixels.push((x, y, color));
+            }
+            progress.inc(1);
         }
         progress.finish();
 
