@@ -211,17 +211,16 @@ impl Tracer {
             Ray::new(hit.location, direction, refractive_indexes)
         };
 
-        let mut transmitted_light = self.trace_ray(&ray, n_bounces_left);
+        let mut attenuation = transmittance
+            .attenuation
+            .unwrap_or(hit.material.reflectance.attenuation);
         if !hit.from_outside {
             // Hit from inside, apply the possible exponential decay coefficient:
             if let Some(coefficient) = transmittance.coefficient {
-                transmitted_light *= (-hit.distance * coefficient).exp();
+                attenuation *= (-hit.distance * coefficient).exp();
             }
         }
-        let attenuation = transmittance
-            .attenuation
-            .unwrap_or(hit.material.reflectance.attenuation);
-        Some(transmitted_light * attenuation)
+        Some(self.trace_ray(&ray, n_bounces_left) * attenuation)
     }
 
     /// # See also
