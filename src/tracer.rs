@@ -27,7 +27,7 @@ impl Tracer {
     }
 
     pub fn trace(&self, output_width: u32, output_height: u32) -> Result<Vec<(u32, u32, DVec3)>> {
-        info!(self.options.samples_per_pixel, self.options.max_depth);
+        info!(self.options.samples_per_pixel, self.options.n_max_bounces);
         info!(?self.scene.camera.location);
         info!(?self.scene.camera.look_at);
         info!(?self.scene.camera.up);
@@ -50,7 +50,7 @@ impl Tracer {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
                         let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                        self.trace_ray(&ray, self.options.max_depth)
+                        self.trace_ray(&ray, self.options.n_max_bounces)
                     })
                     .sum::<DVec3>()
                     / self.options.samples_per_pixel as f64;
@@ -65,7 +65,7 @@ impl Tracer {
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, ray: &Ray, depth_left: u16) -> DVec3 {
+    fn trace_ray(&self, ray: &Ray, n_bounces_left: u16) -> DVec3 {
         // TODO: shadow acne problem, make an option.
         let distance_range = 0.000001..f64::INFINITY;
 
@@ -77,9 +77,9 @@ impl Tracer {
             .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
 
         match hit {
-            Some(hit) if depth_left != 0 => {
+            Some(hit) if n_bounces_left != 0 => {
                 // The ray hit a surface, scatter the ray:
-                self.trace_scattered_ray(ray, &hit, depth_left - 1)
+                self.trace_scattered_ray(ray, &hit, n_bounces_left - 1)
             }
             Some(_) => DVec3::ZERO,           // the depth limit is reached
             None => self.scene.ambient_color, // the ray didn't hit anything
@@ -91,7 +91,7 @@ impl Tracer {
     /// Notes:
     ///
     /// - The incident ray **must** be normalized.
-    fn trace_scattered_ray(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
+    fn trace_scattered_ray(&self, incident_ray: &Ray, hit: &Hit, n_bounces_left: u16) -> DVec3 {
         let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
         assert!(cosine_theta_1 >= 0.0);
 
@@ -102,15 +102,18 @@ impl Tracer {
             DVec3::ZERO
         };
 
-        if let Some(light) = self.trace_diffusion(incident_ray, hit, depth_left) {
+        if let Some(light) =
+            self.trace_refraction(incident_ray, hit, cosine_theta_1, n_bounces_left)
+        {
             return emittance + light;
         }
 
-        if let Some(light) = self.trace_refraction(incident_ray, hit, cosine_theta_1, depth_left) {
+        if let Some(light) = self.trace_diffusion(incident_ray, hit, n_bounces_left) {
             return emittance + light;
         }
 
-        emittance + self.trace_normal_reflection(incident_ray, hit, cosine_theta_1, depth_left)
+        emittance
+            + self.trace_specular_reflection(incident_ray, hit, cosine_theta_1, n_bounces_left)
     }
 
     /// Trace a possible diffused ray.
@@ -121,7 +124,7 @@ impl Tracer {
     ///
     /// # See also
     ///
-    /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
+    /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
     fn trace_diffusion(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> Option<DVec3> {
         let Some(probability) = hit.material.reflectance.diffusion else { return None };
 
@@ -149,7 +152,7 @@ impl Tracer {
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-        depth_left: u16,
+        n_bounces_left: u16,
     ) -> Option<DVec3> {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
@@ -208,7 +211,7 @@ impl Tracer {
             Ray::new(hit.location, direction, refractive_indexes)
         };
 
-        let mut transmitted_light = self.trace_ray(&ray, depth_left);
+        let mut transmitted_light = self.trace_ray(&ray, n_bounces_left);
         if !hit.from_outside {
             // Hit from inside, apply the possible exponential decay coefficient:
             if let Some(coefficient) = transmittance.coefficient {
@@ -221,12 +224,15 @@ impl Tracer {
         Some(transmitted_light * attenuation)
     }
 
-    fn trace_normal_reflection(
+    /// # See also
+    ///
+    /// Specular reflection: <https://en.wikipedia.org/wiki/Specular_reflection>.
+    fn trace_specular_reflection(
         &self,
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-        depth_left: u16,
+        n_bounces_left: u16,
     ) -> DVec3 {
         let mut ray = Ray::new(
             hit.location,
@@ -236,6 +242,6 @@ impl Tracer {
         if let Some(fuzz) = hit.material.reflectance.fuzz {
             ray.direction += random_unit_vector(&self.rng) * fuzz;
         }
-        self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation
+        self.trace_ray(&ray, n_bounces_left) * hit.material.reflectance.attenuation
     }
 }

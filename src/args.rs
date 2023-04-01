@@ -34,7 +34,7 @@ pub struct TracerOptions {
     #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u16).range(1..))]
     pub samples_per_pixel: u16,
 
-    /// Maximum number of rays traced in depth.
-    #[arg(short = 'd', long = "depth", default_value = "5", value_parser = value_parser!(u16).range(1..))]
-    pub max_depth: u16,
+    /// Maximum number of ray bounces of the scene's surfaces.
+    #[arg(short = 'b', long = "max-bounces", default_value = "5", value_parser = value_parser!(u16).range(1..))]
+    pub n_max_bounces: u16,
 }
