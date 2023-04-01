@@ -91,7 +91,7 @@ impl Tracer {
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     /// - Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>
     fn trace_scattered_rays(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
-        let mut total_light = if hit.from_outside {
+        let emittance = if hit.from_outside {
             // TODO: possibly multiply by `cosine_theta_1`.
             // TODO: possibly divide by the distance squared.
             hit.material.emittance
@@ -99,35 +99,25 @@ impl Tracer {
             DVec3::ZERO
         };
 
-        match hit.material.reflectance.diffusion {
-            Some(diffusion) if fastrand::f64() < diffusion => {
-                // Diffused reflection with Lambertian reflectance:
-                // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-                let ray = Ray::new(
-                    hit.location,
-                    hit.normal + random_unit_vector(&self.rng),
-                    incident_ray.refractive_indexes.clone(),
-                );
-                total_light +=
-                    self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation;
+        emittance
+            + match hit.material.reflectance.diffusion {
+                Some(diffusion) if fastrand::f64() < diffusion => {
+                    // Diffused reflection with Lambertian reflectance:
+                    // <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
+                    let ray = Ray::new(
+                        hit.location,
+                        hit.normal + random_unit_vector(&self.rng),
+                        incident_ray.refractive_indexes.clone(),
+                    );
+                    self.trace_ray(&ray, depth_left) * hit.material.reflectance.attenuation
+                }
+                Some(_) | None => self.trace_reflection_refraction(incident_ray, hit, depth_left),
             }
-            Some(_) | None => {
-                self.trace_reflection_refraction(incident_ray, hit, depth_left, &mut total_light);
-            }
-        }
-
-        total_light
     }
 
-    fn trace_reflection_refraction(
-        &self,
-        incident_ray: &Ray,
-        hit: &Hit,
-        depth_left: u16,
-        total_light: &mut DVec3,
-    ) {
-        // Refraction and/or normal reflection:
+    fn trace_reflection_refraction(&self, incident_ray: &Ray, hit: &Hit, depth_left: u16) -> DVec3 {
         let mut reflectance = 1.0;
+        let mut total_light = DVec3::ZERO;
 
         let cosine_theta_1 = -hit.normal.dot(incident_ray.direction);
         assert!(cosine_theta_1 >= 0.0);
@@ -190,7 +180,7 @@ impl Tracer {
                         transmitted_light *= (-hit.distance * coefficient).exp();
                     }
                 }
-                *total_light += transmitted_light
+                total_light += transmitted_light
                     * transmittance
                         .attenuation
                         .unwrap_or(hit.material.reflectance.attenuation);
@@ -208,9 +198,11 @@ impl Tracer {
             if let Some(fuzz) = hit.material.reflectance.fuzz {
                 ray.direction += random_unit_vector(&self.rng) * fuzz;
             }
-            *total_light += self.trace_ray(&ray, depth_left)
+            total_light += self.trace_ray(&ray, depth_left)
                 * hit.material.reflectance.attenuation
                 * reflectance;
         }
+
+        total_light
     }
 }
