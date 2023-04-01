@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::aabb::Aabb;
-use crate::hit::{Hit, Hittable};
+use crate::hit::{Hit, HitType, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 
@@ -63,16 +63,19 @@ impl Hittable for Sphere {
 
         let location = by_ray.at(distance);
         let outward_normal = (location - self.center) / self.radius;
-        let from_outside = outward_normal.dot(by_ray.direction) < 0.0;
+        let type_ = if outward_normal.dot(by_ray.direction) < 0.0 {
+            HitType::Enter
+        } else {
+            HitType::Leave
+        };
 
         Some(Hit {
             distance,
             location,
-            from_outside,
-            normal: if from_outside {
-                outward_normal
-            } else {
-                -outward_normal
+            type_,
+            normal: match type_ {
+                HitType::Enter => outward_normal,
+                HitType::Leave => -outward_normal,
             },
             material: &self.material,
         })

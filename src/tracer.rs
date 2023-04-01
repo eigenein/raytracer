@@ -4,7 +4,7 @@ use smallvec::{smallvec, SmallVec};
 use tracing::info;
 
 use crate::args::TracerOptions;
-use crate::hit::{Hit, Hittable};
+use crate::hit::{Hit, HitType, Hittable};
 use crate::math::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
@@ -103,7 +103,7 @@ impl Tracer {
                 self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
             };
 
-            if hit.from_outside {
+            if hit.type_ == HitType::Enter {
                 total_emitted += total_attenuation * hit.material.emittance;
             }
             total_attenuation *= attenuation;
@@ -137,18 +137,15 @@ impl Tracer {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
-        let refractive_index = if hit.from_outside {
-            // Entering the new medium:
-            RefractiveIndex {
+        let refractive_index = match hit.type_ {
+            HitType::Enter => RefractiveIndex {
                 incident: *refractive_indexes.last().unwrap(),
                 refracted: transmittance.refractive_index,
-            }
-        } else {
-            // Leaving the current medium.
-            RefractiveIndex {
+            },
+            HitType::Leave => RefractiveIndex {
                 incident: transmittance.refractive_index,
                 refracted: refractive_indexes[refractive_indexes.len() - 2],
-            }
+            },
         };
 
         let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
@@ -163,11 +160,9 @@ impl Tracer {
         }
 
         // Refraction wins, update the refractive index stack:
-        if hit.from_outside {
-            // Entering the new medium:
+        if hit.type_ == HitType::Enter {
             refractive_indexes.push(transmittance.refractive_index);
-        } else {
-            // Leaving the current medium.
+        } else if hit.type_ == HitType::Leave {
             refractive_indexes.pop();
         };
 
@@ -182,7 +177,7 @@ impl Tracer {
         let mut attenuation = transmittance
             .attenuation
             .unwrap_or(hit.material.reflectance.attenuation);
-        if !hit.from_outside && let Some(coefficient) = transmittance.coefficient {
+        if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
             attenuation *= (-hit.distance * coefficient).exp();
         }
