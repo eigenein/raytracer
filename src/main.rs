@@ -21,6 +21,7 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::args::Args;
 use crate::image::Rgb16Image;
+use crate::math::luminance;
 
 mod aabb;
 mod args;
@@ -48,7 +49,7 @@ fn main() -> Result {
     let scene = Scene::read_from(&args.input_path)?;
     let pixels =
         Tracer::new(scene, args.tracer_options).trace(args.output_width, args.output_height)?;
-    convert_pixels_to_image(args.output_width, args.output_height, pixels, args.logarithmic_light)?
+    convert_pixels_to_image(args.output_width, args.output_height, pixels, args.log_luminance)?
         .save(args.output_path)
         .context("failed to save the output image")?;
     Ok(())
@@ -60,35 +61,32 @@ fn convert_pixels_to_image(
     pixels: Vec<DVec3>,
     logarithmic_light: bool,
 ) -> Result<Rgb16Image> {
-    let max_intensity = pixels
+    let max_luminance = pixels
         .iter()
-        .map(|pixel| pixel.max_element())
+        .map(|pixel| luminance(*pixel))
         .max_by(|lhs, rhs| lhs.total_cmp(rhs))
         .unwrap_or(1.0)
         .max(1.0);
-    info!(max_intensity);
+    info!(max_luminance);
 
     let scale = if logarithmic_light {
-        (E - 1.0) / max_intensity
+        (E - 1.0) / max_luminance
     } else {
-        1.0 / max_intensity
+        1.0 / max_luminance
     };
     info!(scale);
 
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(pixels.len() as u64, "converting to image")?;
     for ((y, x), pixel) in izip!(iproduct!(0..output_height, 0..output_width), pixels) {
-        // Scale to the maximum intensity:
+        // Scale to the maximum luminance:
         let color = if logarithmic_light {
-            let color = pixel * scale + 1.0;
-            DVec3::new(color.x.ln(), color.y.ln(), color.z.ln())
+            pixel * (luminance(pixel) * scale + 1.0).ln()
         } else {
-            pixel * scale
+            pixel * (luminance(pixel)) * scale
         };
-        assert!(color.cmpge(DVec3::ZERO).all());
-        assert!(color.cmple(DVec3::ONE).all());
         // Scale to the image sub-pixels:
-        let color = color * u16::MAX as f64;
+        let color = color.clamp(DVec3::ZERO, DVec3::ONE) * u16::MAX as f64;
         // And finally, prepare for casting:
         let color = color.round();
 

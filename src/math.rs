@@ -9,3 +9,7 @@ pub fn random_unit_vector(rng: &Rng) -> DVec3 {
         }
     }
 }
+
+pub const fn luminance(light: DVec3) -> f64 {
+    0.2126 * light.x + 0.7152 * light.y + 0.0722 * light.z
+}
