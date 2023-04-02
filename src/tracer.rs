@@ -54,12 +54,10 @@ impl Tracer {
         for y in y_indices {
             for x in 0..output_width {
                 let color = (0..self.options.samples_per_pixel)
-                    .map(|i| {
+                    .map(|_| {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
-                        let wavelength = 360.0e-9
-                            + i as f64 * (829.0e-9 - 360.0e-9)
-                                / (self.options.samples_per_pixel - 1) as f64;
+                        let wavelength = 360.0e-9 + fastrand::f64() * (830.0e-9 - 360.0e-9);
                         let ray = Ray::by_two_points(
                             self.scene.camera.location,
                             viewport_point,
@@ -68,8 +66,7 @@ impl Tracer {
                         let intensity = self.trace_ray(ray, self.options.n_max_bounces);
                         XyzColor::from_wavelength(wavelength) * intensity
                     })
-                    .sum::<XyzColor>()
-                    / self.options.samples_per_pixel as f64;
+                    .sum::<XyzColor>();
                 pixels.push((x, y, color));
             }
             progress.inc(1);
