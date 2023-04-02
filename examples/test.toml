@@ -1,6 +1,7 @@
 [ambient_spectrum]
 type = "BlackBody"
 temperature = 5557
+scale = 1e-14
 
 [camera]
     location = [0, 4, -5]
@@ -30,7 +31,7 @@ temperature = 5557
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = { type = "Lorentzian", maximum = 400e-9, fwhm = 100e-9 }
+        attenuation = { type = "Lorentzian", maximum = 570e-9, fwhm = 50e-9 }
 
 # Small sphere on the left:
 
@@ -42,7 +43,7 @@ temperature = 5557
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = { type = "Constant", intensity = 1.0 }
+        attenuation = { type = "Lorentzian", maximum = 520e-9, fwhm = 50e-9 }
         diffusion = 0.8
 
 # Small sphere on the right:
@@ -55,7 +56,7 @@ temperature = 5557
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = { type = "Constant", intensity = 1.0 }
+        attenuation = { type = "Lorentzian", maximum = 640e-9, fwhm = 50e-9 }
 
         [surfaces.material.transmittance]
         refractive_index = 1.54
@@ -70,10 +71,10 @@ temperature = 5557
 
     [surfaces.material]
         [surfaces.material.reflectance]
-            attenuation = { type = "Constant", intensity = 1.0 }
+            attenuation = { type = "Constant", intensity = 1 }
             diffusion = 0.01
 
         [surfaces.material.transmittance]
             refractive_index = 1.54
             coefficient = 0.25
-            attenuation = { type = "Constant", intensity = 1.0 }
+            attenuation = { type = "Lorentzian", maximum = 400e-9, fwhm = 50e-9 }
