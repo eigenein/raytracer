@@ -52,6 +52,6 @@ pub struct TracerOptions {
 
     /// Minimal distance from a ray's origin point to a possible hit.
     /// This is needed to prevent collision of the ray with its own origin surface.
-    #[arg(long, default_value = "0.00000001")]
+    #[arg(long, default_value = "0.000001")]
     pub min_hit_distance: f64,
 }

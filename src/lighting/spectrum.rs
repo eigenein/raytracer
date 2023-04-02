@@ -4,7 +4,12 @@ use serde::Deserialize;
 use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 
 #[derive(Deserialize, JsonSchema, Copy, Clone)]
+#[serde(tag = "type")]
 pub enum Spectrum {
+    Constant {
+        intensity: f64,
+    },
+
     /// https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
     Lorentzian {
         #[serde(default = "Spectrum::default_intensity")]
@@ -20,12 +25,19 @@ pub enum Spectrum {
     },
 
     /// https://en.wikipedia.org/wiki/Planck%27s_law
-    BlackBody { temperature: f64 },
+    BlackBody {
+        temperature: f64,
+
+        #[serde(default = "Spectrum::default_intensity")]
+        scale: f64,
+    },
 }
 
 impl Spectrum {
     pub fn intensity_at(&self, wavelength: f64) -> f64 {
         match self {
+            Self::Constant { intensity } => *intensity,
+
             Self::Lorentzian {
                 intensity,
                 maximum,
@@ -35,8 +47,11 @@ impl Spectrum {
                 intensity / (1.0 + x * x)
             }
 
-            Self::BlackBody { temperature } => {
-                2.0 * PLANCK * LIGHT_SPEED_2
+            Self::BlackBody {
+                scale: intensity,
+                temperature,
+            } => {
+                intensity * 2.0 * PLANCK * LIGHT_SPEED_2
                     / wavelength.powi(5)
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / temperature).exp() - 1.0)
             }
@@ -55,7 +70,7 @@ mod tests {
     #[test]
     fn lorentzian_ok() {
         let maximum = 450e-9; // blue
-        let fwhm = 2e-5; // around 200kHz
+        let fwhm = 1e-14;
         let spectrum = Spectrum::Lorentzian {
             intensity: 1.0,
             maximum,
@@ -64,7 +79,7 @@ mod tests {
 
         let intensity_at_half_width = spectrum.intensity_at(maximum - fwhm / 2.0);
         assert!(
-            (intensity_at_half_width - 0.5).abs() < 0.001,
+            (intensity_at_half_width - 0.5).abs() < 1e-8,
             "actual: {intensity_at_half_width}"
         );
     }
@@ -73,6 +88,7 @@ mod tests {
     fn black_body_ok() {
         let spectrum = Spectrum::BlackBody {
             temperature: 5777.0,
+            scale: 1.0,
         };
         let intensity = spectrum.intensity_at(500e-9);
         assert!((intensity - 2.635e13).abs() < 1e10, "actual: {intensity}");
