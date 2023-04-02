@@ -1,6 +1,5 @@
 use fastrand::Rng;
 use glam::DVec3;
-use smallvec::{smallvec, SmallVec};
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -73,7 +72,6 @@ impl Tracer {
     fn trace_ray(&self, mut ray: Ray, n_bounces_left: u16) -> DVec3 {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
 
-        let mut refractive_indexes = smallvec![self.scene.refractive_index];
         let mut total_emitted = DVec3::ZERO;
         let mut total_attenuation = DVec3::ONE;
 
@@ -99,7 +97,7 @@ impl Tracer {
             );
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
-                Self::trace_refraction(&ray, &hit, cosine_theta_1, &mut refractive_indexes)
+                self.trace_refraction(&ray, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit) {
@@ -135,26 +133,23 @@ impl Tracer {
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     fn trace_refraction(
+        &self,
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-        refractive_indexes: &mut SmallVec<[f64; 4]>,
     ) -> Option<(Ray, DVec3)> {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
         let refractive_index = match hit.type_ {
             HitType::Enter | HitType::Through => RefractiveIndex {
-                incident: *refractive_indexes.last().unwrap(),
+                incident: self.scene.refractive_index,
                 refracted: transmittance.refractive_index,
             },
-            HitType::Leave => {
-                assert!(refractive_indexes.len() >= 2);
-                RefractiveIndex {
-                    incident: transmittance.refractive_index,
-                    refracted: refractive_indexes[refractive_indexes.len() - 2],
-                }
-            }
+            HitType::Leave => RefractiveIndex {
+                incident: transmittance.refractive_index,
+                refracted: self.scene.refractive_index,
+            },
         };
 
         let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
@@ -167,13 +162,6 @@ impl Tracer {
             // Reflectance wins.
             return None;
         }
-
-        // Refraction wins, update the refractive index stack:
-        if hit.type_ == HitType::Enter {
-            refractive_indexes.push(transmittance.refractive_index);
-        } else if hit.type_ == HitType::Leave {
-            refractive_indexes.pop();
-        };
 
         // Shell's law:
         let mu = refractive_index.relative();
