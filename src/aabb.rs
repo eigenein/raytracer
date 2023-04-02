@@ -1,9 +1,9 @@
 use std::ops::Range;
 
-use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::math::point::Point;
 use crate::ray::Ray;
 
 /// Axis-aligned boundary box defined by two points:
@@ -11,10 +11,10 @@ use crate::ray::Ray;
 #[derive(Deserialize, JsonSchema, Copy, Clone)]
 pub struct Aabb {
     #[schemars(with = "[f64; 3]")]
-    pub min_point: DVec3,
+    pub min_point: Point,
 
     #[schemars(with = "[f64; 3]")]
-    pub max_point: DVec3,
+    pub max_point: Point,
 }
 
 impl Aabb {

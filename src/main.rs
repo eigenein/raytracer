@@ -1,6 +1,8 @@
+#![feature(const_convert)]
 #![feature(const_fn_floating_point_arithmetic)]
-#![feature(portable_simd)]
+#![feature(const_trait_impl)]
 #![feature(let_chains)]
+#![feature(portable_simd)]
 #![warn(
     clippy::all,
     clippy::explicit_into_iter_loop,

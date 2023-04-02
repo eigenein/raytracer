@@ -1,3 +1,5 @@
+pub mod point;
+
 use fastrand::Rng;
 use glam::DVec3;
 

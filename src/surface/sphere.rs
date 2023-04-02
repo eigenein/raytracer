@@ -1,18 +1,18 @@
 use std::ops::Range;
 
-use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::aabb::Aabb;
 use crate::hit::{Hit, HitType, Hittable};
 use crate::material::Material;
+use crate::math::point::Point;
 use crate::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {
     #[schemars(with = "[f64; 3]")]
-    center: DVec3,
+    center: Point,
 
     radius: f64,
 

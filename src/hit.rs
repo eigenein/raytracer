@@ -5,12 +5,13 @@ use serde::Deserialize;
 
 use crate::aabb::Aabb;
 use crate::material::Material;
+use crate::math::point::Point;
 use crate::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
     /// Hit point location.
-    pub location: DVec3,
+    pub location: Point,
 
     /// Normal at the hit point.
     pub normal: DVec3,

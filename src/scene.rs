@@ -5,6 +5,7 @@ use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::math::point::Point;
 use crate::prelude::*;
 use crate::surface::Surface;
 
@@ -53,11 +54,11 @@ impl Scene {
 pub struct Camera {
     #[serde(default = "Camera::default_location")]
     #[schemars(with = "[f64; 3]")]
-    pub location: DVec3,
+    pub location: Point,
 
     #[serde(default)]
     #[schemars(with = "[f64; 3]")]
-    pub look_at: DVec3,
+    pub look_at: Point,
 
     /// Vertical field-of-view angle, in degrees.
     #[serde(default = "Camera::default_vertical_fov", alias = "vfov")]
@@ -70,8 +71,8 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub const fn default_location() -> DVec3 {
-        DVec3::new(0.0, 0.0, -1.0)
+    pub const fn default_location() -> Point {
+        DVec3::new(0.0, 0.0, -1.0).into()
     }
 
     pub const fn default_vertical_fov() -> f64 {
@@ -87,7 +88,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             location: Self::default_location(),
-            look_at: DVec3::default(),
+            look_at: Point::default(),
             vertical_fov: Self::default_vertical_fov(),
             up: Self::default_up(),
         }
