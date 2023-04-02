@@ -9,10 +9,12 @@ use crate::lighting::cie_1964::{WAVELENGTH_TO_XYZ, XYZ_TO_SRGB};
 pub struct XyzColor(DVec3);
 
 impl XyzColor {
-    pub const fn from_wavelength(wavelength: f64) -> Self {
-        let nanos = (wavelength / 1e-9) as usize;
-        assert!(nanos >= 360 && nanos <= 829);
-        Self(WAVELENGTH_TO_XYZ[nanos - 360])
+    pub fn from_wavelength(wavelength: f64) -> Self {
+        let nanos = wavelength / 1e-9;
+        let fract = nanos.fract();
+        let nanos = nanos as usize - 360;
+        assert!(nanos < 470);
+        Self((1.0 - fract) * WAVELENGTH_TO_XYZ[nanos] + fract * WAVELENGTH_TO_XYZ[nanos + 1])
     }
 }
 
@@ -105,12 +107,12 @@ mod tests {
     #[test]
     fn blue_ok() {
         let color = RgbColor::from_wavelength(450e-9);
-        assert!(color.abs_diff_eq(&RgbColor::new(0.32, 0.0, 1.0), 0.01), "actual: {color:?}");
+        assert!(color.abs_diff_eq(&RgbColor::new(0.29, 0.0, 1.0), 0.01), "actual: {color:?}");
     }
 
     #[test]
     fn violet_limit_ok() {
         let color = RgbColor::from_wavelength(400e-9);
-        assert!(color.abs_diff_eq(&RgbColor::new(0.12, 0.0, 0.31), 0.01), "actual: {color:?}");
+        assert!(color.abs_diff_eq(&RgbColor::new(0.13, 0.0, 0.33), 0.01), "actual: {color:?}");
     }
 }
