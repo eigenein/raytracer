@@ -99,18 +99,18 @@ mod tests {
     #[test]
     fn red_limit_ok() {
         let color = RgbColor::from_wavelength(700e-9);
-        assert!(color.abs_diff_eq(&RgbColor::new(0.18, 0.0, 0.0), 0.01), "actual: {:?}", color);
+        assert!(color.abs_diff_eq(&RgbColor::new(0.18, 0.0, 0.0), 0.01), "actual: {color:?}");
     }
 
     #[test]
     fn blue_ok() {
         let color = RgbColor::from_wavelength(450e-9);
-        assert!(color.abs_diff_eq(&RgbColor::new(0.32, 0.0, 1.0), 0.01), "actual: {:?}", color);
+        assert!(color.abs_diff_eq(&RgbColor::new(0.32, 0.0, 1.0), 0.01), "actual: {color:?}");
     }
 
     #[test]
     fn violet_limit_ok() {
         let color = RgbColor::from_wavelength(400e-9);
-        assert!(color.abs_diff_eq(&RgbColor::new(0.12, 0.0, 0.31), 0.01), "actual: {:?}", color);
+        assert!(color.abs_diff_eq(&RgbColor::new(0.12, 0.0, 0.31), 0.01), "actual: {color:?}");
     }
 }
