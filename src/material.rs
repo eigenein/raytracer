@@ -1,6 +1,7 @@
-use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
+
+use crate::lighting::spectrum::Spectrum;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {
@@ -11,15 +12,13 @@ pub struct Material {
     pub transmittance: Option<Transmittance>,
 
     #[serde(default)]
-    #[schemars(with = "[f64; 3]")]
-    pub emittance: DVec3,
+    pub emittance: Option<Spectrum>,
 }
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Reflectance {
     #[serde(default = "Reflectance::default_attenuation")]
-    #[schemars(with = "[f64; 3]")]
-    pub attenuation: DVec3,
+    pub attenuation: Spectrum,
 
     #[serde(default)]
     pub fuzz: Option<f64>,
@@ -28,19 +27,19 @@ pub struct Reflectance {
     pub diffusion: Option<f64>,
 }
 
-impl Reflectance {
-    pub const fn default_attenuation() -> DVec3 {
-        DVec3::ONE
-    }
-}
-
-impl Default for Reflectance {
+impl const Default for Reflectance {
     fn default() -> Self {
         Self {
             attenuation: Self::default_attenuation(),
             fuzz: None,
             diffusion: None,
         }
+    }
+}
+
+impl Reflectance {
+    pub const fn default_attenuation() -> Spectrum {
+        Spectrum::Constant { intensity: 1.0 }
     }
 }
 
@@ -52,8 +51,7 @@ pub struct Transmittance {
 
     /// If not set, defaults to the reflectance attenuation.
     #[serde(default)]
-    #[schemars(with = "Option<[f64; 3]>")]
-    pub attenuation: Option<DVec3>,
+    pub attenuation: Option<Spectrum>,
 
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
     #[serde(default)]

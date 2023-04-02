@@ -1,4 +1,6 @@
-ambient_color = [1, 1, 1]
+[ambient_spectrum]
+type = "BlackBody"
+temperature = 5557
 
 [camera]
     location = [0, 4, -5]
@@ -15,7 +17,7 @@ ambient_color = [1, 1, 1]
 
     [surfaces.material]
         [surfaces.material.reflectance]
-            attenuation = [0.95, 0.95, 0.95]
+            attenuation = { type = "Constant", intensity = 0.95 }
             fuzz = 0.02
 
 # Central smaller sphere:
@@ -28,7 +30,7 @@ ambient_color = [1, 1, 1]
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = [0.9, 0.9, 0.72]
+        attenuation = { type = "Lorentzian", maximum = 400e-9, fwhm = 100e-9 }
 
 # Small sphere on the left:
 
@@ -40,7 +42,7 @@ ambient_color = [1, 1, 1]
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = [0.8, 0.9, 0.8]
+        attenuation = { type = "Constant", intensity = 1.0 }
         diffusion = 0.8
 
 # Small sphere on the right:
@@ -53,7 +55,7 @@ ambient_color = [1, 1, 1]
     [surfaces.material]
 
         [surfaces.material.reflectance]
-        attenuation = [1.0, 0.8, 0.8]
+        attenuation = { type = "Constant", intensity = 1.0 }
 
         [surfaces.material.transmittance]
         refractive_index = 1.54
@@ -67,13 +69,11 @@ ambient_color = [1, 1, 1]
     radius = 0.5
 
     [surfaces.material]
-        # emittance = [0.8, 0.8, 1.0]
-
         [surfaces.material.reflectance]
-            attenuation = [0.8, 0.8, 1.0]
+            attenuation = { type = "Constant", intensity = 1.0 }
             diffusion = 0.01
 
         [surfaces.material.transmittance]
             refractive_index = 1.54
             coefficient = 0.25
-            attenuation = [0.8, 1.0, 1.0]
+            attenuation = { type = "Constant", intensity = 1.0 }

@@ -5,6 +5,7 @@ use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::lighting::spectrum::Spectrum;
 use crate::math::point::Point;
 use crate::prelude::*;
 use crate::surface::Surface;
@@ -18,9 +19,7 @@ pub struct Scene {
     pub camera: Camera,
 
     /// Scene background and ambient color.
-    #[serde(default = "DVec3::default")]
-    #[schemars(with = "[f64; 3]")]
-    pub ambient_color: DVec3,
+    pub ambient_spectrum: Spectrum,
 
     /// Scene medium refractive index.
     ///

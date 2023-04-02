@@ -15,13 +15,12 @@
 )]
 
 use clap::Parser;
-use glam::DVec3;
 use schemars::schema_for;
 use tracing_subscriber::FmtSubscriber;
 
 use crate::args::{Args, Command};
 use crate::image::Rgb16Image;
-use crate::lighting::color::RgbColor;
+use crate::lighting::color::{RgbColor, XyzColor};
 
 mod aabb;
 mod args;
@@ -74,7 +73,7 @@ fn main() -> Result {
 fn convert_pixels_to_image(
     output_width: u32,
     output_height: u32,
-    pixels: Vec<(u32, u32, DVec3)>,
+    pixels: Vec<(u32, u32, XyzColor)>,
     gamma: f64,
 ) -> Result<Rgb16Image> {
     let max_intensity = pixels
@@ -90,9 +89,9 @@ fn convert_pixels_to_image(
 
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(pixels.len() as u64, "converting to image")?;
-    for (x, y, pixel) in pixels {
-        let color = RgbColor::from(pixel);
-        image.put_pixel(x, y, (color * scale).apply_gamma(gamma).into());
+    for (x, y, color) in pixels {
+        let srgb_color = RgbColor::from(color * scale);
+        image.put_pixel(x, y, srgb_color.apply_gamma(gamma).into());
         progress.inc(1);
     }
     progress.finish();
