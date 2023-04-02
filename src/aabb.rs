@@ -49,30 +49,30 @@ mod tests {
 
     #[test]
     fn hit_ok() {
-        let ray = Ray::by_two_points(DVec3::ZERO, DVec3::ONE);
+        let ray = Ray::by_two_points(Point::ZERO, Point::new(1.0, 1.0, 1.0));
         let aabb = Aabb {
-            min_point: DVec3::new(2.0, 2.0, 2.0),
-            max_point: DVec3::new(3.0, 3.0, 3.0),
+            min_point: Point::new(2.0, 2.0, 2.0),
+            max_point: Point::new(3.0, 3.0, 3.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_some());
     }
 
     #[test]
     fn no_hit_behind() {
-        let ray = Ray::by_two_points(DVec3::ONE, DVec3::ZERO);
+        let ray = Ray::by_two_points(Point::new(1.0, 1.0, 1.0), Point::ZERO);
         let aabb = Aabb {
-            min_point: DVec3::new(2.0, 2.0, 2.0),
-            max_point: DVec3::new(3.0, 3.0, 3.0),
+            min_point: Point::new(2.0, 2.0, 2.0),
+            max_point: Point::new(3.0, 3.0, 3.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_none());
     }
 
     #[test]
     fn no_hit_parallel() {
-        let ray = Ray::by_two_points(DVec3::ZERO, DVec3::new(1.0, 0.0, 0.0));
+        let ray = Ray::by_two_points(Point::ZERO, Point::new(1.0, 0.0, 0.0));
         let aabb = Aabb {
-            min_point: DVec3::ONE,
-            max_point: DVec3::new(2.0, 2.0, 2.0),
+            min_point: Point::new(1.0, 1.0, 1.0),
+            max_point: Point::new(2.0, 2.0, 2.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_none());
     }

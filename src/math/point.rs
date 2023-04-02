@@ -3,8 +3,24 @@ use std::ops::{Add, Sub};
 use glam::DVec3;
 use serde::Deserialize;
 
-#[derive(Default, Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize)]
 pub struct Point(DVec3);
+
+impl Point {
+    pub const ZERO: Self = Self::default();
+
+    #[inline]
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
+        Self(DVec3::new(x, y, z))
+    }
+}
+
+impl const Default for Point {
+    #[inline]
+    fn default() -> Self {
+        Self(DVec3::ZERO)
+    }
+}
 
 impl const From<DVec3> for Point {
     #[inline]
