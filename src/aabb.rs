@@ -10,10 +10,7 @@ use crate::ray::Ray;
 /// the one with the minimal coordinates, and the other – with the maximal coordinates.
 #[derive(Deserialize, JsonSchema, Copy, Clone)]
 pub struct Aabb {
-    #[schemars(with = "[f64; 3]")]
     pub min_point: Point,
-
-    #[schemars(with = "[f64; 3]")]
     pub max_point: Point,
 }
 

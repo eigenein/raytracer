@@ -1,10 +1,11 @@
 use std::ops::{Add, Sub};
 
 use glam::DVec3;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
-#[derive(Debug, Copy, Clone, Deserialize)]
-pub struct Point(DVec3);
+#[derive(Debug, Copy, Clone, Deserialize, JsonSchema)]
+pub struct Point(#[schemars(with = "[f64; 3]")] DVec3);
 
 impl Point {
     pub const ZERO: Self = Self::default();

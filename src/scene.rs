@@ -18,7 +18,7 @@ pub struct Scene {
     pub camera: Camera,
 
     /// Scene background and ambient color.
-    #[serde(default = "Scene::default_ambient_color")]
+    #[serde(default = "DVec3::default")]
     #[schemars(with = "[f64; 3]")]
     pub ambient_color: DVec3,
 
@@ -41,10 +41,6 @@ impl Scene {
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
     }
 
-    pub const fn default_ambient_color() -> DVec3 {
-        DVec3::ZERO
-    }
-
     pub const fn default_refractive_index() -> f64 {
         1.0
     }
@@ -53,11 +49,9 @@ impl Scene {
 #[derive(Deserialize, JsonSchema)]
 pub struct Camera {
     #[serde(default = "Camera::default_location")]
-    #[schemars(with = "[f64; 3]")]
     pub location: Point,
 
     #[serde(default)]
-    #[schemars(with = "[f64; 3]")]
     pub look_at: Point,
 
     /// Vertical field-of-view angle, in degrees.

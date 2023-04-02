@@ -28,6 +28,7 @@ mod args;
 mod constants;
 mod hit;
 mod image;
+mod lighting;
 mod material;
 mod math;
 mod prelude;

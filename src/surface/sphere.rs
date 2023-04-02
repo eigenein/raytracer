@@ -11,11 +11,8 @@ use crate::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {
-    #[schemars(with = "[f64; 3]")]
     center: Point,
-
     radius: f64,
-
     material: Material,
 }
 
