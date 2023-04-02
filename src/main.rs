@@ -25,7 +25,7 @@ use crate::lighting::color::RgbColor;
 
 mod aabb;
 mod args;
-mod constants;
+mod consts;
 mod hit;
 mod image;
 mod lighting;

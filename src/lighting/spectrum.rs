@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
+
 #[derive(Deserialize, JsonSchema, Copy, Clone)]
 pub enum Spectrum {
     /// https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
@@ -16,6 +18,9 @@ pub enum Spectrum {
         #[serde(alias = "full width at half maximum")]
         fwhm: f64,
     },
+
+    /// https://en.wikipedia.org/wiki/Planck%27s_law
+    BlackBody { temperature: f64 },
 }
 
 impl Spectrum {
@@ -28,6 +33,12 @@ impl Spectrum {
             } => {
                 let x = 2.0 * (wavelength - maximum) / fwhm;
                 intensity / (1.0 + x * x)
+            }
+
+            Self::BlackBody { temperature } => {
+                2.0 * PLANCK * LIGHT_SPEED_2
+                    / wavelength.powi(5)
+                    / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / temperature).exp() - 1.0)
             }
         }
     }
@@ -56,5 +67,14 @@ mod tests {
             (intensity_at_half_width - 0.5).abs() < 0.001,
             "actual: {intensity_at_half_width}"
         );
+    }
+
+    #[test]
+    fn black_body_ok() {
+        let spectrum = Spectrum::BlackBody {
+            temperature: 5777.0,
+        };
+        let intensity = spectrum.intensity_at(500e-9);
+        assert!((intensity - 2.635e13).abs() < 1e10, "actual: {intensity}");
     }
 }
