@@ -14,7 +14,6 @@
     clippy::unused_self
 )]
 
-use ::image::Rgb;
 use clap::Parser;
 use glam::DVec3;
 use schemars::schema_for;
@@ -22,6 +21,7 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::args::{Args, Command};
 use crate::image::Rgb16Image;
+use crate::lighting::color::RgbColor;
 
 mod aabb;
 mod args;
@@ -91,16 +91,8 @@ fn convert_pixels_to_image(
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(pixels.len() as u64, "converting to image")?;
     for (x, y, pixel) in pixels {
-        // Scale to the maximum luminance:
-        let color = (pixel * scale).clamp(DVec3::ZERO, DVec3::ONE);
-        // Apply the gamma correction:
-        let color = color.powf(gamma);
-        // Scale to the image sub-pixels:
-        let color = color * u16::MAX as f64;
-        // And finally, prepare for casting:
-        let color = color.round();
-
-        image.put_pixel(x, y, Rgb::from([color.x as u16, color.y as u16, color.z as u16]));
+        let color = RgbColor::from(pixel);
+        image.put_pixel(x, y, (color * scale).apply_gamma(gamma).into());
         progress.inc(1);
     }
     progress.finish();

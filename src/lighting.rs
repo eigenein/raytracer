@@ -1,1 +1,2 @@
-mod light;
+pub mod color;
+pub mod spectrum;
