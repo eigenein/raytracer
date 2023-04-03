@@ -7,6 +7,7 @@ use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 #[serde(tag = "type")]
 pub enum Spectrum {
     Constant {
+        #[serde(default = "Spectrum::default_intensity")]
         intensity: f64,
     },
 
@@ -25,12 +26,7 @@ pub enum Spectrum {
     },
 
     /// https://en.wikipedia.org/wiki/Planck%27s_law
-    BlackBody {
-        temperature: f64,
-
-        #[serde(default = "Spectrum::default_intensity")]
-        scale: f64,
-    },
+    BlackBody { temperature: f64, scale: f64 },
 }
 
 impl Spectrum {
