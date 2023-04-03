@@ -17,6 +17,7 @@ pub struct Material {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Reflectance {
+    /// Absorbs nothing anything by default.
     #[serde(default = "Reflectance::default_attenuation")]
     pub attenuation: Spectrum,
 
@@ -46,6 +47,7 @@ impl Reflectance {
 #[derive(Deserialize, JsonSchema)]
 pub struct Transmittance {
     /// Refractive index of the medium inside the body.
+    /// By default, this is the index of vacuum.
     #[serde(default = "Transmittance::default_refractive_index", alias = "index")]
     pub refractive_index: f64,
 
@@ -54,6 +56,7 @@ pub struct Transmittance {
     pub attenuation: Option<Spectrum>,
 
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
+    /// Considered to be zero by default.
     #[serde(default)]
     pub coefficient: Option<f64>,
 }
