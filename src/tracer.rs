@@ -3,7 +3,7 @@ use tracing::info;
 
 use crate::args::TracerOptions;
 use crate::hit::{Hit, HitType, Hittable};
-use crate::lighting::color::XyzColor;
+use crate::lighting::xyz::XyzColor;
 use crate::math::support::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
@@ -59,10 +59,11 @@ impl Tracer {
                     .map(|i| {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
+                        let wavelength = 360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step;
                         let ray = Ray::by_two_points(
                             self.scene.camera.location,
                             viewport_point,
-                            360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step,
+                            wavelength,
                         );
                         let intensity = self.trace_ray(ray, self.options.n_max_bounces);
                         XyzColor::from_wavelength(wavelength) * intensity
