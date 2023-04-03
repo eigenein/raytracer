@@ -62,7 +62,7 @@ impl RgbColor {
     }
 }
 
-impl From<RgbColor> for ::image::Rgb<u16> {
+impl From<RgbColor> for image::Rgb<u16> {
     #[inline]
     fn from(value: RgbColor) -> Self {
         let value = value.0.clamp(DVec3::ZERO, DVec3::ONE);
