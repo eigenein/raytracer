@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 
-#[derive(Deserialize, JsonSchema, Copy, Clone)]
+#[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Spectrum {
     Constant {
@@ -25,8 +25,16 @@ pub enum Spectrum {
         fwhm: f64,
     },
 
-    /// https://en.wikipedia.org/wiki/Planck%27s_law
-    BlackBody { temperature: f64, scale: f64 },
+    /// Black body radiation: https://en.wikipedia.org/wiki/Planck%27s_law.
+    /// Do not confuse with black body absorption.
+    #[serde(alias = "BlackBody")]
+    BlackBodyRadiation { temperature: f64, scale: f64 },
+
+    /// Sum of the spectra.
+    Sum { spectra: Vec<Spectrum> },
+
+    /// Multiplication of the spectra.
+    Mul { spectra: Vec<Spectrum> },
 }
 
 impl Spectrum {
@@ -43,14 +51,25 @@ impl Spectrum {
                 intensity / (1.0 + x * x)
             }
 
-            Self::BlackBody {
+            Self::BlackBodyRadiation {
                 scale: intensity,
                 temperature,
             } => {
-                intensity * 2.0 * PLANCK * LIGHT_SPEED_2
+                let scale = temperature.powi(4) * intensity;
+                scale * 2.0 * PLANCK * LIGHT_SPEED_2
                     / wavelength.powi(5)
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / temperature).exp() - 1.0)
             }
+
+            Self::Sum { spectra } => spectra
+                .iter()
+                .map(|spectrum| spectrum.intensity_at(wavelength))
+                .sum(),
+
+            Self::Mul { spectra } => spectra
+                .iter()
+                .map(|spectrum| spectrum.intensity_at(wavelength))
+                .fold(1.0, |accumulator, intensity| accumulator * intensity),
         }
     }
 
@@ -82,7 +101,7 @@ mod tests {
 
     #[test]
     fn black_body_ok() {
-        let spectrum = Spectrum::BlackBody {
+        let spectrum = Spectrum::BlackBodyRadiation {
             temperature: 5777.0,
             scale: 1.0,
         };

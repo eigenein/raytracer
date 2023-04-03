@@ -51,17 +51,18 @@ impl Tracer {
         let mut y_indices: Vec<u32> = (0..output_height).collect();
         fastrand::shuffle(&mut y_indices);
 
+        let wavelength_step = (830.0e-9 - 360.0e-9) / self.options.samples_per_pixel as f64;
+
         for y in y_indices {
             for x in 0..output_width {
                 let color = (0..self.options.samples_per_pixel)
-                    .map(|_| {
+                    .map(|i| {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
-                        let wavelength = 360.0e-9 + fastrand::f64() * (830.0e-9 - 360.0e-9);
                         let ray = Ray::by_two_points(
                             self.scene.camera.location,
                             viewport_point,
-                            wavelength,
+                            360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step,
                         );
                         let intensity = self.trace_ray(ray, self.options.n_max_bounces);
                         XyzColor::from_wavelength(wavelength) * intensity
@@ -190,7 +191,8 @@ impl Tracer {
 
         let mut intensity = transmittance
             .attenuation
-            .unwrap_or(hit.material.reflectance.attenuation)
+            .as_ref()
+            .unwrap_or(&hit.material.reflectance.attenuation)
             .intensity_at(incident_ray.wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
