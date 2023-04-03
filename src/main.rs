@@ -20,7 +20,8 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::args::{Args, Command};
 use crate::image::Rgb16Image;
-use crate::lighting::color::{RgbColor, XyzColor};
+use crate::lighting::rgb::RgbColor;
+use crate::lighting::xyz::XyzColor;
 
 mod aabb;
 mod args;
