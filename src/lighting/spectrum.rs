@@ -26,7 +26,8 @@ pub enum Spectrum {
     },
 
     /// Black body radiation: https://en.wikipedia.org/wiki/Planck%27s_law.
-    /// Do not confuse with black body absorption.
+    ///
+    /// Do not confuse with black body **absorption** – for the latter use empty reflectance.
     #[serde(alias = "BlackBody")]
     BlackBodyRadiation { temperature: f64, scale: f64 },
 
@@ -37,24 +38,23 @@ pub enum Spectrum {
     Mul { spectra: Vec<Spectrum> },
 }
 
+impl const Default for Spectrum {
+    fn default() -> Self {
+        Spectrum::Constant { intensity: 1.0 }
+    }
+}
+
 impl Spectrum {
     pub fn intensity_at(&self, wavelength: f64) -> f64 {
         match self {
             Self::Constant { intensity } => *intensity,
 
-            Self::Lorentzian {
-                intensity,
-                maximum,
-                fwhm,
-            } => {
+            Self::Lorentzian { intensity, maximum, fwhm } => {
                 let x = 2.0 * (wavelength - maximum) / fwhm;
                 intensity / (1.0 + x * x)
             }
 
-            Self::BlackBodyRadiation {
-                scale: intensity,
-                temperature,
-            } => {
+            Self::BlackBodyRadiation { scale: intensity, temperature } => {
                 let scale = temperature.powi(4) * intensity;
                 scale * 2.0 * PLANCK * LIGHT_SPEED_2
                     / wavelength.powi(5)
@@ -86,11 +86,7 @@ mod tests {
     fn lorentzian_ok() {
         let maximum = 450e-9; // blue
         let fwhm = 1e-14;
-        let spectrum = Spectrum::Lorentzian {
-            intensity: 1.0,
-            maximum,
-            fwhm,
-        };
+        let spectrum = Spectrum::Lorentzian { intensity: 1.0, maximum, fwhm };
 
         let intensity_at_half_width = spectrum.intensity_at(maximum - fwhm / 2.0);
         assert!(

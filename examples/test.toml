@@ -57,21 +57,24 @@ intensity = 1
     [surfaces.material]
 
         [surfaces.material.reflectance.attenuation]
-            type = "Sum"
-
-            [[surfaces.material.reflectance.attenuation.spectra]]
-                type = "Lorentzian"
-                maximum = 640e-9
-                fwhm = 50e-9
-                intensity = 0.5
-
-            [[surfaces.material.reflectance.attenuation.spectra]]
-                type = "Constant"
-                intensity = 0.5
+            type = "Constant"
 
         [surfaces.material.transmittance]
-        refractive_index = 1.54
-        coefficient = 0.1
+            refractive_index = 1.54
+            coefficient = 0.1
+
+            [surfaces.material.transmittance.attenuation]
+                type = "Sum"
+
+                [[surfaces.material.transmittance.attenuation.spectra]]
+                    type = "Lorentzian"
+                    maximum = 640e-9
+                    fwhm = 50e-9
+                    intensity = 0.5
+
+                [[surfaces.material.transmittance.attenuation.spectra]]
+                    type = "Constant"
+                    intensity = 0.5
 
 # Another small sphere on the right:
 
@@ -81,9 +84,8 @@ intensity = 1
     radius = 0.5
 
     [surfaces.material]
-        [surfaces.material.reflectance]
-            attenuation = { type = "Constant", intensity = 1 }
-            diffusion = 0.01
+        [surfaces.material.reflectance.attenuation]
+            type = "Constant"
 
         [surfaces.material.transmittance]
             refractive_index = 1.54
@@ -98,6 +100,6 @@ intensity = 1
 
                 [[surfaces.material.transmittance.attenuation.spectra]]
                     type = "Lorentzian"
-                    maximum = 400e-9
+                    maximum = 480e-9
                     fwhm = 50e-9
                     intensity = 0.5

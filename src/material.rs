@@ -6,7 +6,7 @@ use crate::lighting::spectrum::Spectrum;
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {
     #[serde(default)]
-    pub reflectance: Reflectance,
+    pub reflectance: Option<Reflectance>,
 
     #[serde(default)]
     pub transmittance: Option<Transmittance>,
@@ -15,10 +15,10 @@ pub struct Material {
     pub emittance: Option<Spectrum>,
 }
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize, JsonSchema, Default)]
 pub struct Reflectance {
     /// Absorbs nothing anything by default.
-    #[serde(default = "Reflectance::default_attenuation")]
+    #[serde(default)]
     pub attenuation: Spectrum,
 
     #[serde(default)]
@@ -28,22 +28,6 @@ pub struct Reflectance {
     pub diffusion: Option<f64>,
 }
 
-impl const Default for Reflectance {
-    fn default() -> Self {
-        Self {
-            attenuation: Self::default_attenuation(),
-            fuzz: None,
-            diffusion: None,
-        }
-    }
-}
-
-impl Reflectance {
-    pub const fn default_attenuation() -> Spectrum {
-        Spectrum::Constant { intensity: 1.0 }
-    }
-}
-
 #[derive(Deserialize, JsonSchema)]
 pub struct Transmittance {
     /// Refractive index of the medium inside the body.
@@ -51,9 +35,8 @@ pub struct Transmittance {
     #[serde(default = "Transmittance::default_refractive_index", alias = "index")]
     pub refractive_index: f64,
 
-    /// If not set, defaults to the reflectance attenuation.
     #[serde(default)]
-    pub attenuation: Option<Spectrum>,
+    pub attenuation: Spectrum,
 
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
     /// Considered to be zero by default.
