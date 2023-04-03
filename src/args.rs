@@ -44,7 +44,7 @@ pub struct Args {
 pub struct TracerOptions {
     /// Samples per pixel that get averaged for the antialiasing.
     #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u16).range(1..))]
-    pub samples_per_pixel: u16,
+    pub samples_per_pixel: usize,
 
     /// Maximum number of ray bounces of the scene's surfaces.
     #[arg(short = 'b', long = "max-bounces", default_value = "5", value_parser = value_parser!(u16).range(1..))]

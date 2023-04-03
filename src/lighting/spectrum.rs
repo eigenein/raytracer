@@ -54,8 +54,7 @@ impl Spectrum {
                 intensity / (1.0 + x * x)
             }
 
-            Self::BlackBodyRadiation { scale: intensity, temperature } => {
-                let scale = temperature.powi(4) * intensity;
+            Self::BlackBodyRadiation { scale, temperature } => {
                 scale * 2.0 * PLANCK * LIGHT_SPEED_2
                     / wavelength.powi(5)
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / temperature).exp() - 1.0)

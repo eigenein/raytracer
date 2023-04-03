@@ -100,6 +100,11 @@ impl Tracer {
                 break;
             };
 
+            if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
+                total_intensity +=
+                    total_attenuation * emittance.intensity_at(ray.wavelength);
+            }
+
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
             assert!(
                 cosine_theta_1 >= 0.0,
@@ -119,15 +124,11 @@ impl Tracer {
             {
                 (ray, attenuation)
             } else {
-                // There's no scattered ray (for example, the surface is not retractive nor refractive).
+                // There's no scattered ray (for example, the surface is not reflective nor refractive).
                 break;
             };
             assert!(scattered_ray.direction.is_finite());
 
-            if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                total_intensity +=
-                    total_attenuation * emittance.intensity_at(ray.wavelength);
-            }
             total_attenuation *= attenuation;
             ray = scattered_ray;
         }
