@@ -114,8 +114,13 @@ impl Tracer {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit, ray.wavelength) {
                 (ray, attenuation)
-            } else {
+            } else if let Some((ray, attenuation)) =
                 self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
+            {
+                (ray, attenuation)
+            } else {
+                // There's no scattered ray (for example, the surface is not retractive nor refractive).
+                break;
             };
             assert!(scattered_ray.direction.is_finite());
 
@@ -132,15 +137,12 @@ impl Tracer {
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
     fn trace_diffusion(&self, hit: &Hit, wavelength: f64) -> Option<(Ray, f64)> {
-        let Some(probability) = hit.material.reflectance.diffusion else { return None };
+        let Some(reflectance) = &hit.material.reflectance else { return None };
+        let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
             let ray =
                 Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng), wavelength);
-            let intensity = hit
-                .material
-                .reflectance
-                .attenuation
-                .intensity_at(wavelength);
+            let intensity = reflectance.attenuation.intensity_at(wavelength);
             (ray, intensity)
         })
     }
@@ -192,8 +194,6 @@ impl Tracer {
 
         let mut intensity = transmittance
             .attenuation
-            .as_ref()
-            .unwrap_or(&hit.material.reflectance.attenuation)
             .intensity_at(incident_ray.wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
@@ -209,20 +209,19 @@ impl Tracer {
         incident_ray: &Ray,
         hit: &Hit,
         cosine_theta_1: f64,
-    ) -> (Ray, f64) {
+    ) -> Option<(Ray, f64)> {
+        let Some(reflectance) = &hit.material.reflectance else { return None };
         let mut ray = Ray::new(
             hit.location,
             incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
             incident_ray.wavelength,
         );
-        if let Some(fuzz) = hit.material.reflectance.fuzz {
+        if let Some(fuzz) = reflectance.fuzz {
             ray.direction += random_unit_vector(&self.rng) * fuzz;
         }
-        let intensity = hit
-            .material
-            .reflectance
+        let intensity = reflectance
             .attenuation
             .intensity_at(incident_ray.wavelength);
-        (ray, intensity)
+        Some((ray, intensity))
     }
 }
