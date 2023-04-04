@@ -5,22 +5,20 @@ use crate::math::point::Point;
 pub struct Ray {
     pub origin: Point,
     pub direction: DVec3,
-    pub wavelength: f64,
 }
 
 impl Ray {
     #[inline]
-    pub fn new(origin: Point, direction: DVec3, wavelength: f64) -> Self {
+    pub fn new(origin: Point, direction: DVec3) -> Self {
         Self {
             origin,
             direction: direction.normalize(),
-            wavelength,
         }
     }
 
     #[inline]
-    pub fn by_two_points(from: Point, to: Point, wavelength: f64) -> Self {
-        Self::new(from, to - from, wavelength)
+    pub fn by_two_points(from: Point, to: Point) -> Self {
+        Self::new(from, to - from)
     }
 
     #[inline]
