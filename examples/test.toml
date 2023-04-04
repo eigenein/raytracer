@@ -5,7 +5,7 @@ fwhm = 15e-9
 intensity = 1
 
 [camera]
-    location = [-1, 3, -5.5]
+    location = [-1, 2, -6]
     look_at = [-0.5, 0.5, -1]
     vfov = 45
     up = [0, 1, 0]
@@ -14,7 +14,7 @@ intensity = 1
 
 [[surfaces]]
     type = "Sphere"
-    center = [12, 5, 20.0]
+    center = [13, 9.5, 20.0]
     radius = 5
 
     [surfaces.material]
@@ -33,8 +33,8 @@ intensity = 1
     [surfaces.material]
         [surfaces.material.reflectance]
             attenuation = { type = "Constant", intensity = 1 }
-            diffusion = 1
-            # fuzz = 0.02
+            diffusion = 0.99
+            fuzz = 0.02
 
 # Central smaller sphere:
 
@@ -47,6 +47,7 @@ intensity = 1
 
         [surfaces.material.reflectance]
         attenuation = { type = "Lorentzian", maximum = 570e-9, fwhm = 100e-9 }
+        diffusion = 0.01
 
 # Small sphere on the left:
 
