@@ -60,12 +60,8 @@ impl Tracer {
                         let viewport_point =
                             self.scene.camera.look_at + viewport.cast_random_ray(x, y);
                         let wavelength = 360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step;
-                        let ray = Ray::by_two_points(
-                            self.scene.camera.location,
-                            viewport_point,
-                            wavelength,
-                        );
-                        let intensity = self.trace_ray(ray, self.options.n_max_bounces);
+                        let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
+                        let intensity = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
                         XyzColor::from_wavelength(wavelength) * intensity
                     })
                     .sum::<XyzColor>();
@@ -80,9 +76,9 @@ impl Tracer {
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, mut ray: Ray, n_bounces_left: u16) -> f64 {
+    fn trace_ray(&self, mut ray: Ray, wavelength: f64, n_bounces_left: u16) -> f64 {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
-        let scene_emittance = self.scene.ambient_spectrum.intensity_at(ray.wavelength);
+        let scene_emittance = self.scene.ambient_spectrum.intensity_at(wavelength);
 
         let mut total_intensity = 0.0;
         let mut total_attenuation = 1.0;
@@ -102,7 +98,7 @@ impl Tracer {
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
                 total_intensity +=
-                    total_attenuation * emittance.intensity_at(ray.wavelength);
+                    total_attenuation * emittance.intensity_at(wavelength);
             }
 
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
@@ -114,13 +110,13 @@ impl Tracer {
             );
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
-                self.trace_refraction(&ray, &hit, cosine_theta_1)
+                self.trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
-            } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit, ray.wavelength) {
+            } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit, wavelength) {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) =
-                self.trace_specular_reflection(&ray, &hit, cosine_theta_1)
+                self.trace_specular_reflection(&ray, wavelength, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
             } else {
@@ -141,8 +137,7 @@ impl Tracer {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
-            let ray =
-                Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng), wavelength);
+            let ray = Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng));
             let intensity = reflectance.attenuation.intensity_at(wavelength);
             (ray, intensity)
         })
@@ -157,6 +152,7 @@ impl Tracer {
     fn trace_refraction(
         &self,
         incident_ray: &Ray,
+        wavelength: f64,
         hit: &Hit,
         cosine_theta_1: f64,
     ) -> Option<(Ray, f64)> {
@@ -191,11 +187,9 @@ impl Tracer {
             let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
             mu * incident_ray.direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
         };
-        let ray = Ray::new(hit.location, direction, incident_ray.wavelength);
+        let ray = Ray::new(hit.location, direction);
 
-        let mut intensity = transmittance
-            .attenuation
-            .intensity_at(incident_ray.wavelength);
+        let mut intensity = transmittance.attenuation.intensity_at(wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
             intensity *= (-hit.distance * coefficient).exp();
@@ -208,21 +202,17 @@ impl Tracer {
     fn trace_specular_reflection(
         &self,
         incident_ray: &Ray,
+        wavelength: f64,
         hit: &Hit,
         cosine_theta_1: f64,
     ) -> Option<(Ray, f64)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
-        let mut ray = Ray::new(
-            hit.location,
-            incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal,
-            incident_ray.wavelength,
-        );
+        let mut ray =
+            Ray::new(hit.location, incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal);
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += random_unit_vector(&self.rng) * fuzz;
         }
-        let intensity = reflectance
-            .attenuation
-            .intensity_at(incident_ray.wavelength);
+        let intensity = reflectance.attenuation.intensity_at(wavelength);
         Some((ray, intensity))
     }
 }

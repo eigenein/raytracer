@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn hit_ok() {
-        let ray = Ray::by_two_points(DVec3::ZERO.into(), DVec3::ONE.into(), 0.0);
+        let ray = Ray::by_two_points(DVec3::ZERO.into(), DVec3::ONE.into());
         let aabb = Aabb {
             min_point: DVec3::new(2.0, 2.0, 2.0).into(),
             max_point: DVec3::new(3.0, 3.0, 3.0).into(),
@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     fn no_hit_behind() {
-        let ray = Ray::by_two_points(DVec3::ONE.into(), DVec3::ZERO.into(), 0.0);
+        let ray = Ray::by_two_points(DVec3::ONE.into(), DVec3::ZERO.into());
         let aabb = Aabb {
             min_point: DVec3::new(2.0, 2.0, 2.0).into(),
             max_point: DVec3::new(3.0, 3.0, 3.0).into(),
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn no_hit_parallel() {
-        let ray = Ray::by_two_points(DVec3::ZERO.into(), DVec3::new(1.0, 0.0, 0.0).into(), 0.0);
+        let ray = Ray::by_two_points(DVec3::ZERO.into(), DVec3::new(1.0, 0.0, 0.0).into());
         let aabb = Aabb {
             min_point: DVec3::new(1.0, 1.0, 1.0).into(),
             max_point: DVec3::new(2.0, 2.0, 2.0).into(),
