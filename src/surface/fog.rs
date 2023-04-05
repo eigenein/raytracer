@@ -29,6 +29,7 @@ impl UniformFog {
 impl Hittable for UniformFog {
     fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<Hit> {
         let Some((min_distance, max_distance)) = self.aabb.hit(by_ray, distance_range) else { return None };
+        assert!(min_distance.is_finite());
         let hit_distance = min_distance - 1.0 / self.density * fastrand::f64().ln();
         if hit_distance < max_distance {
             let hit = Hit {

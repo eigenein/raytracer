@@ -21,6 +21,10 @@ impl Aabb {
     /// See the original: <https://gamedev.stackexchange.com/a/18459/171067>.
     #[allow(dead_code)]
     pub fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<(f64, f64)> {
+        if self.min_point.is_infinite() && self.max_point.is_infinite() {
+            return Some((distance_range.start, distance_range.end));
+        }
+
         let min_plane_distances = (self.min_point - by_ray.origin) / by_ray.direction;
         let max_plane_distances = (self.max_point - by_ray.origin) / by_ray.direction;
 
@@ -77,5 +81,15 @@ mod tests {
             max_point: DVec3::new(2.0, 2.0, 2.0).into(),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_none());
+    }
+
+    #[test]
+    fn hit_infinity() {
+        let ray = Ray::by_two_points(DVec3::ZERO.into(), DVec3::ONE.into());
+        let aabb = Aabb {
+            min_point: DVec3::new(-f64::INFINITY, -f64::INFINITY, -f64::INFINITY).into(),
+            max_point: DVec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY).into(),
+        };
+        assert_eq!(aabb.hit(&ray, &(0.0..f64::INFINITY)), Some((0.0, f64::INFINITY)));
     }
 }
