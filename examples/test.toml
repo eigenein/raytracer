@@ -10,8 +10,21 @@ intensity = 1
     vfov = 45
     up = [0, 1, 0]
 
-# Sun
+# World-wide fog
+[[surfaces]]
+    type = "UniformFog"
+    density = 0.0005
 
+    [surfaces.aabb]
+        min = [-100, -100, -100]
+        max = [+100, +100, +100]
+
+    [surfaces.material]
+        [surfaces.material.reflectance]
+            diffusion = 1
+            attenuation = { type = "Constant", intensity = 0.95 }
+
+# Sun
 [[surfaces]]
     type = "Sphere"
     center = [13, 9.5, 20.0]
@@ -24,7 +37,6 @@ intensity = 1
             scale = 10e-12
 
 # Earth:
-
 [[surfaces]]
     type = "Sphere"
     center = [0.0, -21.0, 0.0]
@@ -37,7 +49,6 @@ intensity = 1
             fuzz = 0.02
 
 # Central smaller sphere:
-
 [[surfaces]]
     type = "Sphere"
     center = [0.0, 0.2, 0.0]
@@ -50,7 +61,6 @@ intensity = 1
         diffusion = 0.01
 
 # Small sphere on the left:
-
 [[surfaces]]
     type = "Sphere"
     center = [-2.5, 0.0, 0.0]
@@ -63,7 +73,6 @@ intensity = 1
         diffusion = 0.8
 
 # Small sphere on the right:
-
 [[surfaces]]
     type = "Sphere"
     center = [0.75, -0.5, -1.5]
@@ -92,7 +101,6 @@ intensity = 1
                     intensity = 0.5
 
 # Another small sphere on the right:
-
 [[surfaces]]
     type = "Sphere"
     center = [2, -0.5, 0.0]
