@@ -1,4 +1,6 @@
-use fastrand::Rng;
+use std::sync::{Arc, Mutex};
+
+use rayon::prelude::*;
 use tracing::info;
 
 use crate::args::TracerOptions;
@@ -13,65 +15,79 @@ use crate::scene::Scene;
 use crate::viewport::Viewport;
 
 pub struct Tracer {
-    pub scene: Scene,
-    pub options: TracerOptions,
-    rng: Rng,
+    scene: Scene,
+    options: TracerOptions,
+    output_width: u32,
+    output_height: u32,
+    viewport: Viewport,
+    wavelength_step: f64,
 }
 
 impl Tracer {
-    pub fn new(scene: Scene, options: TracerOptions) -> Self {
+    pub fn new(
+        scene: Scene,
+        options: TracerOptions,
+        output_width: u32,
+        output_height: u32,
+    ) -> Self {
+        let viewport = Viewport::new(&scene.camera, output_width, output_height);
+        let wavelength_step = (830.0e-9 - 360.0e-9) / options.samples_per_pixel as f64;
+
         Self {
             options,
             scene,
-            rng: Rng::new(),
+            output_width,
+            output_height,
+            viewport,
+            wavelength_step,
         }
     }
 
-    pub fn trace(
-        &self,
-        output_width: u32,
-        output_height: u32,
-    ) -> Result<Vec<(u32, u32, XyzColor)>> {
-        info!(
-            self.options.samples_per_pixel,
-            self.options.n_max_bounces, self.options.min_hit_distance
-        );
+    pub fn trace(&self) -> Result<Vec<(u32, Vec<XyzColor>)>> {
+        info!(self.options.samples_per_pixel);
+        info!(self.options.n_max_bounces, self.options.min_hit_distance);
         info!(?self.scene.camera.location);
         info!(?self.scene.camera.look_at);
         info!(?self.scene.camera.up);
         info!(self.scene.camera.vertical_fov);
+        info!(?self.viewport.dx);
+        info!(?self.viewport.dy);
+        info!(self.wavelength_step);
 
-        let viewport = Viewport::new(&self.scene.camera, output_width, output_height);
-        info!(?viewport.dx);
-        info!(?viewport.dy);
-
-        let progress = new_progress(output_height as u64, "tracing (rows)")?;
-        let mut pixels = Vec::with_capacity(output_width as usize * output_height as usize);
-
-        let mut y_indices: Vec<u32> = (0..output_height).collect();
+        let mut y_indices: Vec<u32> = (0..self.output_height).collect();
         fastrand::shuffle(&mut y_indices);
 
-        let wavelength_step = (830.0e-9 - 360.0e-9) / self.options.samples_per_pixel as f64;
+        let mut rows = Vec::with_capacity(self.output_width as usize);
+        let progress =
+            Arc::new(Mutex::new(new_progress(self.output_height as u64, "tracing (rows)")?));
 
-        for y in y_indices {
-            for x in 0..output_width {
-                let color = (0..self.options.samples_per_pixel)
-                    .map(|i| {
-                        let viewport_point =
-                            self.scene.camera.look_at + viewport.cast_random_ray(x, y);
-                        let wavelength = 360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step;
-                        let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                        let intensity = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
-                        XyzColor::from_wavelength(wavelength) * intensity
-                    })
-                    .sum::<XyzColor>();
-                pixels.push((x, y, color));
-            }
-            progress.inc(1);
-        }
-        progress.finish();
+        y_indices
+            .into_par_iter()
+            .map(|y| {
+                let row: Vec<XyzColor> = (0..self.output_width)
+                    .map(|x| self.render_pixel(x, y, self.wavelength_step))
+                    .collect();
+                progress.lock().unwrap().inc(1);
+                (y, row)
+            })
+            .collect_into_vec(&mut rows);
 
-        Ok(pixels)
+        progress.lock().unwrap().finish();
+        Ok(rows)
+    }
+
+    #[inline]
+    fn render_pixel(&self, x: u32, y: u32, wavelength_step: f64) -> XyzColor {
+        (0..self.options.samples_per_pixel)
+            .map(|i| {
+                let viewport_point =
+                    self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
+                let wavelength = 360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step;
+                let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
+                let intensity = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
+                XyzColor::from_wavelength(wavelength) * intensity
+            })
+            .sum::<XyzColor>()
     }
 
     /// Trace the ray and return the resulting color.
@@ -113,10 +129,10 @@ impl Tracer {
                 self.trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
-            } else if let Some((ray, attenuation)) = self.trace_diffusion(&hit, wavelength) {
+            } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) =
-                self.trace_specular_reflection(&ray, wavelength, &hit, cosine_theta_1)
+                Self::trace_specular_reflection(&ray, wavelength, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
             } else {
@@ -133,11 +149,11 @@ impl Tracer {
     }
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-    fn trace_diffusion(&self, hit: &Hit, wavelength: f64) -> Option<(Ray, f64)> {
+    fn trace_diffusion(hit: &Hit, wavelength: f64) -> Option<(Ray, f64)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
-            let ray = Ray::new(hit.location, hit.normal + random_unit_vector(&self.rng));
+            let ray = Ray::new(hit.location, hit.normal + random_unit_vector());
             let intensity = reflectance.attenuation.intensity_at(wavelength);
             (ray, intensity)
         })
@@ -200,7 +216,6 @@ impl Tracer {
 
     /// Specular reflection: <https://en.wikipedia.org/wiki/Specular_reflection>.
     fn trace_specular_reflection(
-        &self,
         incident_ray: &Ray,
         wavelength: f64,
         hit: &Hit,
@@ -210,7 +225,7 @@ impl Tracer {
         let mut ray =
             Ray::new(hit.location, incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal);
         if let Some(fuzz) = reflectance.fuzz {
-            ray.direction += random_unit_vector(&self.rng) * fuzz;
+            ray.direction += random_unit_vector() * fuzz;
         }
         let intensity = reflectance.attenuation.intensity_at(wavelength);
         Some((ray, intensity))

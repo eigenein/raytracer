@@ -56,9 +56,15 @@ fn main() -> Result {
             output_height,
             gamma,
             output_path,
+            n_threads,
         } => {
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(n_threads)
+                .build_global()?;
+            info!(current_num_threads = rayon::current_num_threads());
+
             let scene = Scene::read_from(&input_path)?;
-            let pixels = Tracer::new(scene, tracer_options).trace(output_width, output_height)?;
+            let pixels = Tracer::new(scene, tracer_options, output_width, output_height).trace()?;
             convert_pixels_to_image(output_width, output_height, pixels, gamma)?
                 .save(output_path)
                 .context("failed to save the output image")?;
@@ -74,12 +80,13 @@ fn main() -> Result {
 fn convert_pixels_to_image(
     output_width: u32,
     output_height: u32,
-    pixels: Vec<(u32, u32, XyzColor)>,
+    rows: Vec<(u32, Vec<XyzColor>)>,
     gamma: f64,
 ) -> Result<Rgb16Image> {
-    let max_intensity = pixels
+    let max_intensity = rows
         .iter()
-        .map(|(_, _, pixel)| pixel.max_element())
+        .flat_map(|(_, row)| row)
+        .map(|pixel| pixel.max_element())
         .max_by(|lhs, rhs| lhs.total_cmp(rhs))
         .unwrap_or(1.0)
         .max(1.0);
@@ -89,10 +96,12 @@ fn convert_pixels_to_image(
     info!(scale);
 
     let mut image = Rgb16Image::new(output_width, output_height);
-    let progress = new_progress(pixels.len() as u64, "converting to image")?;
-    for (x, y, color) in pixels {
-        let srgb_color = RgbColor::from(color * scale);
-        image.put_pixel(x, y, srgb_color.apply_gamma(gamma).into());
+    let progress = new_progress(rows.len() as u64, "converting to image")?;
+    for (y, row) in rows {
+        for (x, color) in row.into_iter().enumerate() {
+            let srgb_color = RgbColor::from(color * scale);
+            image.put_pixel(x as u32, y, srgb_color.apply_gamma(gamma).into());
+        }
         progress.inc(1);
     }
     progress.finish();
