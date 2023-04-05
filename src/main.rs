@@ -90,10 +90,8 @@ fn convert_pixels_to_image(
         .max_by(|lhs, rhs| lhs.total_cmp(rhs))
         .unwrap_or(1.0)
         .max(1.0);
-    info!(max_intensity);
-
     let scale = 1.0 / max_intensity;
-    info!(scale);
+    info!(max_intensity, scale);
 
     let mut image = Rgb16Image::new(output_width, output_height);
     let progress = new_progress(rows.len() as u64, "converting to image")?;
