@@ -6,7 +6,7 @@ use tracing::info;
 use crate::args::TracerOptions;
 use crate::hit::{Hit, HitType, Hittable};
 use crate::lighting::xyz::XyzColor;
-use crate::math::support::random_unit_vector;
+use crate::math::vec::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
 use crate::ray::Ray;

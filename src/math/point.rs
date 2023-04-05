@@ -7,6 +7,13 @@ use serde::Deserialize;
 #[derive(Debug, Copy, Clone, Deserialize, JsonSchema)]
 pub struct Point(#[schemars(with = "[f64; 3]")] DVec3);
 
+impl Point {
+    #[inline]
+    pub const fn is_infinite(&self) -> bool {
+        self.0.x.is_infinite() && self.0.y.is_infinite() && self.0.z.is_infinite()
+    }
+}
+
 impl const Default for Point {
     #[inline]
     fn default() -> Self {

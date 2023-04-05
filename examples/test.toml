@@ -16,13 +16,13 @@ intensity = 1
     density = 0.0005
 
     [surfaces.aabb]
-        min = [-100, -100, -100]
-        max = [+100, +100, +100]
+        min = [-inf, -inf, -inf]
+        max = [+inf, +inf, +inf]
 
     [surfaces.material]
         [surfaces.material.reflectance]
             diffusion = 1
-            attenuation = { type = "Constant", intensity = 0.95 }
+            attenuation = { type = "Constant", intensity = 0.9 }
 
 # Sun
 [[surfaces]]
