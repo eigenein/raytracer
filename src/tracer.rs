@@ -82,7 +82,10 @@ impl Tracer {
             .map(|i| {
                 let viewport_point =
                     self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
+
+                // Stratified random wavelength:
                 let wavelength = 360.0e-9 + (i as f64 + fastrand::f64()) * wavelength_step;
+
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
                 let intensity = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
                 XyzColor::from_wavelength(wavelength) * intensity
@@ -100,6 +103,9 @@ impl Tracer {
         let mut total_attenuation = 1.0;
 
         for _ in 0..n_bounces_left {
+            if total_attenuation < self.options.min_attenuation {
+                break;
+            }
             let hit = self
                 .scene
                 .surfaces
