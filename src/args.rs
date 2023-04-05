@@ -22,8 +22,13 @@ pub enum Command {
         #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
         output_height: u32,
 
+        /// Gamma for the post-correction.
         #[arg(short = 'g', long = "gamma", default_value = "1.0")]
         gamma: f64,
+
+        /// Number of rendering threads (`0` for automatic choice).
+        #[arg(short = 't', long = "threads", default_value = "0")]
+        n_threads: usize,
 
         #[clap(flatten)]
         tracer_options: TracerOptions,
