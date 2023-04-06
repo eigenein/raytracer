@@ -106,7 +106,7 @@ intensity = 0.1
 
         [surfaces.material.transmittance]
             # Fused silica
-            refractive_index = { type = "Cauchy", c = [1.4580, 3.54e-15] }
+            refractive_index = { type = "FusedQuartz" }
 
             [surfaces.material.transmittance.attenuation]
                 type = "Sum"
