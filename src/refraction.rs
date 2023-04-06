@@ -16,6 +16,12 @@ pub enum RefractiveIndex {
         #[serde(alias = "c")]
         coefficients: Vec<f64>,
     },
+
+    /// Alexey N. Bashkatov and Elina A. Genina
+    /// "Water refractive index in dependence on temperature and wavelength: a simple approximation",
+    /// Proc. SPIE 5068, Saratov Fall Meeting 2002: Optical Technologies in Biophysics and Medicine IV,
+    /// (13 October 2003); <https://doi.org/10.1117/12.518857>.
+    Water,
 }
 
 impl const Default for RefractiveIndex {
@@ -29,11 +35,17 @@ impl RefractiveIndex {
     pub fn at(&self, wavelength: f64) -> f64 {
         match self {
             Self::Constant { index } => *index,
+
             Self::Cauchy { coefficients } => coefficients
                 .iter()
                 .enumerate()
                 .map(|(i, coefficient)| coefficient / wavelength.powi((i * 2) as i32))
                 .sum(),
+
+            Self::Water => Self::Cauchy {
+                coefficients: vec![1.3199, 6878e-18, -1.132e-27, 1.11e-40],
+            }
+            .at(wavelength),
         }
     }
 }

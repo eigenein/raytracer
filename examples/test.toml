@@ -1,10 +1,8 @@
 [ambient_spectrum]
-# type = "Lorentzian"
-# maximum = 475e-9
-# fwhm = 15e-9
-# intensity = 1
-type = "Constant"
-intensity = 0
+type = "Lorentzian"
+maximum = 475e-9
+fwhm = 15e-9
+intensity = 0.1
 
 [camera]
     location = [-1, 2, -6]
@@ -15,7 +13,7 @@ intensity = 0
 # World-wide fog, kind of
 [[surfaces]]
     type = "UniformFog"
-    density = 0.1
+    density = 0.025
 
     [surfaces.aabb]
         min = [-10, -10, -10]
@@ -27,8 +25,7 @@ intensity = 0
             attenuation = { type = "Constant", intensity = 0.5 }
 
         [surfaces.material.transmittance]
-            # Water
-            refractive_index = { type = "Cauchy", c = [1.3199, 6878e-18, -1.132e-27, 1.11e-40] }
+            refractive_index = { type = "Water" }
 
             [surfaces.material.transmittance.attenuation]
                 type = "Constant"
@@ -94,8 +91,7 @@ intensity = 0
             type = "Constant"
 
         [surfaces.material.transmittance]
-            # Water
-            refractive_index = { type = "Cauchy", c = [1.3199, 6878e-18, -1.132e-27, 1.11e-40] }
+            refractive_index = { type = "Water" }
             coefficient = 0.1
 
 # Another small sphere on the right:
