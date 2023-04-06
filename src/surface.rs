@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use crate::aabb::Aabb;
 use crate::hit::{Hit, Hittable};
-use crate::ray::Ray;
+use crate::physics::ray::Ray;
 use crate::surface::fog::UniformFog;
 use crate::surface::sphere::Sphere;
 

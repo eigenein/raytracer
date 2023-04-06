@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::aabb::Aabb;
 use crate::hit::{Hit, HitType, Hittable};
 use crate::material::Material;
-use crate::ray::Ray;
+use crate::physics::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct UniformFog {
