@@ -17,11 +17,28 @@ pub enum RefractiveIndex {
         coefficients: Vec<f64>,
     },
 
+    Cauchy2 {
+        a: f64,
+        b: f64,
+    },
+
+    Cauchy4 {
+        a: f64,
+        b: f64,
+        c: f64,
+        d: f64,
+    },
+
     /// Alexey N. Bashkatov and Elina A. Genina
     /// "Water refractive index in dependence on temperature and wavelength: a simple approximation",
     /// Proc. SPIE 5068, Saratov Fall Meeting 2002: Optical Technologies in Biophysics and Medicine IV,
     /// (13 October 2003); <https://doi.org/10.1117/12.518857>.
     Water,
+
+    /// - <https://en.wikipedia.org/wiki/Fused_quartz>
+    /// - <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
+    #[serde(alias = "FusedSilica", alias = "QuartzGlass")]
+    FusedQuartz,
 }
 
 impl const Default for RefractiveIndex {
@@ -42,10 +59,21 @@ impl RefractiveIndex {
                 .map(|(i, coefficient)| coefficient / wavelength.powi((i * 2) as i32))
                 .sum(),
 
-            Self::Water => Self::Cauchy {
-                coefficients: vec![1.3199, 6878e-18, -1.132e-27, 1.11e-40],
+            Self::Cauchy2 { a, b } => a + b / wavelength.powi(2),
+
+            Self::Cauchy4 { a, b, c, d } => {
+                a + b / wavelength.powi(2) + c / wavelength.powi(4) + d / wavelength.powi(6)
+            }
+
+            Self::Water => Self::Cauchy4 {
+                a: 1.3199,
+                b: 6878e-18,
+                c: -1.132e-27,
+                d: 1.11e-40,
             }
             .at(wavelength),
+
+            Self::FusedQuartz => Self::Cauchy2 { a: 1.4580, b: 3.54e-15 }.at(wavelength),
         }
     }
 }
