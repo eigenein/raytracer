@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 
+/// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Spectrum {
