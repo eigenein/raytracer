@@ -10,7 +10,7 @@ use crate::math::vec::random_unit_vector;
 use crate::prelude::*;
 use crate::progress::new_progress;
 use crate::ray::Ray;
-use crate::refraction::RefractiveIndex;
+use crate::refraction::RelativeRefractiveIndex;
 use crate::scene::Scene;
 use crate::viewport::Viewport;
 
@@ -182,12 +182,12 @@ impl Tracer {
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
         let refractive_index = match hit.type_ {
-            HitType::Enter | HitType::Through => RefractiveIndex {
+            HitType::Enter | HitType::Through => RelativeRefractiveIndex {
                 incident: self.scene.refractive_index,
-                refracted: transmittance.refractive_index,
+                refracted: transmittance.refractive_index.at(wavelength),
             },
-            HitType::Leave => RefractiveIndex {
-                incident: transmittance.refractive_index,
+            HitType::Leave => RelativeRefractiveIndex {
+                incident: transmittance.refractive_index.at(wavelength),
                 refracted: self.scene.refractive_index,
             },
         };

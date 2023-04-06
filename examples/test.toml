@@ -1,8 +1,10 @@
 [ambient_spectrum]
-type = "Lorentzian"
-maximum = 475e-9
-fwhm = 15e-9
-intensity = 1
+# type = "Lorentzian"
+# maximum = 475e-9
+# fwhm = 15e-9
+# intensity = 1
+type = "Constant"
+intensity = 0
 
 [camera]
     location = [-1, 2, -6]
@@ -10,19 +12,27 @@ intensity = 1
     vfov = 45
     up = [0, 1, 0]
 
-# World-wide fog
+# World-wide fog, kind of
 [[surfaces]]
     type = "UniformFog"
-    density = 0.0005
+    density = 0.1
 
     [surfaces.aabb]
-        min = [-inf, -inf, -inf]
-        max = [+inf, +inf, +inf]
+        min = [-10, -10, -10]
+        max = [10, 10, 10]
 
     [surfaces.material]
         [surfaces.material.reflectance]
             diffusion = 1
-            attenuation = { type = "Constant", intensity = 0.9 }
+            attenuation = { type = "Constant", intensity = 0.5 }
+
+        [surfaces.material.transmittance]
+            # Water
+            refractive_index = { type = "Cauchy", c = [1.3199, 6878e-18, -1.132e-27, 1.11e-40] }
+
+            [surfaces.material.transmittance.attenuation]
+                type = "Constant"
+                intensity = 0.5
 
 # Sun
 [[surfaces]]
@@ -84,21 +94,9 @@ intensity = 1
             type = "Constant"
 
         [surfaces.material.transmittance]
-            refractive_index = 1.54
+            # Water
+            refractive_index = { type = "Cauchy", c = [1.3199, 6878e-18, -1.132e-27, 1.11e-40] }
             coefficient = 0.1
-
-            [surfaces.material.transmittance.attenuation]
-                type = "Sum"
-
-                [[surfaces.material.transmittance.attenuation.spectra]]
-                    type = "Lorentzian"
-                    maximum = 640e-9
-                    fwhm = 50e-9
-                    intensity = 0.5
-
-                [[surfaces.material.transmittance.attenuation.spectra]]
-                    type = "Constant"
-                    intensity = 0.5
 
 # Another small sphere on the right:
 [[surfaces]]
@@ -111,8 +109,8 @@ intensity = 1
             type = "Constant"
 
         [surfaces.material.transmittance]
-            refractive_index = 1.54
-            coefficient = 0
+            # Fused silica
+            refractive_index = { type = "Cauchy", c = [1.4580, 3.54e-15] }
 
             [surfaces.material.transmittance.attenuation]
                 type = "Sum"
