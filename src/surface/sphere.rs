@@ -7,7 +7,7 @@ use crate::aabb::Aabb;
 use crate::hit::{Hit, HitType, Hittable};
 use crate::material::Material;
 use crate::math::point::Point;
-use crate::ray::Ray;
+use crate::physics::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {

@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::aabb::Aabb;
 use crate::material::Material;
 use crate::math::point::Point;
-use crate::ray::Ray;
+use crate::physics::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
