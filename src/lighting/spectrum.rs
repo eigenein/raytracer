@@ -4,6 +4,10 @@ use serde::Deserialize;
 use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 
 /// Absorbs nothing by default.
+///
+/// - TODO: `WaterAbsorption`.
+/// - TODO: `0.01 * pow(10, (400e-9 - 450e-9) * 0.75e7)`.
+/// - TODO: <https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water#/media/File:Absorption_coefficient_of_water.svg>.
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Spectrum {
@@ -14,15 +18,15 @@ pub enum Spectrum {
 
     /// https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
     Lorentzian {
-        #[serde(default = "Spectrum::default_intensity")]
-        intensity: f64,
+        #[serde(default = "Spectrum::default_intensity", alias = "intensity")]
+        max_intensity: f64,
 
         /// Wavelength of the maximum, meters.
-        #[serde(alias = "max")]
-        maximum: f64,
+        #[serde(alias = "max", alias = "maximum")]
+        maximum_at: f64,
 
         /// https://en.wikipedia.org/wiki/Full_width_at_half_maximum
-        #[serde(alias = "full width at half maximum")]
+        #[serde(alias = "full_width_at_half_maximum")]
         fwhm: f64,
     },
 
@@ -50,9 +54,13 @@ impl Spectrum {
         match self {
             Self::Constant { intensity } => *intensity,
 
-            Self::Lorentzian { intensity, maximum, fwhm } => {
-                let x = 2.0 * (wavelength - maximum) / fwhm;
-                intensity / (1.0 + x * x)
+            Self::Lorentzian {
+                max_intensity,
+                maximum_at,
+                fwhm,
+            } => {
+                let x = 2.0 * (wavelength - maximum_at) / fwhm;
+                max_intensity / (1.0 + x * x)
             }
 
             Self::BlackBodyRadiation { scale, temperature } => {
@@ -86,7 +94,11 @@ mod tests {
     fn lorentzian_ok() {
         let maximum = 450e-9; // blue
         let fwhm = 1e-14;
-        let spectrum = Spectrum::Lorentzian { intensity: 1.0, maximum, fwhm };
+        let spectrum = Spectrum::Lorentzian {
+            max_intensity: 1.0,
+            maximum_at: maximum,
+            fwhm,
+        };
 
         let intensity_at_half_width = spectrum.intensity_at(maximum - fwhm / 2.0);
         assert!(
