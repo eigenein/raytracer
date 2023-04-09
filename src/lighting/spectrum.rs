@@ -4,10 +4,6 @@ use serde::Deserialize;
 use crate::consts::{BOLTZMANN, LIGHT_SPEED, LIGHT_SPEED_2, PLANCK};
 
 /// Absorbs nothing by default.
-///
-/// - TODO: `WaterAbsorption`.
-/// - TODO: `0.01 * pow(10, (400e-9 - 450e-9) * 0.75e7)`.
-/// - TODO: <https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water#/media/File:Absorption_coefficient_of_water.svg>.
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Spectrum {

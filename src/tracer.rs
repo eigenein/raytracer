@@ -214,7 +214,7 @@ impl Tracer {
         let mut intensity = transmittance.attenuation.intensity_at(wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
-            intensity *= (-hit.distance * coefficient).exp();
+            intensity *= (-hit.distance * coefficient.at(wavelength)).exp();
         }
 
         Some((ray, intensity))

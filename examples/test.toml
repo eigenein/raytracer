@@ -92,7 +92,7 @@ intensity = 0.1
 
         [surfaces.material.transmittance]
             refractive_index = { type = "Water" }
-            coefficient = 0.1
+            coefficient = { type = "Water", scale = 0.05 }
 
 # Another small sphere on the right:
 [[surfaces]]

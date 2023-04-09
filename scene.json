@@ -49,6 +49,49 @@
         }
       }
     },
+    "Attenuation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "coefficient",
+            "type"
+          ],
+          "properties": {
+            "coefficient": {
+              "type": "number",
+              "format": "double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Constant"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Empirical approximation based on <https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water#/media/File:Absorption_coefficient_of_water.svg>.",
+          "type": "object",
+          "required": [
+            "scale",
+            "type"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "format": "double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "WaterAbsorption"
+              ]
+            }
+          }
+        }
+      ]
+    },
     "Camera": {
       "type": "object",
       "properties": {
@@ -198,6 +241,94 @@
               ]
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "a",
+            "b",
+            "type"
+          ],
+          "properties": {
+            "a": {
+              "type": "number",
+              "format": "double"
+            },
+            "b": {
+              "type": "number",
+              "format": "double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Cauchy2"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "type"
+          ],
+          "properties": {
+            "a": {
+              "type": "number",
+              "format": "double"
+            },
+            "b": {
+              "type": "number",
+              "format": "double"
+            },
+            "c": {
+              "type": "number",
+              "format": "double"
+            },
+            "d": {
+              "type": "number",
+              "format": "double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Cauchy4"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Alexey N. Bashkatov and Elina A. Genina \"Water refractive index in dependence on temperature and wavelength: a simple approximation\", Proc. SPIE 5068, Saratov Fall Meeting 2002: Optical Technologies in Biophysics and Medicine IV, (13 October 2003); <https://doi.org/10.1117/12.518857>.",
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Water"
+              ]
+            }
+          }
+        },
+        {
+          "description": "- <https://en.wikipedia.org/wiki/Fused_quartz> - <https://en.wikipedia.org/wiki/Cauchy%27s_equation>",
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "FusedQuartz"
+              ]
+            }
+          }
         }
       ]
     },
@@ -228,7 +359,7 @@
           "type": "object",
           "required": [
             "fwhm",
-            "maximum",
+            "maximum_at",
             "type"
           ],
           "properties": {
@@ -237,12 +368,12 @@
               "type": "number",
               "format": "double"
             },
-            "intensity": {
+            "max_intensity": {
               "default": 1.0,
               "type": "number",
               "format": "double"
             },
-            "maximum": {
+            "maximum_at": {
               "description": "Wavelength of the maximum, meters.",
               "type": "number",
               "format": "double"
@@ -404,12 +535,14 @@
         },
         "coefficient": {
           "description": "Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>. Considered to be zero by default.",
-          "default": null,
-          "type": [
-            "number",
-            "null"
-          ],
-          "format": "double"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Attenuation"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "refractive_index": {
           "description": "Refractive index of the medium inside the body. By default, this is the index of vacuum.",
