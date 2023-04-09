@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::lighting::spectrum::Spectrum;
+use crate::physics::attenuation::Attenuation;
 use crate::refraction::RefractiveIndex;
 
 #[derive(Deserialize, JsonSchema)]
@@ -43,5 +44,5 @@ pub struct Transmittance {
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
     /// Considered to be zero by default.
     #[serde(default)]
-    pub coefficient: Option<f64>,
+    pub coefficient: Option<Attenuation>,
 }
