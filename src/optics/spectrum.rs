@@ -88,15 +88,15 @@ mod tests {
 
     #[test]
     fn lorentzian_ok() {
-        let maximum = 450e-9; // blue
+        let maximum_at = 450e-9; // blue
         let fwhm = 1e-14;
         let spectrum = Spectrum::Lorentzian {
             max_intensity: 1.0,
-            maximum_at: maximum,
+            maximum_at,
             fwhm,
         };
 
-        let intensity_at_half_width = spectrum.intensity_at(maximum - fwhm / 2.0);
+        let intensity_at_half_width = spectrum.intensity_at(maximum_at - fwhm / 2.0);
         assert!(
             (intensity_at_half_width - 0.5).abs() < 1e-8,
             "actual: {intensity_at_half_width}"
