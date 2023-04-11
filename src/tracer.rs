@@ -1,18 +1,21 @@
+pub mod progress;
+mod viewport;
+
 use std::sync::{Arc, Mutex};
 
 use rayon::prelude::*;
 use tracing::info;
 
 use crate::args::TracerOptions;
-use crate::hit::{Hit, HitType, Hittable};
-use crate::lighting::xyz::XyzColor;
+use crate::color::xyz::XyzColor;
 use crate::math::vec::random_unit_vector;
-use crate::physics::ray::Ray;
+use crate::optics::hit::{Hit, HitType, Hittable};
+use crate::optics::ray::Ray;
+use crate::optics::refraction::RelativeRefractiveIndex;
 use crate::prelude::*;
-use crate::progress::new_progress;
-use crate::refraction::RelativeRefractiveIndex;
 use crate::scene::Scene;
-use crate::viewport::Viewport;
+use crate::tracer::progress::new_progress;
+use crate::tracer::viewport::Viewport;
 
 pub struct Tracer {
     scene: Scene,

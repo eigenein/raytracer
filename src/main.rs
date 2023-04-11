@@ -20,30 +20,23 @@ use schemars::schema_for;
 use tracing_subscriber::FmtSubscriber;
 
 use crate::args::{Args, Command};
+use crate::color::rgb::RgbColor;
+use crate::color::xyz::XyzColor;
 use crate::image::Rgb16Image;
-use crate::lighting::rgb::RgbColor;
-use crate::lighting::xyz::XyzColor;
 
-mod aabb;
 mod args;
-mod consts;
-mod hit;
+mod color;
 mod image;
-mod lighting;
-mod material;
 mod math;
-mod physics;
+mod optics;
 mod prelude;
-mod progress;
-mod refraction;
 mod scene;
 mod surface;
 mod tracer;
-mod viewport;
 
 use crate::prelude::*;
-use crate::progress::new_progress;
 use crate::scene::Scene;
+use crate::tracer::progress::new_progress;
 use crate::tracer::Tracer;
 
 fn main() -> Result {

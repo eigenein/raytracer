@@ -3,10 +3,10 @@ use std::ops::Range;
 use glam::DVec3;
 use serde::Deserialize;
 
-use crate::aabb::Aabb;
-use crate::material::Material;
+use crate::math::aabb::Aabb;
 use crate::math::point::Point;
-use crate::physics::ray::Ray;
+use crate::optics::material::Material;
+use crate::optics::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
