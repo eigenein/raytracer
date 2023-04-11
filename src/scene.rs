@@ -6,6 +6,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::point::Point;
+use crate::math::uom::Bare;
 use crate::optics::spectrum::Spectrum;
 use crate::prelude::*;
 use crate::surface::Surface;
@@ -26,7 +27,7 @@ pub struct Scene {
     /// This index is assigned for the primary incident rays originating
     /// from the camera.
     #[serde(default = "Scene::default_refractive_index")]
-    pub refractive_index: f64,
+    pub refractive_index: Bare,
 
     /// Surfaces to render.
     #[serde(default)]
@@ -40,8 +41,8 @@ impl Scene {
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
     }
 
-    pub const fn default_refractive_index() -> f64 {
-        1.0
+    pub const fn default_refractive_index() -> Bare {
+        Bare::from(1.0)
     }
 }
 

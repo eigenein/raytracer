@@ -4,6 +4,7 @@ use glam::DVec3;
 
 use crate::color::cie_1964::XYZ_TO_SRGB;
 use crate::color::xyz::XyzColor;
+use crate::math::uom::Length;
 
 /// RGB color represented as a 3-vector.
 #[derive(Debug)]
@@ -48,7 +49,7 @@ impl RgbColor {
     }
 
     #[inline]
-    pub fn from_wavelength(wavelength: f64) -> Self {
+    pub fn from_wavelength(wavelength: Length) -> Self {
         Self::from(XyzColor::from_wavelength(wavelength))
     }
 
@@ -87,19 +88,19 @@ mod tests {
 
     #[test]
     fn red_limit_ok() {
-        let color = RgbColor::from_wavelength(700e-9);
+        let color = RgbColor::from_wavelength(Length::from_nanos(700.0));
         assert!(color.abs_diff_eq(&RgbColor::new(0.18, 0.0, 0.0), 0.01), "actual: {color:?}");
     }
 
     #[test]
     fn blue_ok() {
-        let color = RgbColor::from_wavelength(450e-9);
+        let color = RgbColor::from_wavelength(Length::from_nanos(450.0));
         assert!(color.abs_diff_eq(&RgbColor::new(0.29, 0.0, 1.0), 0.01), "actual: {color:?}");
     }
 
     #[test]
     fn violet_limit_ok() {
-        let color = RgbColor::from_wavelength(400e-9);
+        let color = RgbColor::from_wavelength(Length::from_nanos(400.0));
         assert!(color.abs_diff_eq(&RgbColor::new(0.13, 0.0, 0.33), 0.01), "actual: {color:?}");
     }
 }

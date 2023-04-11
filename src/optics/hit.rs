@@ -19,6 +19,8 @@ pub struct Hit<'a> {
     /// Distance travelled by the ray till the hit point.
     ///
     /// The ray direction **must** be normalized for this to hold.
+    ///
+    /// TODO: make it length.
     pub distance: f64,
 
     pub type_: HitType,
@@ -43,8 +45,6 @@ pub enum HitType {
     /// Ray would have left the body.
     Leave,
 
-    /// Ray would've just gone through the surface.
-    /// There is no body inside.
-    /// Refraction is still possible if configured by the material.
-    Through,
+    /// Ray would refract in an infinitesimally small particle.
+    Refract,
 }

@@ -36,7 +36,7 @@ impl Hittable for UniformFog {
                 location: by_ray.at(hit_distance),
                 normal: -by_ray.direction,
                 distance: hit_distance,
-                type_: HitType::Through,
+                type_: HitType::Refract,
                 material: &self.material,
             };
             Some(hit)

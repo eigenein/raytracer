@@ -10,27 +10,6 @@ intensity = 0.1
     vfov = 45
     up = [0, 1, 0]
 
-# World-wide fog, kind of
-[[surfaces]]
-    type = "UniformFog"
-    density = 0.025
-
-    [surfaces.aabb]
-        min = [-10, -10, -10]
-        max = [10, 10, 10]
-
-    [surfaces.material]
-        [surfaces.material.reflectance]
-            diffusion = 1
-            attenuation = { type = "Constant", intensity = 0.5 }
-
-        [surfaces.material.transmittance]
-            refractive_index = { type = "Water" }
-
-            [surfaces.material.transmittance.attenuation]
-                type = "Constant"
-                intensity = 0.5
-
 # Sun
 [[surfaces]]
     type = "Sphere"
