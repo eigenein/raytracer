@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::math::uom::{Bare, Length, Quantity};
+
 /// Absolute refraction index.
 ///
 /// By default, it is of vacuum.
@@ -8,25 +10,21 @@ use serde::Deserialize;
 #[serde(tag = "type")]
 pub enum RefractiveIndex {
     Constant {
-        index: f64,
+        index: Bare,
     },
 
-    /// https://en.wikipedia.org/wiki/Cauchy%27s_equation
-    Cauchy {
-        #[serde(alias = "c")]
-        coefficients: Vec<f64>,
-    },
-
+    /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy2 {
-        a: f64,
-        b: f64,
+        a: Bare,
+        b: Quantity<f64, 0, 2, 0, 0, 0, 0, 0>,
     },
 
+    /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy4 {
-        a: f64,
-        b: f64,
-        c: f64,
-        d: f64,
+        a: Bare,
+        b: Quantity<f64, 0, 2, 0, 0, 0, 0, 0>,
+        c: Quantity<f64, 0, 4, 0, 0, 0, 0, 0>,
+        d: Quantity<f64, 0, 6, 0, 0, 0, 0, 0>,
     },
 
     /// Alexey N. Bashkatov and Elina A. Genina
@@ -43,37 +41,37 @@ pub enum RefractiveIndex {
 
 impl const Default for RefractiveIndex {
     fn default() -> Self {
-        Self::Constant { index: 1.0 }
+        Self::Constant { index: Bare::from(1.0) }
     }
 }
 
 impl RefractiveIndex {
     /// Get the absolute refractive index at the given wavelength.
-    pub fn at(&self, wavelength: f64) -> f64 {
+    pub fn at(&self, wavelength: Length) -> Bare {
         match self {
             Self::Constant { index } => *index,
 
-            Self::Cauchy { coefficients } => coefficients
-                .iter()
-                .enumerate()
-                .map(|(i, coefficient)| coefficient / wavelength.powi((i * 2) as i32))
-                .sum(),
-
-            Self::Cauchy2 { a, b } => a + b / wavelength.powi(2),
+            Self::Cauchy2 { a, b } => *a + *b / wavelength.powi::<2>(),
 
             Self::Cauchy4 { a, b, c, d } => {
-                a + b / wavelength.powi(2) + c / wavelength.powi(4) + d / wavelength.powi(6)
+                *a + *b / wavelength.powi::<2>()
+                    + *c / wavelength.powi::<4>()
+                    + *d / wavelength.powi::<6>()
             }
 
             Self::Water => Self::Cauchy4 {
-                a: 1.3199,
-                b: 6878e-18,
-                c: -1.132e-27,
-                d: 1.11e-40,
+                a: Bare::from(1.3199),
+                b: Quantity::from(6878e-18),
+                c: Quantity::from(-1.132e-27),
+                d: Quantity::from(1.11e-40),
             }
             .at(wavelength),
 
-            Self::FusedQuartz => Self::Cauchy2 { a: 1.4580, b: 3.54e-15 }.at(wavelength),
+            Self::FusedQuartz => Self::Cauchy2 {
+                a: Bare::from(1.4580),
+                b: Quantity::from(3.54e-15),
+            }
+            .at(wavelength),
         }
     }
 }
@@ -81,21 +79,21 @@ impl RefractiveIndex {
 /// https://en.wikipedia.org/wiki/Refractive_index
 pub struct RelativeRefractiveIndex {
     /// Absolute incident index.
-    pub incident: f64,
+    pub incident: Bare,
 
     /// Absolute refracted index.
-    pub refracted: f64,
+    pub refracted: Bare,
 }
 
 impl RelativeRefractiveIndex {
-    pub const fn relative(&self) -> f64 {
+    pub fn relative(&self) -> Bare {
         self.incident / self.refracted
     }
 
     /// Calculate Schlick's approximation for reflectance:
     /// https://en.wikipedia.org/wiki/Schlick%27s_approximation.
-    pub fn reflectance(&self, cosine_theta_1: f64) -> f64 {
-        let r0 = ((self.incident - self.refracted) / (self.incident + self.refracted)).powi(2);
-        r0 + (1.0 - r0) * (1.0 - cosine_theta_1).powi(5)
+    pub fn reflectance(&self, cosine_theta_1: f64) -> Bare {
+        let r0 = ((self.incident - self.refracted) / (self.incident + self.refracted)).powi::<2>();
+        r0 + (Bare::from(1.0) - r0) * (Bare::from(1.0) - cosine_theta_1).powi::<5>()
     }
 }

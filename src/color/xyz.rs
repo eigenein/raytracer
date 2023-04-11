@@ -4,14 +4,15 @@ use std::ops::{Div, Mul};
 use glam::DVec3;
 
 use crate::color::cie_1964::WAVELENGTH_TO_XYZ;
+use crate::math::uom::Length;
 
 /// XYZ color: https://en.wikipedia.org/wiki/SRGB#Transformation.
 #[derive(Debug)]
 pub struct XyzColor(DVec3);
 
 impl XyzColor {
-    pub fn from_wavelength(wavelength: f64) -> Self {
-        let nanos = wavelength / 1e-9;
+    pub fn from_wavelength(wavelength: Length) -> Self {
+        let nanos = f64::from(wavelength) / 1e-9;
         let fract = nanos.fract();
         let nanos = nanos as usize - 360;
         assert!(nanos < 470, "actual: {nanos}, wavelength = {wavelength}");

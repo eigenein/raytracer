@@ -7,13 +7,14 @@
 //! - `uom` doesn't play nice with `glam`
 
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, Div, Mul, Sub};
+use std::iter::Sum;
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 
 use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-#[derive(Copy, Clone, Deserialize, JsonSchema)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Deserialize, JsonSchema)]
 pub struct Quantity<
     V,
     const T: isize,
@@ -129,7 +130,54 @@ impl<
 > Quantity<V, T, L, M, EC, TT, AS, LI>
 {
     pub fn from_millis(value: V) -> Self {
-        Self(value * 1000.0)
+        Self(value * 1e-3)
+    }
+
+    pub fn from_micros(value: V) -> Self {
+        Self(value * 1e-6)
+    }
+
+    pub fn from_nanos(value: V) -> Self {
+        Self(value * 1e-9)
+    }
+}
+
+impl<
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> Quantity<f64, T, L, M, EC, TT, AS, LI>
+{
+    pub fn powi<const P: isize>(
+        self,
+    ) -> Quantity<
+        f64,
+        { T * P },
+        { L * P },
+        { M * P },
+        { EC * P },
+        { TT * P },
+        { AS * P },
+        { LI * P },
+    > {
+        Quantity::<
+            f64,
+            { T * P },
+            { L * P },
+            { M * P },
+            { EC * P },
+            { TT * P },
+            { AS * P },
+            { LI * P },
+        >(self.0.powi(P as i32))
+    }
+
+    pub fn abs(self) -> Self {
+        Self(self.0.abs())
     }
 }
 
@@ -176,6 +224,42 @@ where
 }
 
 impl<
+    V: AddAssign<V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> AddAssign<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
+    }
+}
+
+impl<
+    V: Default + AddAssign<V> + Add<Output = V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> Sum<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let mut sum = V::default();
+        for item in iter {
+            sum += item.0;
+        }
+        Self(sum)
+    }
+}
+
+impl<
     V,
     const T: isize,
     const L: isize,
@@ -192,6 +276,22 @@ where
 
     fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0 - rhs.0)
+    }
+}
+
+impl<
+    V: MulAssign<V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> MulAssign<Bare<V>> for Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    fn mul_assign(&mut self, rhs: Bare<V>) {
+        self.0 *= rhs.0;
     }
 }
 
@@ -306,8 +406,53 @@ where
 }
 
 /// Dimensionless quantity: <https://en.wikipedia.org/wiki/Dimensionless_quantity>.
-pub type Bare<V> = Quantity<V, 0, 0, 0, 0, 0, 0, 0>;
+pub type Bare<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 0>;
 
-pub type Time<V> = Quantity<V, 1, 0, 0, 0, 0, 0, 0>;
+impl<V: Add<Output = V>> Add<V> for Bare<V> {
+    type Output = Self;
 
-pub type Length<V> = Quantity<V, 0, 1, 0, 0, 0, 0, 0>;
+    fn add(self, rhs: V) -> Self::Output {
+        Self(self.0 + rhs)
+    }
+}
+
+impl<V: Sub<Output = V>> Sub<V> for Bare<V> {
+    type Output = Self;
+
+    fn sub(self, rhs: V) -> Self::Output {
+        Self(self.0 - rhs)
+    }
+}
+
+impl<V: Mul<Output = V>> Mul<V> for Bare<V> {
+    type Output = Self;
+
+    fn mul(self, rhs: V) -> Self::Output {
+        Self(self.0 * rhs)
+    }
+}
+
+impl Bare<f64> {
+    pub fn exp(self) -> Self {
+        Self(self.0.exp())
+    }
+
+    pub fn sqrt(self) -> Self {
+        Self(self.0.sqrt())
+    }
+
+    pub fn powf<X: Into<f64>>(self, x: X) -> Self {
+        Self(self.0.powf(x.into()))
+    }
+}
+
+pub type Time<V = f64> = Quantity<V, 1, 0, 0, 0, 0, 0, 0>;
+
+pub type Length<V = f64> = Quantity<V, 0, 1, 0, 0, 0, 0, 0>;
+
+/// Reciprocal length: <https://en.wikipedia.org/wiki/Reciprocal_length>.
+pub type AttenuationCoefficient<V = f64> = Quantity<V, 0, -1, 0, 0, 0, 0, 0>;
+
+pub type Temperature<V = f64> = Quantity<V, 0, 0, 0, 0, 1, 0, 0>;
+
+pub type LuminousIntensity<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 1>;
