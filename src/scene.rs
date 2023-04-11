@@ -5,8 +5,8 @@ use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::lighting::spectrum::Spectrum;
 use crate::math::point::Point;
+use crate::optics::spectrum::Spectrum;
 use crate::prelude::*;
 use crate::surface::Surface;
 

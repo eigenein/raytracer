@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::point::Point;
-use crate::physics::ray::Ray;
+use crate::optics::ray::Ray;
 
 /// Axis-aligned boundary box defined by two points:
 /// the one with the minimal coordinates, and the other – with the maximal coordinates.

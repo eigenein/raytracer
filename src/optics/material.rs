@@ -1,9 +1,9 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::lighting::spectrum::Spectrum;
-use crate::physics::attenuation::Attenuation;
-use crate::refraction::RefractiveIndex;
+use crate::optics::attenuation::Attenuation;
+use crate::optics::refraction::RefractiveIndex;
+use crate::optics::spectrum::Spectrum;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {

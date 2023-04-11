@@ -6,9 +6,9 @@ use std::ops::Range;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::aabb::Aabb;
-use crate::hit::{Hit, Hittable};
-use crate::physics::ray::Ray;
+use crate::math::aabb::Aabb;
+use crate::optics::hit::{Hit, Hittable};
+use crate::optics::ray::Ray;
 use crate::surface::fog::UniformFog;
 use crate::surface::sphere::Sphere;
 

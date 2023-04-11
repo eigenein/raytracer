@@ -3,7 +3,7 @@ use std::ops::{Div, Mul};
 
 use glam::DVec3;
 
-use crate::lighting::cie_1964::WAVELENGTH_TO_XYZ;
+use crate::color::cie_1964::WAVELENGTH_TO_XYZ;
 
 /// XYZ color: https://en.wikipedia.org/wiki/SRGB#Transformation.
 #[derive(Debug)]

@@ -3,11 +3,11 @@ use std::ops::Range;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::aabb::Aabb;
-use crate::hit::{Hit, HitType, Hittable};
-use crate::material::Material;
+use crate::math::aabb::Aabb;
 use crate::math::point::Point;
-use crate::physics::ray::Ray;
+use crate::optics::hit::{Hit, HitType, Hittable};
+use crate::optics::material::Material;
+use crate::optics::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {

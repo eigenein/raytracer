@@ -2,8 +2,8 @@ use std::ops::Mul;
 
 use glam::DVec3;
 
-use crate::lighting::cie_1964::XYZ_TO_SRGB;
-use crate::lighting::xyz::XyzColor;
+use crate::color::cie_1964::XYZ_TO_SRGB;
+use crate::color::xyz::XyzColor;
 
 /// RGB color represented as a 3-vector.
 #[derive(Debug)]
