@@ -2,9 +2,8 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::uom::{Bare, Length, Temperature};
-use crate::optics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
 use crate::optics::material::property::Property;
-use crate::optics::spectrum::lorentzian;
+use crate::optics::spectrum::{black_body, lorentzian};
 
 /// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]
@@ -70,10 +69,8 @@ impl Property<Bare> for ReflectanceAttenuation {
             } => *max_intensity * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
 
             Self::BlackBody { scale, temperature } => {
-                let spectral_radiance = *scale * 2.0 * PLANCK * LIGHT_SPEED.powi::<2>()
-                    / wavelength.powi::<5>()
-                    / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0);
-                // FIXME: the SI units of `B(ν)` are `W · sr−1 · m−2 · Hz−1`.
+                let spectral_radiance = *scale * black_body(*temperature, wavelength);
+                // FIXME: the units.
                 Bare::from(f64::from(spectral_radiance))
             }
 
