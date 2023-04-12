@@ -11,6 +11,7 @@ use crate::color::xyz::XyzColor;
 use crate::math::uom::{Bare, Length};
 use crate::math::vec::random_unit_vector;
 use crate::optics::hit::{Hit, HitType, Hittable};
+use crate::optics::property::Property;
 use crate::optics::ray::Ray;
 use crate::optics::refraction::RelativeRefractiveIndex;
 use crate::prelude::*;
@@ -189,7 +190,7 @@ impl Tracer {
 
         let refractive_index = match hit.type_ {
             HitType::Enter | HitType::Refract => RelativeRefractiveIndex {
-                incident: self.scene.refractive_index,
+                incident: self.scene.refractive_index, // TODO: add incident index for materials.
                 refracted: transmittance.refractive_index.at(wavelength),
             },
             HitType::Leave => RelativeRefractiveIndex {
