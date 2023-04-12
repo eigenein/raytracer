@@ -8,15 +8,18 @@ use crate::optics::material::property::Property;
 /// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
-pub enum Spectrum {
+pub enum ReflectanceAttenuation {
     Constant {
-        #[serde(default = "Spectrum::default_intensity")]
+        #[serde(default = "ReflectanceAttenuation::default_intensity")]
         intensity: Bare,
     },
 
     /// https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
     Lorentzian {
-        #[serde(default = "Spectrum::default_intensity", alias = "intensity")]
+        #[serde(
+            default = "ReflectanceAttenuation::default_intensity",
+            alias = "intensity"
+        )]
         max_intensity: Bare,
 
         /// Wavelength of the maximum, meters.
@@ -31,6 +34,8 @@ pub enum Spectrum {
     /// Black body radiation: https://en.wikipedia.org/wiki/Planck%27s_law.
     ///
     /// Do not confuse with black body **absorption** – for the latter use empty reflectance.
+    ///
+    /// TODO: extract into `Emittance`.
     #[serde(alias = "BlackBody")]
     BlackBodyRadiation {
         temperature: Temperature,
@@ -38,23 +43,24 @@ pub enum Spectrum {
     },
 
     /// Sum of the spectra.
-    Sum { spectra: Vec<Spectrum> },
+    Sum {
+        spectra: Vec<ReflectanceAttenuation>,
+    },
 }
 
-impl const Default for Spectrum {
+impl const Default for ReflectanceAttenuation {
     fn default() -> Self {
-        Spectrum::Constant { intensity: Bare::from(1.0) }
+        ReflectanceAttenuation::Constant { intensity: Bare::from(1.0) }
     }
 }
 
-impl Spectrum {
+impl ReflectanceAttenuation {
     pub const fn default_intensity() -> Bare {
         Bare::from(1.0)
     }
 }
 
-impl Property<Bare> for Spectrum {
-    /// TODO: split into emittance and absorption.
+impl Property<Bare> for ReflectanceAttenuation {
     fn at(&self, wavelength: Length) -> Bare {
         match self {
             Self::Constant { intensity } => *intensity,
@@ -89,7 +95,7 @@ mod tests {
     fn lorentzian_ok() {
         let maximum_at = Length::from_nanos(450.0); // blue
         let fwhm = Length::from(1e-14);
-        let spectrum = Spectrum::Lorentzian {
+        let spectrum = ReflectanceAttenuation::Lorentzian {
             max_intensity: Bare::from(1.0),
             maximum_at,
             fwhm,
@@ -104,7 +110,7 @@ mod tests {
 
     #[test]
     fn black_body_ok() {
-        let spectrum = Spectrum::BlackBodyRadiation {
+        let spectrum = ReflectanceAttenuation::BlackBodyRadiation {
             temperature: Temperature::from(5777.0),
             scale: Bare::from(1.0),
         };
