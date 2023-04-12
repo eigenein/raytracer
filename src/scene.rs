@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::math::point::Point;
 use crate::math::uom::Bare;
-use crate::optics::spectrum::Spectrum;
+use crate::optics::material::reflectance::Spectrum;
 use crate::prelude::*;
 use crate::surface::Surface;
 
@@ -20,7 +20,8 @@ pub struct Scene {
     pub camera: Camera,
 
     /// Scene background and ambient color.
-    pub ambient_spectrum: Spectrum,
+    #[serde(alias = "ambient_spectrum")]
+    pub ambient_emittance: Spectrum,
 
     /// Scene medium refractive index.
     ///
