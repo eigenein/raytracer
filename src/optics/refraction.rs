@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::uom::{Bare, Length, Quantity};
+use crate::optics::property::Property;
 
 /// Absolute refraction index.
 ///
@@ -45,9 +46,9 @@ impl const Default for RefractiveIndex {
     }
 }
 
-impl RefractiveIndex {
+impl Property<Bare> for RefractiveIndex {
     /// Get the absolute refractive index at the given wavelength.
-    pub fn at(&self, wavelength: Length) -> Bare {
+    fn at(&self, wavelength: Length) -> Bare {
         match self {
             Self::Constant { index } => *index,
 
