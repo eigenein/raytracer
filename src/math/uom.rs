@@ -458,3 +458,6 @@ pub type ReciprocalLength<V = f64> = Quantity<V, 0, -1, 0, 0, 0, 0, 0>;
 pub type Temperature<V = f64> = Quantity<V, 0, 0, 0, 0, 1, 0, 0>;
 
 pub type LuminousIntensity<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 1>;
+
+/// Spectral radiance (per steradian): <https://en.wikipedia.org/wiki/Spectral_radiance>.
+pub type SpectralRadianceInWavelength<V = f64> = Quantity<V, -3, -1, 1, 0, 0, 0, 0>;
