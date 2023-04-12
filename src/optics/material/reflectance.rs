@@ -4,6 +4,7 @@ use serde::Deserialize;
 use crate::math::uom::{Bare, Length, Temperature};
 use crate::optics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
 use crate::optics::material::property::Property;
+use crate::optics::spectrum::lorentzian;
 
 /// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]
@@ -14,7 +15,7 @@ pub enum ReflectanceAttenuation {
         intensity: Bare,
     },
 
-    /// https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
+    /// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
     Lorentzian {
         #[serde(
             default = "ReflectanceAttenuation::default_intensity",
@@ -26,18 +27,15 @@ pub enum ReflectanceAttenuation {
         #[serde(alias = "max", alias = "maximum")]
         maximum_at: Length,
 
-        /// https://en.wikipedia.org/wiki/Full_width_at_half_maximum
-        #[serde(alias = "full_width_at_half_maximum")]
-        fwhm: Length,
+        /// <https://en.wikipedia.org/wiki/Full_width_at_half_maximum>
+        #[serde(alias = "fwhm")]
+        full_width_at_half_maximum: Length,
     },
 
-    /// Black body radiation: https://en.wikipedia.org/wiki/Planck%27s_law.
-    ///
-    /// Do not confuse with black body **absorption** – for the latter use empty reflectance.
+    /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
     ///
     /// TODO: extract into `Emittance`.
-    #[serde(alias = "BlackBody")]
-    BlackBodyRadiation {
+    BlackBody {
         temperature: Temperature,
         scale: Bare,
     },
@@ -68,13 +66,10 @@ impl Property<Bare> for ReflectanceAttenuation {
             Self::Lorentzian {
                 max_intensity,
                 maximum_at,
-                fwhm,
-            } => {
-                let x = (wavelength - *maximum_at) / *fwhm * 2.0;
-                *max_intensity / (x.powi::<2>() + 1.0)
-            }
+                full_width_at_half_maximum,
+            } => *max_intensity * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
 
-            Self::BlackBodyRadiation { scale, temperature } => {
+            Self::BlackBody { scale, temperature } => {
                 let spectral_radiance = *scale * 2.0 * PLANCK * LIGHT_SPEED.powi::<2>()
                     / wavelength.powi::<5>()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0);
@@ -82,7 +77,10 @@ impl Property<Bare> for ReflectanceAttenuation {
                 Bare::from(f64::from(spectral_radiance))
             }
 
-            Self::Sum { spectra } => spectra.iter().map(|spectrum| spectrum.at(wavelength)).sum(),
+            Self::Sum { spectra } => spectra
+                .iter()
+                .map(|attenuation| attenuation.at(wavelength))
+                .sum(),
         }
     }
 }
@@ -98,7 +96,7 @@ mod tests {
         let spectrum = ReflectanceAttenuation::Lorentzian {
             max_intensity: Bare::from(1.0),
             maximum_at,
-            fwhm,
+            full_width_at_half_maximum: fwhm,
         };
 
         let intensity_at_half_width = spectrum.at(maximum_at - fwhm / Bare::from(2.0));
@@ -110,7 +108,7 @@ mod tests {
 
     #[test]
     fn black_body_ok() {
-        let spectrum = ReflectanceAttenuation::BlackBodyRadiation {
+        let spectrum = ReflectanceAttenuation::BlackBody {
             temperature: Temperature::from(5777.0),
             scale: Bare::from(1.0),
         };
