@@ -336,6 +336,7 @@ where
         { LI1 + LI2 },
     >;
 
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity::<
             V,
@@ -391,6 +392,7 @@ where
         { LI1 - LI2 },
     >;
 
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity::<
             V,
