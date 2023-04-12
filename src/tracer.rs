@@ -11,9 +11,9 @@ use crate::color::xyz::XyzColor;
 use crate::math::uom::{Bare, Length};
 use crate::math::vec::random_unit_vector;
 use crate::optics::hit::{Hit, HitType, Hittable};
-use crate::optics::property::Property;
+use crate::optics::material::property::Property;
+use crate::optics::material::transmittance::refraction::RelativeRefractiveIndex;
 use crate::optics::ray::Ray;
-use crate::optics::refraction::RelativeRefractiveIndex;
 use crate::prelude::*;
 use crate::scene::Scene;
 use crate::tracer::progress::new_progress;
@@ -104,7 +104,7 @@ impl Tracer {
     #[inline]
     fn trace_ray(&self, mut ray: Ray, wavelength: Length, n_bounces_left: u16) -> Bare {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
-        let scene_emittance = self.scene.ambient_spectrum.intensity_at(wavelength);
+        let scene_emittance = self.scene.ambient_emittance.at(wavelength);
 
         let mut total_intensity = Bare::from(0.0);
         let mut total_attenuation = Bare::from(1.0);
@@ -126,8 +126,7 @@ impl Tracer {
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                total_intensity +=
-                    total_attenuation * emittance.intensity_at(wavelength);
+                total_intensity += total_attenuation * emittance.at(wavelength);
             }
 
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
@@ -167,7 +166,7 @@ impl Tracer {
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
             let ray = Ray::new(hit.location, hit.normal + random_unit_vector());
-            let intensity = reflectance.attenuation.intensity_at(wavelength);
+            let intensity = reflectance.attenuation.at(wavelength);
             (ray, intensity)
         })
     }
@@ -219,7 +218,7 @@ impl Tracer {
         };
         let ray = Ray::new(hit.location, direction);
 
-        let mut intensity = transmittance.attenuation.intensity_at(wavelength);
+        let mut intensity = transmittance.attenuation.at(wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
             intensity *= (Length::from(-hit.distance) * coefficient.at(wavelength)).exp();
@@ -241,7 +240,7 @@ impl Tracer {
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += random_unit_vector() * fuzz;
         }
-        let intensity = reflectance.attenuation.intensity_at(wavelength);
+        let intensity = reflectance.attenuation.at(wavelength);
         Some((ray, intensity))
     }
 }

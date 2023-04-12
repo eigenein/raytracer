@@ -1,12 +1,14 @@
+pub mod refraction;
+
 use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::uom::{Bare, Length, ReciprocalLength};
-use crate::optics::property::Property;
+use crate::optics::material::property::Property;
 
 #[derive(Copy, Clone, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
-pub enum Attenuation {
+pub enum TransmissionAttenuation {
     Constant {
         coefficient: ReciprocalLength,
     },
@@ -18,7 +20,7 @@ pub enum Attenuation {
     },
 }
 
-impl Property<ReciprocalLength> for Attenuation {
+impl Property<ReciprocalLength> for TransmissionAttenuation {
     fn at(&self, wavelength: Length) -> ReciprocalLength {
         match self {
             Self::Constant { coefficient } => *coefficient,

@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::uom::{Bare, Length, Quantity};
-use crate::optics::property::Property;
+use crate::optics::material::property::Property;
 
 /// Absolute refraction index.
 ///

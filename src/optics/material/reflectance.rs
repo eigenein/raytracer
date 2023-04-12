@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 use crate::math::uom::{Bare, Length, Temperature};
 use crate::optics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
+use crate::optics::material::property::Property;
 
 /// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]
@@ -47,8 +48,14 @@ impl const Default for Spectrum {
 }
 
 impl Spectrum {
+    pub const fn default_intensity() -> Bare {
+        Bare::from(1.0)
+    }
+}
+
+impl Property<Bare> for Spectrum {
     /// TODO: split into emittance and absorption.
-    pub fn intensity_at(&self, wavelength: Length) -> Bare {
+    fn at(&self, wavelength: Length) -> Bare {
         match self {
             Self::Constant { intensity } => *intensity,
 
@@ -69,15 +76,8 @@ impl Spectrum {
                 Bare::from(f64::from(spectral_radiance))
             }
 
-            Self::Sum { spectra } => spectra
-                .iter()
-                .map(|spectrum| spectrum.intensity_at(wavelength))
-                .sum(),
+            Self::Sum { spectra } => spectra.iter().map(|spectrum| spectrum.at(wavelength)).sum(),
         }
-    }
-
-    pub const fn default_intensity() -> Bare {
-        Bare::from(1.0)
     }
 }
 
@@ -95,7 +95,7 @@ mod tests {
             fwhm,
         };
 
-        let intensity_at_half_width = spectrum.intensity_at(maximum_at - fwhm / Bare::from(2.0));
+        let intensity_at_half_width = spectrum.at(maximum_at - fwhm / Bare::from(2.0));
         assert!(
             (intensity_at_half_width - Bare::from(0.5)).abs() < Bare::from(1e-8),
             "actual: {intensity_at_half_width}"
@@ -108,7 +108,7 @@ mod tests {
             temperature: Temperature::from(5777.0),
             scale: Bare::from(1.0),
         };
-        let intensity = spectrum.intensity_at(Length::from_nanos(500.0));
+        let intensity = spectrum.at(Length::from_nanos(500.0));
         assert!(
             (intensity - Bare::from(2.635e13)).abs() < Bare::from(1e10),
             "actual: {intensity}"

@@ -1,9 +1,14 @@
+pub mod emittance;
+pub mod property;
+pub mod reflectance;
+pub mod transmittance;
+
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::optics::attenuation::Attenuation;
-use crate::optics::refraction::RefractiveIndex;
-use crate::optics::spectrum::Spectrum;
+use crate::optics::material::reflectance::Spectrum;
+use crate::optics::material::transmittance::refraction::RefractiveIndex;
+use crate::optics::material::transmittance::TransmissionAttenuation;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {
@@ -19,12 +24,11 @@ pub struct Material {
 
 #[derive(Deserialize, JsonSchema, Default)]
 pub struct Reflectance {
-    /// Attenuation of the interface surface.
     #[serde(default)]
     pub attenuation: Spectrum,
 
     #[serde(default)]
-    pub fuzz: Option<f64>,
+    pub fuzz: Option<f64>, // TODO: this may relate to transmittance as well.
 
     #[serde(default, alias = "diffuse")]
     pub diffusion: Option<f64>,
@@ -44,5 +48,5 @@ pub struct Transmittance {
     /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
     /// Considered to be zero by default.
     #[serde(default)]
-    pub coefficient: Option<Attenuation>,
+    pub coefficient: Option<TransmissionAttenuation>,
 }
