@@ -114,13 +114,14 @@ impl<
     const LI: isize,
 > const From<V> for Quantity<V, T, L, M, EC, TT, AS, LI>
 {
+    #[inline]
     fn from(value: V) -> Self {
         Self(value)
     }
 }
 
 impl<
-    V: Mul<f64, Output = V>,
+    V: ~const Mul<f64, Output = V>,
     const T: isize,
     const L: isize,
     const M: isize,
@@ -130,15 +131,18 @@ impl<
     const LI: isize,
 > Quantity<V, T, L, M, EC, TT, AS, LI>
 {
-    pub fn from_millis(value: V) -> Self {
+    #[inline]
+    pub const fn from_millis(value: V) -> Self {
         Self(value * 1e-3)
     }
 
-    pub fn from_micros(value: V) -> Self {
+    #[inline]
+    pub const fn from_micros(value: V) -> Self {
         Self(value * 1e-6)
     }
 
-    pub fn from_nanos(value: V) -> Self {
+    #[inline]
+    pub const fn from_nanos(value: V) -> Self {
         Self(value * 1e-9)
     }
 }
@@ -153,6 +157,7 @@ impl<
     const LI: isize,
 > Quantity<f64, T, L, M, EC, TT, AS, LI>
 {
+    #[inline]
     pub fn powi<const P: isize>(
         self,
     ) -> Quantity<
@@ -177,6 +182,7 @@ impl<
         >(self.0.powi(P as i32))
     }
 
+    #[inline]
     pub fn abs(self) -> Self {
         Self(self.0.abs())
     }
@@ -191,12 +197,13 @@ impl<
     const TT: isize,
     const AS: isize,
     const LI: isize,
-> Add<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
+> const Add<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
 where
-    V: Add<Output = V>,
+    V: ~const Add<Output = V>,
 {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0 + rhs.0)
     }
@@ -213,6 +220,7 @@ impl<
     const LI: isize,
 > AddAssign<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
 {
+    #[inline]
     fn add_assign(&mut self, rhs: Self) {
         self.0 += rhs.0;
     }
@@ -247,12 +255,13 @@ impl<
     const TT: isize,
     const AS: isize,
     const LI: isize,
-> Sub<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
+> const Sub<Self> for Quantity<V, T, L, M, EC, TT, AS, LI>
 where
-    V: Sub<Output = V>,
+    V: ~const Sub<Output = V>,
 {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0 - rhs.0)
     }
@@ -269,6 +278,7 @@ impl<
     const LI: isize,
 > MulAssign<Bare<V>> for Quantity<V, T, L, M, EC, TT, AS, LI>
 {
+    #[inline]
     fn mul_assign(&mut self, rhs: Bare<V>) {
         self.0 *= rhs.0;
     }
@@ -290,9 +300,10 @@ impl<
     const TT2: isize,
     const AS2: isize,
     const LI2: isize,
-> Mul<Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>> for Quantity<V, T1, L1, M1, EC1, TT1, AS1, LI1>
+> const Mul<Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>>
+    for Quantity<V, T1, L1, M1, EC1, TT1, AS1, LI1>
 where
-    V: Mul<Output = V>,
+    V: ~const Mul<Output = V>,
     Quantity<
         V,
         { T1 + T2 },
@@ -315,6 +326,7 @@ where
         { LI1 + LI2 },
     >;
 
+    #[inline]
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity::<
@@ -346,9 +358,10 @@ impl<
     const TT2: isize,
     const AS2: isize,
     const LI2: isize,
-> Div<Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>> for Quantity<V, T1, L1, M1, EC1, TT1, AS1, LI1>
+> const Div<Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>>
+    for Quantity<V, T1, L1, M1, EC1, TT1, AS1, LI1>
 where
-    V: Div<Output = V>,
+    V: ~const Div<Output = V>,
     Quantity<
         V,
         { T1 - T2 },
@@ -371,6 +384,7 @@ where
         { LI1 - LI2 },
     >;
 
+    #[inline]
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity::<
