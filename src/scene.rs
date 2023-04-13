@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::point::Point;
-use crate::physics::optics::material::reflectance::ReflectanceAttenuation;
+use crate::physics::optics::material::emittance::Emittance;
 use crate::physics::units::Bare;
 use crate::prelude::*;
 use crate::surface::Surface;
@@ -21,7 +21,7 @@ pub struct Scene {
 
     /// Scene background and ambient color.
     #[serde(alias = "ambient_spectrum")]
-    pub ambient_emittance: ReflectanceAttenuation,
+    pub ambient_emittance: Emittance,
 
     /// Scene medium refractive index.
     ///

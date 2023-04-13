@@ -13,7 +13,7 @@ use crate::physics::optics::hit::{Hit, HitType, Hittable};
 use crate::physics::optics::material::property::Property;
 use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;
 use crate::physics::optics::ray::Ray;
-use crate::physics::units::{Bare, Length};
+use crate::physics::units::*;
 use crate::prelude::*;
 use crate::scene::Scene;
 use crate::tracer::progress::new_progress;
@@ -94,19 +94,24 @@ impl Tracer {
                     + wavelength_step * Bare::from(i as f64 + fastrand::f64());
 
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                let intensity = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
-                XyzColor::from_wavelength(wavelength) * f64::from(intensity)
+                let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
+                XyzColor::from_wavelength(wavelength) * radiance.0
             })
             .sum::<XyzColor>()
     }
 
     /// Trace the ray and return the resulting color.
     #[inline]
-    fn trace_ray(&self, mut ray: Ray, wavelength: Length, n_bounces_left: u16) -> Bare {
+    fn trace_ray(
+        &self,
+        mut ray: Ray,
+        wavelength: Length,
+        n_bounces_left: u16,
+    ) -> SpectralRadianceInWavelength {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
         let scene_emittance = self.scene.ambient_emittance.at(wavelength);
 
-        let mut total_intensity = Bare::from(0.0);
+        let mut total_radiance = SpectralRadianceInWavelength::from(0.0);
         let mut total_attenuation = Bare::from(1.0);
 
         for _ in 0..n_bounces_left {
@@ -121,12 +126,12 @@ impl Tracer {
                 .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
             let Some(hit) = hit else {
                 // The ray didn't hit anything, finish the tracing:
-                total_intensity += total_attenuation * scene_emittance;
+                total_radiance += total_attenuation * scene_emittance;
                 break;
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                total_intensity += total_attenuation * emittance.at(wavelength);
+                total_radiance += total_attenuation * emittance.at(wavelength);
             }
 
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
@@ -157,7 +162,7 @@ impl Tracer {
             ray = scattered_ray;
         }
 
-        total_intensity
+        total_radiance
     }
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
