@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use self::reflectance::ReflectanceAttenuation;
-use self::transmittance::refraction::RefractiveIndex;
+use self::transmittance::refraction::AbsoluteRefractiveIndex;
 use self::transmittance::TransmissionAttenuation;
 use crate::physics::optics::material::emittance::Emittance;
 
@@ -40,7 +40,7 @@ pub struct Transmittance {
     /// Refractive index of the medium inside the body.
     /// By default, this is the index of vacuum.
     #[serde(default, alias = "index")]
-    pub refractive_index: RefractiveIndex,
+    pub refractive_index: AbsoluteRefractiveIndex,
 
     /// Attenuation of the body inner material.
     #[serde(default)]
