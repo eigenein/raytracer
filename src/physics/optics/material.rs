@@ -1,3 +1,4 @@
+pub mod attenuation;
 pub mod emittance;
 pub mod property;
 pub mod reflectance;
@@ -6,10 +7,9 @@ pub mod transmittance;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use self::reflectance::ReflectanceAttenuation;
-use self::transmittance::refraction::AbsoluteRefractiveIndex;
-use self::transmittance::TransmissionAttenuation;
+use self::transmittance::Transmittance;
 use crate::physics::optics::material::emittance::Emittance;
+use crate::physics::optics::material::reflectance::Reflectance;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {
@@ -21,33 +21,4 @@ pub struct Material {
 
     #[serde(default)]
     pub emittance: Option<Emittance>,
-}
-
-#[derive(Deserialize, JsonSchema, Default)]
-pub struct Reflectance {
-    #[serde(default)]
-    pub attenuation: ReflectanceAttenuation,
-
-    #[serde(default)]
-    pub fuzz: Option<f64>, // TODO: this may relate to transmittance as well.
-
-    #[serde(default, alias = "diffuse")]
-    pub diffusion: Option<f64>,
-}
-
-#[derive(Deserialize, JsonSchema)]
-pub struct Transmittance {
-    /// Refractive index of the medium inside the body.
-    /// By default, this is the index of vacuum.
-    #[serde(default, alias = "index")]
-    pub refractive_index: AbsoluteRefractiveIndex,
-
-    /// Attenuation of the body inner material.
-    #[serde(default)]
-    pub attenuation: ReflectanceAttenuation,
-
-    /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
-    /// Considered to be zero by default.
-    #[serde(default)]
-    pub coefficient: Option<TransmissionAttenuation>,
 }

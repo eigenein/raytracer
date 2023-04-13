@@ -3,12 +3,31 @@ pub mod refraction;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use self::refraction::AbsoluteRefractiveIndex;
+use crate::physics::optics::material::attenuation::Attenuation;
 use crate::physics::optics::material::property::Property;
 use crate::physics::units::*;
 
+#[derive(Deserialize, JsonSchema)]
+pub struct Transmittance {
+    /// Refractive index of the medium inside the body.
+    /// By default, this is the index of vacuum.
+    #[serde(default, alias = "index")]
+    pub refractive_index: AbsoluteRefractiveIndex,
+
+    /// Attenuation of the body inner material.
+    #[serde(default)]
+    pub attenuation: Attenuation,
+
+    /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
+    /// Considered to be zero by default.
+    #[serde(default)]
+    pub coefficient: Option<AttenuationCoefficient>,
+}
+
 #[derive(Copy, Clone, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
-pub enum TransmissionAttenuation {
+pub enum AttenuationCoefficient {
     Constant {
         coefficient: ReciprocalLength,
     },
@@ -20,7 +39,7 @@ pub enum TransmissionAttenuation {
     },
 }
 
-impl Property<ReciprocalLength> for TransmissionAttenuation {
+impl Property<ReciprocalLength> for AttenuationCoefficient {
     fn at(&self, wavelength: Length) -> ReciprocalLength {
         match self {
             Self::Constant { coefficient } => *coefficient,
