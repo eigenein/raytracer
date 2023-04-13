@@ -12,7 +12,7 @@ pub fn lorentzian(
 }
 
 /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
-pub fn black_body(temperature: Temperature, at_wavelength: Length) -> SpectralRadianceInWavelength {
+pub fn black_body(temperature: Temperature, at_wavelength: Length) -> SpectralRadiancePerMeter {
     Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
         / at_wavelength.powi::<5>()
         / ((PLANCK * LIGHT_SPEED / at_wavelength / BOLTZMANN / temperature).exp() - 1.0)

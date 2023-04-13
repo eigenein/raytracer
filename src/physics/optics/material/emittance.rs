@@ -16,7 +16,7 @@ pub enum Emittance {
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
     Lorentzian {
-        radiance: SpectralRadianceInWavelength,
+        radiance: SpectralRadiancePerMeter,
 
         /// Wavelength of the maximum, meters.
         #[serde(alias = "max", alias = "maximum")]
@@ -28,8 +28,8 @@ pub enum Emittance {
     },
 }
 
-impl Property<SpectralRadianceInWavelength> for Emittance {
-    fn at(&self, wavelength: Length) -> SpectralRadianceInWavelength {
+impl Property<SpectralRadiancePerMeter> for Emittance {
+    fn at(&self, wavelength: Length) -> SpectralRadiancePerMeter {
         match self {
             Self::BlackBody { scale, temperature } => *scale * black_body(*temperature, wavelength),
 
