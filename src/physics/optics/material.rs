@@ -9,6 +9,7 @@ use serde::Deserialize;
 use self::reflectance::ReflectanceAttenuation;
 use self::transmittance::refraction::RefractiveIndex;
 use self::transmittance::TransmissionAttenuation;
+use crate::physics::optics::material::emittance::Emittance;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {
@@ -19,7 +20,7 @@ pub struct Material {
     pub transmittance: Option<Transmittance>,
 
     #[serde(default)]
-    pub emittance: Option<ReflectanceAttenuation>,
+    pub emittance: Option<Emittance>,
 }
 
 #[derive(Deserialize, JsonSchema, Default)]
