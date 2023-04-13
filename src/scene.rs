@@ -7,7 +7,6 @@ use serde::Deserialize;
 
 use crate::math::point::Point;
 use crate::physics::optics::material::emittance::Emittance;
-use crate::physics::units::Bare;
 use crate::prelude::*;
 use crate::surface::Surface;
 
@@ -23,13 +22,6 @@ pub struct Scene {
     #[serde(alias = "ambient_spectrum")]
     pub ambient_emittance: Emittance,
 
-    /// Scene medium refractive index.
-    ///
-    /// This index is assigned for the primary incident rays originating
-    /// from the camera.
-    #[serde(default = "Scene::default_refractive_index")]
-    pub refractive_index: Bare,
-
     /// Surfaces to render.
     #[serde(default)]
     pub surfaces: Vec<Surface>,
@@ -40,10 +32,6 @@ impl Scene {
         let buffer = fs::read(path).with_context(|| format!("failed to read `{path:?}`"))?;
         let buffer = String::from_utf8(buffer)?;
         toml::from_str(&buffer).with_context(|| format!("failed to read a scene from `{path:?}`"))
-    }
-
-    pub const fn default_refractive_index() -> Bare {
-        Bare::from(1.0)
     }
 }
 

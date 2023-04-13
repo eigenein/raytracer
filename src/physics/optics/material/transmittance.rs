@@ -10,10 +10,11 @@ use crate::physics::units::*;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Transmittance {
-    /// Refractive index of the medium inside the body.
-    /// By default, this is the index of vacuum.
-    #[serde(default, alias = "index")]
-    pub refractive_index: AbsoluteRefractiveIndex,
+    /// Refractive index of the medium **inside** the body.
+    pub refracted_index: AbsoluteRefractiveIndex,
+
+    /// Refractive index of the medium **outside** the body.
+    pub incident_index: AbsoluteRefractiveIndex,
 
     /// Attenuation of the body inner material.
     #[serde(default)]

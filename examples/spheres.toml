@@ -70,7 +70,7 @@ radiance = 0.1
             type = "Constant"
 
         [surfaces.material.transmittance]
-            refractive_index = { type = "Water" }
+            refracted_index = { type = "Water" }
             coefficient = { type = "Water", scale = 0.05 }
 
 # Another small sphere on the right:
@@ -85,7 +85,7 @@ radiance = 0.1
 
         [surfaces.material.transmittance]
             # Fused silica
-            refractive_index = { type = "FusedQuartz" }
+            refracted_index = { type = "FusedQuartz" }
 
             [surfaces.material.transmittance.attenuation]
                 type = "Sum"

@@ -143,7 +143,7 @@ impl Tracer {
             );
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
-                self.trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
+                Self::trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
             {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
@@ -183,7 +183,6 @@ impl Tracer {
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
     fn trace_refraction(
-        &self,
         incident_ray: &Ray,
         wavelength: Length,
         hit: &Hit,
@@ -194,12 +193,12 @@ impl Tracer {
 
         let refractive_index = match hit.type_ {
             HitType::Enter | HitType::Refract => RelativeRefractiveIndex {
-                incident: self.scene.refractive_index, // TODO: add incident index for materials.
-                refracted: transmittance.refractive_index.at(wavelength),
+                incident: transmittance.incident_index.at(wavelength),
+                refracted: transmittance.refracted_index.at(wavelength),
             },
             HitType::Leave => RelativeRefractiveIndex {
-                incident: transmittance.refractive_index.at(wavelength),
-                refracted: self.scene.refractive_index,
+                incident: transmittance.refracted_index.at(wavelength),
+                refracted: transmittance.incident_index.at(wavelength),
             },
         };
 

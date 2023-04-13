@@ -4,25 +4,19 @@
   "description": "A scene to render.\n\nThis is a root object in a scene TOML file.",
   "type": "object",
   "required": [
-    "ambient_spectrum"
+    "ambient_emittance"
   ],
   "properties": {
-    "ambient_spectrum": {
+    "ambient_emittance": {
       "description": "Scene background and ambient color.",
       "allOf": [
         {
-          "$ref": "#/definitions/Spectrum"
+          "$ref": "#/definitions/Emittance"
         }
       ]
     },
     "camera": {
       "$ref": "#/definitions/Camera"
-    },
-    "refractive_index": {
-      "description": "Scene medium refractive index.\n\nThis index is assigned for the primary incident rays originating from the camera.",
-      "default": 1.0,
-      "type": "number",
-      "format": "double"
     },
     "surfaces": {
       "description": "Surfaces to render.",
@@ -49,156 +43,8 @@
         }
       }
     },
-    "Attenuation": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "coefficient",
-            "type"
-          ],
-          "properties": {
-            "coefficient": {
-              "type": "number",
-              "format": "double"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "Constant"
-              ]
-            }
-          }
-        },
-        {
-          "description": "Empirical approximation based on <https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water#/media/File:Absorption_coefficient_of_water.svg>.",
-          "type": "object",
-          "required": [
-            "scale",
-            "type"
-          ],
-          "properties": {
-            "scale": {
-              "type": "number",
-              "format": "double"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "WaterAbsorption"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "Camera": {
-      "type": "object",
-      "properties": {
-        "location": {
-          "$ref": "#/definitions/Point"
-        },
-        "look_at": {
-          "$ref": "#/definitions/Point"
-        },
-        "up": {
-          "description": "Up direction.",
-          "default": [
-            0.0,
-            1.0,
-            0.0
-          ],
-          "type": "array",
-          "items": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxItems": 3,
-          "minItems": 3
-        },
-        "vertical_fov": {
-          "description": "Vertical field-of-view angle, in degrees.",
-          "default": 45.0,
-          "type": "number",
-          "format": "double"
-        }
-      }
-    },
-    "Material": {
-      "type": "object",
-      "properties": {
-        "emittance": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Spectrum"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "reflectance": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Reflectance"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "transmittance": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Transmittance"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      }
-    },
-    "Point": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "format": "double"
-      },
-      "maxItems": 3,
-      "minItems": 3
-    },
-    "Reflectance": {
-      "type": "object",
-      "properties": {
-        "attenuation": {
-          "description": "Attenuation of the interface surface.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Spectrum"
-            }
-          ]
-        },
-        "diffusion": {
-          "default": null,
-          "type": [
-            "number",
-            "null"
-          ],
-          "format": "double"
-        },
-        "fuzz": {
-          "default": null,
-          "type": [
-            "number",
-            "null"
-          ],
-          "format": "double"
-        }
-      }
-    },
-    "RefractiveIndex": {
-      "description": "Absolute refraction index.\n\nBy default, it is of vacuum.",
+    "AbsoluteRefractiveIndex": {
+      "description": "Absolute refraction index.\n\nBy default, it is that of vacuum.",
       "oneOf": [
         {
           "type": "object",
@@ -208,8 +54,7 @@
           ],
           "properties": {
             "index": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
@@ -220,29 +65,7 @@
           }
         },
         {
-          "description": "https://en.wikipedia.org/wiki/Cauchy%27s_equation",
-          "type": "object",
-          "required": [
-            "coefficients",
-            "type"
-          ],
-          "properties": {
-            "coefficients": {
-              "type": "array",
-              "items": {
-                "type": "number",
-                "format": "double"
-              }
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "Cauchy"
-              ]
-            }
-          }
-        },
-        {
+          "description": "<https://en.wikipedia.org/wiki/Cauchy%27s_equation>",
           "type": "object",
           "required": [
             "a",
@@ -251,12 +74,10 @@
           ],
           "properties": {
             "a": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "b": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
@@ -267,6 +88,7 @@
           }
         },
         {
+          "description": "<https://en.wikipedia.org/wiki/Cauchy%27s_equation>",
           "type": "object",
           "required": [
             "a",
@@ -277,20 +99,16 @@
           ],
           "properties": {
             "a": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "b": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "c": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "d": {
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
@@ -332,7 +150,7 @@
         }
       ]
     },
-    "Spectrum": {
+    "Attenuation": {
       "description": "Absorbs nothing by default.",
       "oneOf": [
         {
@@ -342,9 +160,7 @@
           ],
           "properties": {
             "intensity": {
-              "default": 1.0,
-              "type": "number",
-              "format": "double"
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
@@ -355,58 +171,37 @@
           }
         },
         {
-          "description": "https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian",
+          "description": "Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>",
           "type": "object",
           "required": [
-            "fwhm",
+            "full_width_at_half_maximum",
             "maximum_at",
             "type"
           ],
           "properties": {
-            "fwhm": {
-              "description": "https://en.wikipedia.org/wiki/Full_width_at_half_maximum",
-              "type": "number",
-              "format": "double"
-            },
-            "max_intensity": {
-              "default": 1.0,
-              "type": "number",
-              "format": "double"
+            "full_width_at_half_maximum": {
+              "description": "<https://en.wikipedia.org/wiki/Full_width_at_half_maximum>",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Quantity_for_double"
+                }
+              ]
             },
             "maximum_at": {
               "description": "Wavelength of the maximum, meters.",
-              "type": "number",
-              "format": "double"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Quantity_for_double"
+                }
+              ]
+            },
+            "scale": {
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
               "enum": [
                 "Lorentzian"
-              ]
-            }
-          }
-        },
-        {
-          "description": "Black body radiation: https://en.wikipedia.org/wiki/Planck%27s_law.\n\nDo not confuse with black body **absorption** – for the latter use empty reflectance.",
-          "type": "object",
-          "required": [
-            "scale",
-            "temperature",
-            "type"
-          ],
-          "properties": {
-            "scale": {
-              "type": "number",
-              "format": "double"
-            },
-            "temperature": {
-              "type": "number",
-              "format": "double"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "BlackBodyRadiation"
               ]
             }
           }
@@ -422,7 +217,7 @@
             "spectra": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/Spectrum"
+                "$ref": "#/definitions/Attenuation"
               }
             },
             "type": {
@@ -432,30 +227,217 @@
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    "AttenuationCoefficient": {
+      "oneOf": [
         {
-          "description": "Multiplication of the spectra.",
           "type": "object",
           "required": [
-            "spectra",
+            "coefficient",
             "type"
           ],
           "properties": {
-            "spectra": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Spectrum"
-              }
+            "coefficient": {
+              "$ref": "#/definitions/Quantity_for_double"
             },
             "type": {
               "type": "string",
               "enum": [
-                "Mul"
+                "Constant"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Empirical approximation based on <https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water#/media/File:Absorption_coefficient_of_water.svg>.",
+          "type": "object",
+          "required": [
+            "scale",
+            "type"
+          ],
+          "properties": {
+            "scale": {
+              "$ref": "#/definitions/Quantity_for_double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Water"
               ]
             }
           }
         }
       ]
+    },
+    "Camera": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "$ref": "#/definitions/Point"
+        },
+        "look_at": {
+          "$ref": "#/definitions/Point"
+        },
+        "up": {
+          "description": "Up direction.",
+          "default": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "vertical_fov": {
+          "description": "Vertical field-of-view angle, in degrees.",
+          "default": 45.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "Emittance": {
+      "oneOf": [
+        {
+          "description": "Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.",
+          "type": "object",
+          "required": [
+            "scale",
+            "temperature",
+            "type"
+          ],
+          "properties": {
+            "scale": {
+              "$ref": "#/definitions/Quantity_for_double"
+            },
+            "temperature": {
+              "$ref": "#/definitions/Quantity_for_double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "BlackBody"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.",
+          "type": "object",
+          "required": [
+            "full_width_at_half_maximum",
+            "maximum_at",
+            "radiance",
+            "type"
+          ],
+          "properties": {
+            "full_width_at_half_maximum": {
+              "description": "<https://en.wikipedia.org/wiki/Full_width_at_half_maximum>",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Quantity_for_double"
+                }
+              ]
+            },
+            "maximum_at": {
+              "description": "Wavelength of the maximum, meters.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Quantity_for_double"
+                }
+              ]
+            },
+            "radiance": {
+              "$ref": "#/definitions/Quantity_for_double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Lorentzian"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Material": {
+      "type": "object",
+      "properties": {
+        "emittance": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Emittance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reflectance": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Reflectance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transmittance": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transmittance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Point": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "format": "double"
+      },
+      "maxItems": 3,
+      "minItems": 3
+    },
+    "Quantity_for_double": {
+      "type": "number",
+      "format": "double"
+    },
+    "Reflectance": {
+      "type": "object",
+      "properties": {
+        "attenuation": {
+          "$ref": "#/definitions/Attenuation"
+        },
+        "diffusion": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "fuzz": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      }
     },
     "Surface": {
       "description": "Surface that is being rendered.",
@@ -524,12 +506,16 @@
     },
     "Transmittance": {
       "type": "object",
+      "required": [
+        "incident_index",
+        "refracted_index"
+      ],
       "properties": {
         "attenuation": {
           "description": "Attenuation of the body inner material.",
           "allOf": [
             {
-              "$ref": "#/definitions/Spectrum"
+              "$ref": "#/definitions/Attenuation"
             }
           ]
         },
@@ -537,18 +523,26 @@
           "description": "Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>. Considered to be zero by default.",
           "anyOf": [
             {
-              "$ref": "#/definitions/Attenuation"
+              "$ref": "#/definitions/AttenuationCoefficient"
             },
             {
               "type": "null"
             }
           ]
         },
-        "refractive_index": {
-          "description": "Refractive index of the medium inside the body. By default, this is the index of vacuum.",
+        "incident_index": {
+          "description": "Refractive index of the medium **outside** the body.",
           "allOf": [
             {
-              "$ref": "#/definitions/RefractiveIndex"
+              "$ref": "#/definitions/AbsoluteRefractiveIndex"
+            }
+          ]
+        },
+        "refracted_index": {
+          "description": "Refractive index of the medium **inside** the body.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AbsoluteRefractiveIndex"
             }
           ]
         }
