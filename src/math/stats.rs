@@ -11,29 +11,30 @@ use crate::physics::units::Temperature;
 
 /// Probability density function.
 #[const_trait]
-pub trait Pdf<X> {
+pub trait Pdf {
     /// Get the value of the PDF at `x`.
     #[must_use]
-    fn pdf(&self, x: X) -> f64;
+    fn pdf(&self, x: f64) -> f64;
 }
 
-pub trait Sample<X> {
+pub trait Sample {
     /// Sample the distribution and return a random value.
     #[must_use]
-    fn sample(&self, domain: Range<X>) -> f64;
+    fn sample(&self, domain: Range<f64>) -> f64;
 }
 
-/// Implement a sort of [rejection sampling][1] for any distribution which supports PDF.
+/// Sort of [Rejection sampling][1] for any distribution which supports PDF.
 /// Here, `Mg(x) = 1`, so `f(x) <= Mg(x)` always holds.
 ///
+/// Implemented as a standalone function because of [the compiler bug][2].
+///
 /// [1]: https://en.wikipedia.org/wiki/Rejection_sampling
-impl<X: Copy, D: Pdf<X>> Sample<X> for D {
-    fn sample(&self, domain: Range<X>) -> f64 {
-        loop {
-            let x = domain.start + fastrand::f64() * (domain.end - domain.start);
-            if fastrand::f64() <= self.pdf(x) {
-                break x;
-            }
+/// [2]: https://github.com/rust-lang/rust/issues/48869
+fn sample<P: Pdf>(distribution: &P, domain: Range<f64>) -> f64 {
+    loop {
+        let x = domain.start + (domain.end - domain.start) * fastrand::f64();
+        if fastrand::f64() <= distribution.pdf(x) {
+            break x;
         }
     }
 }
@@ -43,10 +44,10 @@ impl<X: Copy, D: Pdf<X>> Sample<X> for D {
 /// Sampling outside the support range is **not allowed**.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Continuous_uniform_distribution
-pub struct UniformDistribution<X>(pub Range<X>);
+pub struct UniformDistribution(pub Range<f64>);
 
-impl<X: Copy> Sample<X> for UniformDistribution<X> {
-    fn sample(&self, domain: Range<X>) -> f64 {
+impl Sample for UniformDistribution {
+    fn sample(&self, domain: Range<f64>) -> f64 {
         assert!(domain.start <= self.0.start && domain.end >= self.0.end);
         domain.start + (domain.end - domain.start) * fastrand::f64()
     }
@@ -60,15 +61,21 @@ pub struct CauchyDistribution {
     /// Scale parameter which specifies the *half-width at half-maximum* (HWHM).
     pub gamma: f64,
 
-    /// Median and mode.
-    pub x0: f64,
+    pub median: f64,
 }
 
-impl<X: ~const From<f64>> const Pdf<X> for CauchyDistribution {
+impl const Pdf for CauchyDistribution {
     #[inline]
     #[must_use]
-    fn pdf(&self, x: X) -> f64 {
-        X::from(FRAC_1_PI) * self.gamma / (const_pow2(x - self.x0) + const_pow2(self.gamma))
+    fn pdf(&self, x: f64) -> f64 {
+        FRAC_1_PI * self.gamma / (const_pow2(x - self.median) + const_pow2(self.gamma))
+    }
+}
+
+impl Sample for CauchyDistribution {
+    #[inline]
+    fn sample(&self, domain: Range<f64>) -> f64 {
+        sample(self, domain)
     }
 }
 

@@ -1,4 +1,5 @@
 #![allow(incomplete_features)]
+#![feature(associated_type_bounds)]
 #![feature(const_convert)]
 #![feature(const_float_classify)]
 #![feature(const_fn_floating_point_arithmetic)]
