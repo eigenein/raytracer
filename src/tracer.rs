@@ -52,13 +52,13 @@ impl Tracer {
     pub fn trace(&self) -> Result<Vec<(u32, Vec<XyzColor>)>> {
         info!(self.options.samples_per_pixel);
         info!(self.options.n_max_bounces, self.options.min_hit_distance);
-        info!(?self.scene.camera.location);
-        info!(?self.scene.camera.look_at);
-        info!(?self.scene.camera.up);
+        info!(%self.scene.camera.location);
+        info!(%self.scene.camera.look_at);
+        info!(%self.scene.camera.up);
         info!(self.scene.camera.vertical_fov);
-        info!(?self.viewport.dx);
-        info!(?self.viewport.dy);
-        info!(?self.wavelength_step);
+        info!(%self.viewport.dx);
+        info!(%self.viewport.dy);
+        info!(%self.wavelength_step);
 
         let mut y_indices: Vec<u32> = (0..self.output_height).collect();
         fastrand::shuffle(&mut y_indices);
@@ -149,7 +149,7 @@ impl Tracer {
             } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
                 (ray, attenuation)
             } else if let Some((ray, attenuation)) =
-                Self::trace_specular_reflection(&ray, wavelength, &hit, cosine_theta_1)
+                Self::trace_specular_reflection(&ray, wavelength, &hit)
             {
                 (ray, attenuation)
             } else {
@@ -236,11 +236,9 @@ impl Tracer {
         incident_ray: &Ray,
         wavelength: Length,
         hit: &Hit,
-        cosine_theta_1: f64,
     ) -> Option<(Ray, Bare)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
-        let mut ray =
-            Ray::new(hit.location, incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal);
+        let mut ray = Ray::new(hit.location, incident_ray.direction.reflect_about(hit.normal));
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += Vec3::random_unit_vector() * fuzz;
         }

@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
 use schemars::JsonSchema;
@@ -22,6 +23,12 @@ impl Point {
     #[inline]
     pub const fn is_infinite(&self) -> bool {
         self.0.x.is_infinite() && self.0.y.is_infinite() && self.0.z.is_infinite()
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 

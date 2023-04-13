@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
 use schemars::JsonSchema;
@@ -16,6 +17,12 @@ impl const Default for Vec3 {
     #[inline]
     fn default() -> Self {
         Self { x: 0.0, y: 0.0, z: 0.0 }
+    }
+}
+
+impl Display for Vec3 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.z)
     }
 }
 
@@ -229,7 +236,7 @@ impl Vec3 {
     /// <https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula>.
     #[inline]
     pub fn rotate_about(self, axis: Self, angle: f64) -> Self {
-        assert!((axis.length_squared() - 1.0).abs() <= f64::EPSILON);
+        self.assert_normalized();
         let (angle_sin, angle_cos) = angle.sin_cos();
         self * angle_cos + axis.cross(self) * angle_sin + axis.dot(self) * (1.0 - angle_cos) * axis
     }
@@ -266,5 +273,21 @@ impl Vec3 {
         (self.x - rhs.x).abs() <= max_abs_diff
             && (self.y - rhs.y).abs() <= max_abs_diff
             && (self.z - rhs.z).abs() <= max_abs_diff
+    }
+
+    #[inline]
+    pub fn assert_normalized(self) {
+        const THRESHOLD: f64 = 1000.0 * f64::EPSILON;
+        assert!(
+            (self.length_squared() - 1.0).abs() <= THRESHOLD,
+            "expected normalized vector, actual length²: `{}`",
+            self.length_squared(),
+        );
+    }
+
+    #[inline]
+    pub fn reflect_about(self, normal: Self) -> Self {
+        normal.assert_normalized();
+        self - 2.0 * self.dot(normal) * normal
     }
 }
