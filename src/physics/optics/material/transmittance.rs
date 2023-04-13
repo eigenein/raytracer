@@ -14,6 +14,9 @@ pub struct Transmittance {
     pub refracted_index: AbsoluteRefractiveIndex,
 
     /// Refractive index of the medium **outside** the body.
+    ///
+    /// By default, this is the index of vacuum.
+    #[serde(default)]
     pub incident_index: AbsoluteRefractiveIndex,
 
     /// Attenuation of the body inner material.

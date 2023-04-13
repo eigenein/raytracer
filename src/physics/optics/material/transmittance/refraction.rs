@@ -40,7 +40,9 @@ pub enum AbsoluteRefractiveIndex {
     FusedQuartz,
 }
 
+/// Refractive index of vacuum.
 impl const Default for AbsoluteRefractiveIndex {
+    #[inline]
     fn default() -> Self {
         Self::Constant { index: Bare::from(1.0) }
     }

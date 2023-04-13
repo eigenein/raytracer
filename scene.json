@@ -507,7 +507,6 @@
     "Transmittance": {
       "type": "object",
       "required": [
-        "incident_index",
         "refracted_index"
       ],
       "properties": {
@@ -531,7 +530,7 @@
           ]
         },
         "incident_index": {
-          "description": "Refractive index of the medium **outside** the body.",
+          "description": "Refractive index of the medium **outside** the body.\n\nBy default, this is the index of vacuum.",
           "allOf": [
             {
               "$ref": "#/definitions/AbsoluteRefractiveIndex"
