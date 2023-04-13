@@ -6,6 +6,8 @@ pub use self::quantity::Quantity;
 
 pub type Length<V = f64> = Quantity<V, 0, 1, 0, 0, 0, 0, 0>;
 
+pub type Velocity<V = f64> = Quantity<V, -1, 1, 0, 0, 0, 0, 0>;
+
 /// Reciprocal length: <https://en.wikipedia.org/wiki/Reciprocal_length>.
 pub type ReciprocalLength<V = f64> = Quantity<V, 0, -1, 0, 0, 0, 0, 0>;
 

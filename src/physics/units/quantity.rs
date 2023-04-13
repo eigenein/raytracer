@@ -170,21 +170,56 @@ impl<
         { AS * P },
         { LI * P },
     > {
-        Quantity::<
-            f64,
-            { T * P },
-            { L * P },
-            { M * P },
-            { EC * P },
-            { TT * P },
-            { AS * P },
-            { LI * P },
-        >(self.0.powi(P as i32))
+        Quantity(self.0.powi(P as i32))
     }
 
     #[inline]
     pub fn abs(self) -> Self {
         Self(self.0.abs())
+    }
+}
+
+impl<
+    V: Copy + ~const Mul<Output = V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    #[inline]
+    pub const fn squared(
+        self,
+    ) -> Quantity<V, { T * 2 }, { L * 2 }, { M * 2 }, { EC * 2 }, { TT * 2 }, { AS * 2 }, { LI * 2 }>
+    {
+        Quantity(self.0 * self.0)
+    }
+
+    #[inline]
+    pub const fn cubed(
+        self,
+    ) -> Quantity<V, { T * 3 }, { L * 3 }, { M * 3 }, { EC * 3 }, { TT * 3 }, { AS * 3 }, { LI * 3 }>
+    {
+        Quantity(self.0 * self.0 * self.0)
+    }
+
+    #[inline]
+    pub const fn quartic(
+        self,
+    ) -> Quantity<V, { T * 4 }, { L * 4 }, { M * 4 }, { EC * 4 }, { TT * 4 }, { AS * 4 }, { LI * 4 }>
+    {
+        Quantity(self.0 * self.0 * self.0 * self.0)
+    }
+
+    #[inline]
+    pub const fn quintic(
+        self,
+    ) -> Quantity<V, { T * 5 }, { L * 5 }, { M * 5 }, { EC * 5 }, { TT * 5 }, { AS * 5 }, { LI * 5 }>
+    {
+        Quantity(self.0 * self.0 * self.0 * self.0 * self.0)
     }
 }
 
@@ -329,16 +364,7 @@ where
     #[inline]
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
-        Quantity::<
-            V,
-            { T1 + T2 },
-            { L1 + L2 },
-            { M1 + M2 },
-            { EC1 + EC2 },
-            { TT1 + TT2 },
-            { AS1 + AS2 },
-            { LI1 + LI2 },
-        >(self.0 * rhs.0)
+        Quantity(self.0 * rhs.0)
     }
 }
 
@@ -387,15 +413,6 @@ where
     #[inline]
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
-        Quantity::<
-            V,
-            { T1 - T2 },
-            { L1 - L2 },
-            { M1 - M2 },
-            { EC1 - EC2 },
-            { TT1 - TT2 },
-            { AS1 - AS2 },
-            { LI1 - LI2 },
-        >(self.0 / rhs.0)
+        Quantity(self.0 / rhs.0)
     }
 }

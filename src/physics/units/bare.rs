@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
 
 use crate::physics::units::quantity::Quantity;
@@ -36,14 +37,19 @@ impl<V: Mul<Output = V>> Mul<V> for Bare<V> {
 }
 
 impl Bare<f64> {
+    pub const PI: Self = Bare::from(PI);
+
+    #[inline]
     pub fn exp(self) -> Self {
         Self(self.0.exp())
     }
 
+    #[inline]
     pub fn sqrt(self) -> Self {
         Self(self.0.sqrt())
     }
 
+    #[inline]
     pub fn powf<X: Into<f64>>(self, x: X) -> Self {
         Self(self.0.powf(x.into()))
     }
