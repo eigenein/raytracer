@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::physics::optics::material::property::Property;
-use crate::physics::optics::spectrum::black_body;
+use crate::physics::optics::spectrum::{black_body, lorentzian};
 use crate::physics::units::*;
 
 #[derive(Deserialize, JsonSchema, Clone)]
@@ -13,12 +13,31 @@ pub enum Emittance {
         temperature: Temperature,
         scale: Bare,
     },
+
+    /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
+    Lorentzian {
+        radiance: SpectralRadianceInWavelength,
+
+        /// Wavelength of the maximum, meters.
+        #[serde(alias = "max", alias = "maximum")]
+        maximum_at: Length,
+
+        /// <https://en.wikipedia.org/wiki/Full_width_at_half_maximum>
+        #[serde(alias = "fwhm")]
+        full_width_at_half_maximum: Length,
+    },
 }
 
 impl Property<SpectralRadianceInWavelength> for Emittance {
     fn at(&self, wavelength: Length) -> SpectralRadianceInWavelength {
         match self {
             Self::BlackBody { scale, temperature } => *scale * black_body(*temperature, wavelength),
+
+            Self::Lorentzian {
+                radiance,
+                maximum_at,
+                full_width_at_half_maximum,
+            } => *radiance * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
         }
     }
 }

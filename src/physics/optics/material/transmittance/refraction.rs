@@ -6,10 +6,10 @@ use crate::physics::units::*;
 
 /// Absolute refraction index.
 ///
-/// By default, it is of vacuum.
+/// By default, it is that of vacuum.
 #[derive(Deserialize, JsonSchema)]
 #[serde(tag = "type")]
-pub enum RefractiveIndex {
+pub enum AbsoluteRefractiveIndex {
     Constant {
         index: Bare,
     },
@@ -40,13 +40,13 @@ pub enum RefractiveIndex {
     FusedQuartz,
 }
 
-impl const Default for RefractiveIndex {
+impl const Default for AbsoluteRefractiveIndex {
     fn default() -> Self {
         Self::Constant { index: Bare::from(1.0) }
     }
 }
 
-impl Property<Bare> for RefractiveIndex {
+impl Property<Bare> for AbsoluteRefractiveIndex {
     /// Get the absolute refractive index at the given wavelength.
     fn at(&self, wavelength: Length) -> Bare {
         match self {

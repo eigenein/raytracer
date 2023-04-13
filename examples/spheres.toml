@@ -1,8 +1,8 @@
-[ambient_spectrum]
+[ambient_emittance]
 type = "Lorentzian"
 maximum = 475e-9
 fwhm = 15e-9
-intensity = 0.1
+radiance = 0.1
 
 [camera]
     location = [-1, 2, -6]

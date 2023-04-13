@@ -14,13 +14,14 @@ pub enum ReflectanceAttenuation {
         intensity: Bare,
     },
 
-    /// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
+    /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
     Lorentzian {
         #[serde(
             default = "ReflectanceAttenuation::default_intensity",
-            alias = "intensity"
+            alias = "intensity",
+            alias = "max_intensity"
         )]
-        max_intensity: Bare,
+        scale: Bare,
 
         /// Wavelength of the maximum, meters.
         #[serde(alias = "max", alias = "maximum")]
@@ -55,10 +56,10 @@ impl Property<Bare> for ReflectanceAttenuation {
             Self::Constant { intensity } => *intensity,
 
             Self::Lorentzian {
-                max_intensity,
+                scale,
                 maximum_at,
                 full_width_at_half_maximum,
-            } => *max_intensity * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
+            } => *scale * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
 
             Self::Sum { spectra } => spectra
                 .iter()
@@ -77,7 +78,7 @@ mod tests {
         let maximum_at = Length::from_nanos(450.0); // blue
         let fwhm = Length::from(1e-14);
         let spectrum = ReflectanceAttenuation::Lorentzian {
-            max_intensity: Bare::from(1.0),
+            scale: Bare::from(1.0),
             maximum_at,
             full_width_at_half_maximum: fwhm,
         };
