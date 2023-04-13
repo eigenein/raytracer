@@ -18,13 +18,13 @@ use crate::physics::units::bare::Bare;
 #[derive(Copy, Clone, PartialEq, PartialOrd, Deserialize, JsonSchema)]
 pub struct Quantity<
     V,
-    const T: isize,
-    const L: isize,
-    const M: isize,
-    const EC: isize,
-    const TT: isize,
-    const AS: isize,
-    const LI: isize,
+    const T: isize = 0,
+    const L: isize = 0,
+    const M: isize = 0,
+    const EC: isize = 0,
+    const TT: isize = 0,
+    const AS: isize = 0,
+    const LI: isize = 0,
 >(pub V);
 
 impl<

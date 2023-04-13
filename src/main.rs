@@ -1,5 +1,4 @@
 #![allow(incomplete_features)]
-#![feature(associated_type_bounds)]
 #![feature(const_convert)]
 #![feature(const_float_classify)]
 #![feature(const_fn_floating_point_arithmetic)]
@@ -7,7 +6,6 @@
 #![feature(const_trait_impl)]
 #![feature(generic_const_exprs)]
 #![feature(let_chains)]
-#![feature(portable_simd)]
 #![feature(repr_simd)]
 #![warn(
     clippy::all,

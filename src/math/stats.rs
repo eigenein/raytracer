@@ -6,8 +6,12 @@
 use std::f64::consts::FRAC_1_PI;
 use std::ops::Range;
 
+use schemars::JsonSchema;
+use serde::Deserialize;
+
 use crate::math::const_pow2;
-use crate::physics::units::Temperature;
+use crate::physics::consts::*;
+use crate::physics::units::*;
 
 /// Probability density function.
 #[const_trait]
@@ -30,6 +34,7 @@ pub trait Sample {
 ///
 /// [1]: https://en.wikipedia.org/wiki/Rejection_sampling
 /// [2]: https://github.com/rust-lang/rust/issues/48869
+#[must_use]
 fn sample<P: Pdf>(distribution: &P, domain: Range<f64>) -> f64 {
     loop {
         let x = domain.start + (domain.end - domain.start) * fastrand::f64();
@@ -44,9 +49,11 @@ fn sample<P: Pdf>(distribution: &P, domain: Range<f64>) -> f64 {
 /// Sampling outside the support range is **not allowed**.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Continuous_uniform_distribution
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct UniformDistribution(pub Range<f64>);
 
 impl Sample for UniformDistribution {
+    #[inline]
     fn sample(&self, domain: Range<f64>) -> f64 {
         assert!(domain.start <= self.0.start && domain.end >= self.0.end);
         domain.start + (domain.end - domain.start) * fastrand::f64()
@@ -56,7 +63,7 @@ impl Sample for UniformDistribution {
 /// [Cauchy distribution][1] aka *Lorentz distribution* aka *Breit–Wigner distribution*.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Cauchy_distribution
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct CauchyDistribution {
     /// Scale parameter which specifies the *half-width at half-maximum* (HWHM).
     pub gamma: f64,
@@ -66,7 +73,6 @@ pub struct CauchyDistribution {
 
 impl const Pdf for CauchyDistribution {
     #[inline]
-    #[must_use]
     fn pdf(&self, x: f64) -> f64 {
         FRAC_1_PI * self.gamma / (const_pow2(x - self.median) + const_pow2(self.gamma))
     }
@@ -84,6 +90,20 @@ impl Sample for CauchyDistribution {
 ///
 /// [1]: https://en.wikipedia.org/wiki/Black-body_radiation
 /// [2]: https://en.wikipedia.org/wiki/Planck%27s_law
+#[derive(Deserialize, JsonSchema)]
 pub struct BlackBodyRadiation {
     pub temperature: Temperature,
+}
+
+impl Pdf for BlackBodyRadiation {
+    fn pdf(&self, x: f64) -> f64 {
+        let radiation = Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
+            / Bare::from(x).powi::<5>()
+            / ((PLANCK * LIGHT_SPEED / Length::from(x) / BOLTZMANN / self.temperature).exp() - 1.0);
+
+        // https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
+        let y: Quantity<f64, 0, 4> =
+            radiation * Bare::PI / (STEFAN_BOLTZMANN * self.temperature.powi::<4>());
+        y.0 // FIXME
+    }
 }
