@@ -1,4 +1,4 @@
-use crate::math::uom::Length;
+use crate::physics::units::Length;
 
 /// An optical property.
 ///

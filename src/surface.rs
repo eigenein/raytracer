@@ -7,8 +7,8 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
-use crate::optics::hit::{Hit, Hittable};
-use crate::optics::ray::Ray;
+use crate::physics::optics::hit::{Hit, Hittable};
+use crate::physics::optics::ray::Ray;
 use crate::surface::fog::UniformFog;
 use crate::surface::sphere::Sphere;
 

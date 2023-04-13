@@ -6,8 +6,8 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::point::Point;
-use crate::math::uom::Bare;
-use crate::optics::material::reflectance::ReflectanceAttenuation;
+use crate::physics::optics::material::reflectance::ReflectanceAttenuation;
+use crate::physics::units::Bare;
 use crate::prelude::*;
 use crate::surface::Surface;
 

@@ -8,12 +8,12 @@ use tracing::info;
 
 use crate::args::TracerOptions;
 use crate::color::xyz::XyzColor;
-use crate::math::uom::{Bare, Length};
 use crate::math::vec::random_unit_vector;
-use crate::optics::hit::{Hit, HitType, Hittable};
-use crate::optics::material::property::Property;
-use crate::optics::material::transmittance::refraction::RelativeRefractiveIndex;
-use crate::optics::ray::Ray;
+use crate::physics::optics::hit::{Hit, HitType, Hittable};
+use crate::physics::optics::material::property::Property;
+use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;
+use crate::physics::optics::ray::Ray;
+use crate::physics::units::{Bare, Length};
 use crate::prelude::*;
 use crate::scene::Scene;
 use crate::tracer::progress::new_progress;

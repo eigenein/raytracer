@@ -1,4 +1,4 @@
-use crate::math::uom::Quantity;
+use crate::physics::units::Quantity;
 
 pub const LIGHT_SPEED: Quantity<f64, -1, 1, 0, 0, 0, 0, 0> = Quantity::from(299_792_458.0);
 

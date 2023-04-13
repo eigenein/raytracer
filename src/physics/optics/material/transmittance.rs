@@ -3,8 +3,8 @@ pub mod refraction;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::uom::{Bare, Length, ReciprocalLength};
-use crate::optics::material::property::Property;
+use crate::physics::optics::material::property::Property;
+use crate::physics::units::*;
 
 #[derive(Copy, Clone, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
