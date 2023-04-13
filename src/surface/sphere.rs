@@ -5,9 +5,9 @@ use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
 use crate::math::point::Point;
-use crate::optics::hit::{Hit, HitType, Hittable};
-use crate::optics::material::Material;
-use crate::optics::ray::Ray;
+use crate::physics::optics::hit::{Hit, HitType, Hittable};
+use crate::physics::optics::material::Material;
+use crate::physics::optics::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {

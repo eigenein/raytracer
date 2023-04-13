@@ -1,5 +1,5 @@
-use crate::math::uom::*;
-use crate::optics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
+use crate::physics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
+use crate::physics::units::*;
 
 /// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
 pub fn lorentzian(

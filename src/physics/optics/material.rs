@@ -6,9 +6,9 @@ pub mod transmittance;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::optics::material::reflectance::ReflectanceAttenuation;
-use crate::optics::material::transmittance::refraction::RefractiveIndex;
-use crate::optics::material::transmittance::TransmissionAttenuation;
+use self::reflectance::ReflectanceAttenuation;
+use self::transmittance::refraction::RefractiveIndex;
+use self::transmittance::TransmissionAttenuation;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Material {

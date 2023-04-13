@@ -1,9 +1,9 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::uom::{Bare, Length, Temperature};
-use crate::optics::material::property::Property;
-use crate::optics::spectrum::{black_body, lorentzian};
+use crate::physics::optics::material::property::Property;
+use crate::physics::optics::spectrum::{black_body, lorentzian};
+use crate::physics::units::{Bare, Length, Temperature};
 
 /// Absorbs nothing by default.
 #[derive(Deserialize, JsonSchema, Clone)]

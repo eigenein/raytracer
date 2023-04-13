@@ -31,7 +31,7 @@ mod args;
 mod color;
 mod image;
 mod math;
-mod optics;
+mod physics;
 mod prelude;
 mod scene;
 mod surface;

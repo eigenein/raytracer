@@ -5,8 +5,8 @@ use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
 use crate::math::point::Point;
-use crate::optics::material::Material;
-use crate::optics::ray::Ray;
+use crate::physics::optics::material::Material;
+use crate::physics::optics::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
