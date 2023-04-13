@@ -12,7 +12,7 @@ pub struct XyzColor(DVec3);
 
 impl XyzColor {
     pub fn from_wavelength(wavelength: Length) -> Self {
-        let nanos = f64::from(wavelength) / 1e-9;
+        let nanos = wavelength.0 / 1e-9;
         let fract = nanos.fract();
         let nanos = nanos as usize - 360;
         assert!(nanos < 470, "actual: {nanos}, wavelength = {wavelength}");

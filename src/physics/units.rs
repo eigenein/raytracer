@@ -10,7 +10,6 @@ use std::fmt::{Debug, Display, Formatter};
 use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 
-use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -24,7 +23,7 @@ pub struct Quantity<
     const TT: isize,
     const AS: isize,
     const LI: isize,
->(V);
+>(pub V);
 
 impl<
     V: Display,
@@ -180,28 +179,6 @@ impl<
         Self(self.0.abs())
     }
 }
-
-macro_rules! impl_into {
-    ($ty:ty) => {
-        impl<
-            const T: isize,
-            const L: isize,
-            const M: isize,
-            const EC: isize,
-            const TT: isize,
-            const AS: isize,
-            const LI: isize,
-        > const From<Quantity<$ty, T, L, M, EC, TT, AS, LI>> for $ty
-        {
-            fn from(value: Quantity<$ty, T, L, M, EC, TT, AS, LI>) -> $ty {
-                value.0
-            }
-        }
-    };
-}
-
-impl_into!(f64);
-impl_into!(DVec3);
 
 impl<
     V,
@@ -409,6 +386,12 @@ where
 
 /// Dimensionless quantity: <https://en.wikipedia.org/wiki/Dimensionless_quantity>.
 pub type Bare<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 0>;
+
+impl From<Bare<f64>> for f64 {
+    fn from(value: Bare<f64>) -> Self {
+        value.0
+    }
+}
 
 impl<V: Add<Output = V>> Add<V> for Bare<V> {
     type Output = Self;

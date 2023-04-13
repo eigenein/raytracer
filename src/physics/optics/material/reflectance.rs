@@ -71,7 +71,7 @@ impl Property<Bare> for ReflectanceAttenuation {
             Self::BlackBody { scale, temperature } => {
                 let spectral_radiance = *scale * black_body(*temperature, wavelength);
                 // FIXME: the units.
-                Bare::from(f64::from(spectral_radiance))
+                Bare::from(spectral_radiance.0)
             }
 
             Self::Sum { spectra } => spectra
