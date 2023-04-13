@@ -1,11 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
 
-use glam::DVec3;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::point::Point;
+use crate::math::vec::Vec3;
 use crate::physics::optics::material::emittance::Emittance;
 use crate::prelude::*;
 use crate::surface::Surface;
@@ -49,21 +49,20 @@ pub struct Camera {
 
     /// Up direction.
     #[serde(default = "Camera::default_up")]
-    #[schemars(with = "[f64; 3]")]
-    pub up: DVec3,
+    pub up: Vec3,
 }
 
 impl Camera {
     pub const fn default_location() -> Point {
-        DVec3::new(0.0, 0.0, -1.0).into()
+        Point::new(0.0, 0.0, -1.0)
     }
 
     pub const fn default_vertical_fov() -> f64 {
         45.0
     }
 
-    pub const fn default_up() -> DVec3 {
-        DVec3::new(0.0, 1.0, 0.0)
+    pub const fn default_up() -> Vec3 {
+        Vec3::new(0.0, 1.0, 0.0)
     }
 }
 

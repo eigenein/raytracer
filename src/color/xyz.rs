@@ -1,14 +1,13 @@
 use std::iter::Sum;
 use std::ops::{Div, Mul};
 
-use glam::DVec3;
-
 use crate::color::cie_1964::WAVELENGTH_TO_XYZ;
+use crate::math::vec::Vec3;
 use crate::physics::units::Length;
 
 /// XYZ color: https://en.wikipedia.org/wiki/SRGB#Transformation.
 #[derive(Debug)]
-pub struct XyzColor(DVec3);
+pub struct XyzColor(Vec3);
 
 impl XyzColor {
     pub fn from_wavelength(wavelength: Length) -> Self {
@@ -27,7 +26,7 @@ impl XyzColor {
 
 impl Sum<XyzColor> for XyzColor {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        let mut sum = DVec3::ZERO;
+        let mut sum = Vec3::ZERO;
         for color in iter {
             sum += color.0;
         }
@@ -51,7 +50,7 @@ impl Div<f64> for XyzColor {
     }
 }
 
-impl const From<XyzColor> for DVec3 {
+impl const From<XyzColor> for Vec3 {
     fn from(value: XyzColor) -> Self {
         value.0
     }

@@ -1,10 +1,10 @@
 use std::ops::Range;
 
-use glam::DVec3;
 use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
 use crate::math::point::Point;
+use crate::math::vec::Vec3;
 use crate::physics::optics::material::Material;
 use crate::physics::optics::ray::Ray;
 
@@ -14,7 +14,7 @@ pub struct Hit<'a> {
     pub location: Point,
 
     /// Normal at the hit point.
-    pub normal: DVec3,
+    pub normal: Vec3,
 
     /// Distance travelled by the ray till the hit point.
     ///

@@ -1,12 +1,11 @@
 use std::f64::consts::FRAC_PI_2;
 
-use glam::{DQuat, DVec3};
-
+use crate::math::vec::Vec3;
 use crate::scene::Camera;
 
 pub struct Viewport {
-    pub dx: DVec3,
-    pub dy: DVec3,
+    pub dx: Vec3,
+    pub dy: Vec3,
     image_half_width: f64,
     image_half_height: f64,
 }
@@ -24,7 +23,7 @@ impl Viewport {
         let principal_axis = principal_axis / focal_length;
 
         let dx = principal_axis.cross(camera.up).normalize();
-        let dy = DQuat::from_axis_angle(principal_axis, FRAC_PI_2).mul_vec3(dx);
+        let dy = dx.rotate_about(principal_axis, FRAC_PI_2);
 
         // Finally, scale the vectors to the actual field-of-view angle:
         let viewport_height = 2.0 * focal_length * (camera.vertical_fov / 2.0).to_radians().sin();
@@ -40,7 +39,7 @@ impl Viewport {
 
     /// Calculate the viewport point based on the image coordinates.
     #[inline]
-    pub fn at(&self, image_x: f64, image_y: f64) -> DVec3 {
+    pub fn at(&self, image_x: f64, image_y: f64) -> Vec3 {
         image_x * self.dx + image_y * self.dy
     }
 
@@ -50,7 +49,7 @@ impl Viewport {
     ///
     /// You still **need** to add the resulting vector to the «look at» point.
     #[inline]
-    pub fn cast_random_ray(&self, to_image_x: u32, to_image_y: u32) -> DVec3 {
+    pub fn cast_random_ray(&self, to_image_x: u32, to_image_y: u32) -> Vec3 {
         self.at(
             to_image_x as f64 - self.image_half_width + fastrand::f64() - 0.5,
             to_image_y as f64 - self.image_half_height + fastrand::f64() - 0.5,

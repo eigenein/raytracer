@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::args::TracerOptions;
 use crate::color::xyz::XyzColor;
-use crate::math::vec::random_unit_vector;
+use crate::math::vec::Vec3;
 use crate::physics::optics::hit::{Hit, HitType, Hittable};
 use crate::physics::optics::material::property::Property;
 use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;
@@ -170,7 +170,7 @@ impl Tracer {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
-            let ray = Ray::new(hit.location, hit.normal + random_unit_vector());
+            let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector());
             let intensity = reflectance.attenuation.at(wavelength);
             (ray, intensity)
         })
@@ -242,7 +242,7 @@ impl Tracer {
         let mut ray =
             Ray::new(hit.location, incident_ray.direction + 2.0 * cosine_theta_1 * hit.normal);
         if let Some(fuzz) = reflectance.fuzz {
-            ray.direction += random_unit_vector() * fuzz;
+            ray.direction += Vec3::random_unit_vector() * fuzz;
         }
         let intensity = reflectance.attenuation.at(wavelength);
         Some((ray, intensity))

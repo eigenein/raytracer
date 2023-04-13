@@ -1,15 +1,14 @@
-use glam::DVec3;
-
 use crate::math::point::Point;
+use crate::math::vec::Vec3;
 
 pub struct Ray {
     pub origin: Point,
-    pub direction: DVec3,
+    pub direction: Vec3,
 }
 
 impl Ray {
     #[inline]
-    pub fn new(origin: Point, direction: DVec3) -> Self {
+    pub fn new(origin: Point, direction: Vec3) -> Self {
         Self {
             origin,
             direction: direction.normalize(),

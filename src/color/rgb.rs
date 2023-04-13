@@ -1,18 +1,17 @@
 use std::ops::Mul;
 
-use glam::DVec3;
-
-use crate::color::cie_1964::XYZ_TO_SRGB;
+use crate::color::cie_1964::*;
 use crate::color::xyz::XyzColor;
+use crate::math::vec::Vec3;
 use crate::physics::units::Length;
 
 /// RGB color represented as a 3-vector.
 #[derive(Debug)]
-pub struct RgbColor(DVec3);
+pub struct RgbColor(Vec3);
 
-impl const From<DVec3> for RgbColor {
+impl const From<Vec3> for RgbColor {
     #[inline]
-    fn from(value: DVec3) -> Self {
+    fn from(value: Vec3) -> Self {
         Self(value)
     }
 }
@@ -22,20 +21,20 @@ impl From<XyzColor> for RgbColor {
     /// - https://stackoverflow.com/a/39446403/359730
     #[inline]
     fn from(value: XyzColor) -> Self {
-        let rgb_linear = XYZ_TO_SRGB.mul_vec3(value.into());
-        let srgb = DVec3::new(
-            Self::srgb_gamma_correction(rgb_linear.x),
-            Self::srgb_gamma_correction(rgb_linear.y),
-            Self::srgb_gamma_correction(rgb_linear.z),
+        let value = Vec3::from(value);
+        let srgb = Vec3::new(
+            Self::srgb_gamma_correction(value.dot(XYZ_TO_RED)),
+            Self::srgb_gamma_correction(value.dot(XYZ_TO_GREEN)),
+            Self::srgb_gamma_correction(value.dot(XYZ_TO_BLUE)),
         );
-        Self(srgb.clamp(DVec3::ZERO, DVec3::ONE))
+        Self(srgb.clamp(Vec3::ZERO, Vec3::ONE))
     }
 }
 
 impl RgbColor {
     #[inline]
     pub const fn new(r: f64, g: f64, b: f64) -> Self {
-        Self(DVec3::new(r, g, b))
+        Self(Vec3::new(r, g, b))
     }
 
     #[inline]
@@ -66,7 +65,7 @@ impl RgbColor {
 impl From<RgbColor> for image::Rgb<u16> {
     #[inline]
     fn from(value: RgbColor) -> Self {
-        let value = value.0.clamp(DVec3::ZERO, DVec3::ONE);
+        let value = value.0.clamp(Vec3::ZERO, Vec3::ONE);
         let value = value * u16::MAX as f64;
         let value = value.round();
         Self::from([value.x as u16, value.y as u16, value.z as u16])
