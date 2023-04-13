@@ -28,7 +28,7 @@ impl Property<ReciprocalLength> for TransmissionAttenuation {
             Self::Water { scale } => {
                 *scale
                     * Bare::from(10.0_f64)
-                        .powf((wavelength - Length::from_nanos(450.0)) / Length::from(0.75e7))
+                        .powf((wavelength - Length::from_nanos(450.0)) / Length::from_nanos(133.3))
             }
         }
     }
