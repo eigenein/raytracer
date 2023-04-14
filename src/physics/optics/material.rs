@@ -22,3 +22,13 @@ pub struct Material {
     #[serde(default)]
     pub emittance: Option<Emittance>,
 }
+
+impl const Default for Material {
+    fn default() -> Self {
+        Self {
+            reflectance: None,
+            transmittance: None,
+            emittance: None,
+        }
+    }
+}

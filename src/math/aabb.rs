@@ -9,6 +9,7 @@ use crate::physics::optics::ray::Ray;
 /// Axis-aligned boundary box defined by two points:
 /// the one with the minimal coordinates, and the other – with the maximal coordinates.
 #[derive(Deserialize, JsonSchema, Copy, Clone)]
+#[must_use]
 pub struct Aabb {
     #[serde(alias = "min")]
     pub min_point: Point,
