@@ -44,8 +44,22 @@ pub enum AbsoluteRefractiveIndex {
 impl const Default for AbsoluteRefractiveIndex {
     #[inline]
     fn default() -> Self {
-        Self::Constant { index: Bare::from(1.0) }
+        Self::VACUUM
     }
+}
+
+impl AbsoluteRefractiveIndex {
+    const FUSED_QUARTZ: Self = Self::Cauchy2 {
+        a: Quantity(1.4580),
+        b: Quantity(3.54e-15),
+    };
+    const VACUUM: Self = Self::Constant { index: Quantity(1.0) };
+    const WATER: Self = Self::Cauchy4 {
+        a: Quantity(1.3199),
+        b: Quantity(6878e-18),
+        c: Quantity(-1.132e-27),
+        d: Quantity(1.11e-40),
+    };
 }
 
 impl const Property<Bare> for AbsoluteRefractiveIndex {
@@ -62,19 +76,9 @@ impl const Property<Bare> for AbsoluteRefractiveIndex {
                     + *d / wavelength.sextic()
             }
 
-            Self::Water => Self::Cauchy4 {
-                a: Bare::from(1.3199),
-                b: Quantity::from(6878e-18),
-                c: Quantity::from(-1.132e-27),
-                d: Quantity::from(1.11e-40),
-            }
-            .at(wavelength),
+            Self::Water => Self::WATER.at(wavelength),
 
-            Self::FusedQuartz => Self::Cauchy2 {
-                a: Bare::from(1.4580),
-                b: Quantity::from(3.54e-15),
-            }
-            .at(wavelength),
+            Self::FusedQuartz => Self::FUSED_QUARTZ.at(wavelength),
         }
     }
 }
