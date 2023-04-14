@@ -6,13 +6,13 @@ use crate::physics::units::quantity::Quantity;
 /// Dimensionless quantity: <https://en.wikipedia.org/wiki/Dimensionless_quantity>.
 pub type Bare<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 0>;
 
-impl From<Bare<f64>> for f64 {
+impl const From<Bare<f64>> for f64 {
     fn from(value: Bare<f64>) -> Self {
         value.0
     }
 }
 
-impl<V: Add<Output = V>> Add<V> for Bare<V> {
+impl<V: ~const Add<Output = V>> const Add<V> for Bare<V> {
     type Output = Self;
 
     fn add(self, rhs: V) -> Self::Output {
@@ -20,7 +20,7 @@ impl<V: Add<Output = V>> Add<V> for Bare<V> {
     }
 }
 
-impl<V: Sub<Output = V>> Sub<V> for Bare<V> {
+impl<V: ~const Sub<Output = V>> const Sub<V> for Bare<V> {
     type Output = Self;
 
     fn sub(self, rhs: V) -> Self::Output {
@@ -28,7 +28,7 @@ impl<V: Sub<Output = V>> Sub<V> for Bare<V> {
     }
 }
 
-impl<V: Mul<Output = V>> Mul<V> for Bare<V> {
+impl<V: ~const Mul<Output = V>> const Mul<V> for Bare<V> {
     type Output = Self;
 
     fn mul(self, rhs: V) -> Self::Output {
