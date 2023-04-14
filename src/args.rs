@@ -66,4 +66,13 @@ pub struct TracerOptions {
     /// This is needed to prevent collision of the ray with its own origin surface.
     #[arg(long, default_value = "0.000001")]
     pub min_hit_distance: f64,
+
+    /// Minimal total attenuation to continue tracing a ray.
+    ///
+    /// When the total attenuation drops below the setting, no scattered rays get traced any more.
+    /// This saves some time because low attenuation doesn't contribute enough to the final intensity.
+    ///
+    /// This helps a lot in, for example, a foggy environment.
+    #[arg(long, default_value = "0.000001")]
+    pub min_attenuation: f64,
 }
