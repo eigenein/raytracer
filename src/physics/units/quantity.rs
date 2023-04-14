@@ -6,7 +6,7 @@
 //! - `uom` is difficult to use in `const` context
 //! - `uom` doesn't play nice with `glam`
 
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Write};
 use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 
@@ -40,7 +40,7 @@ impl<
 > Display for Quantity<V, T, L, M, EC, TT, AS, LI>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)?;
+        write!(f, "{} ", self.0)?;
         Self::write_units(f)?;
         Ok(())
     }
@@ -58,7 +58,7 @@ impl<
 > Debug for Quantity<V, T, L, M, EC, TT, AS, LI>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)?;
+        write!(f, "{:?} ", self.0)?;
         Self::write_units(f)?;
         Ok(())
     }
@@ -76,26 +76,39 @@ impl<
 > Quantity<V, T, L, M, EC, TT, AS, LI>
 {
     pub fn write_units(f: &mut Formatter<'_>) -> std::fmt::Result {
-        if T != 0 {
-            write!(f, " s^{T}")?;
-        }
-        if L != 0 {
-            write!(f, " m^{L}")?;
-        }
-        if M != 0 {
-            write!(f, " kg^{M}")?;
-        }
-        if EC != 0 {
-            write!(f, " A^{EC}")?;
-        }
-        if TT != 0 {
-            write!(f, " K^{TT}")?;
-        }
-        if AS != 0 {
-            write!(f, " mol^{AS}")?;
-        }
-        if LI != 0 {
-            write!(f, " cd^{LI}")?;
+        Self::write_unit::<T>(f, "s")?;
+        Self::write_unit::<L>(f, "m")?;
+        Self::write_unit::<M>(f, "kg")?;
+        Self::write_unit::<EC>(f, "A")?;
+        Self::write_unit::<TT>(f, "K")?;
+        Self::write_unit::<AS>(f, "mol")?;
+        Self::write_unit::<LI>(f, "cd")?;
+        Ok(())
+    }
+
+    #[inline]
+    fn write_unit<const U: isize>(f: &mut Formatter<'_>, symbol: &str) -> std::fmt::Result {
+        if U != 0 {
+            write!(f, "{}", symbol)?;
+            if U != 1 {
+                for char in U.to_string().chars() {
+                    let char = match char {
+                        '0' => '⁰',
+                        '1' => '¹',
+                        '2' => '²',
+                        '3' => '³',
+                        '4' => '⁴',
+                        '5' => '⁵',
+                        '6' => '⁶',
+                        '7' => '⁷',
+                        '8' => '⁸',
+                        '9' => '⁹',
+                        '-' => '⁻',
+                        _ => char,
+                    };
+                    f.write_char(char)?;
+                }
+            }
         }
         Ok(())
     }
@@ -407,5 +420,18 @@ where
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity(self.0 / rhs.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::physics::units::*;
+
+    #[test]
+    fn format_units_ok() {
+        assert_eq!(format!("{}", Velocity::from(1)), "1 s⁻¹m");
+        assert_eq!(format!("{}", Length::from(1)), "1 m");
+        assert_eq!(format!("{}", Temperature::from(1)), "1 K");
+        assert_eq!(format!("{}", SpectralRadiancePerMeter::from(1)), "1 s⁻³m⁻¹kg");
     }
 }
