@@ -3,15 +3,15 @@ use std::ops::Range;
 use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
-use crate::math::point::Point;
-use crate::math::vec::Vec3;
+use crate::math::point3::Point3;
+use crate::math::vec3::Vec3;
 use crate::physics::optics::material::Material;
 use crate::physics::optics::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {
     /// Hit point location.
-    pub location: Point,
+    pub location: Point3,
 
     /// Normal at the hit point.
     pub normal: Vec3,

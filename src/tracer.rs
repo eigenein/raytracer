@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::args::TracerOptions;
 use crate::color::xyz::XyzColor;
-use crate::math::vec::Vec3;
+use crate::math::vec3::Vec3;
 use crate::physics::optics::hit::{Hit, HitType, Hittable};
 use crate::physics::optics::material::property::Property;
 use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;

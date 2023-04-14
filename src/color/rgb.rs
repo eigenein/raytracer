@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 use crate::color::cie_1964::*;
 use crate::color::xyz::XyzColor;
-use crate::math::vec::Vec3;
+use crate::math::vec3::Vec3;
 use crate::physics::units::Length;
 
 /// RGB color represented as a 3-vector.

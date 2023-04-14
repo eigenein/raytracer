@@ -1,6 +1,6 @@
 use std::f64::consts::FRAC_PI_2;
 
-use crate::math::vec::Vec3;
+use crate::math::vec3::Vec3;
 use crate::scene::Camera;
 
 pub struct Viewport {

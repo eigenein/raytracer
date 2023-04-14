@@ -1,3 +1,3 @@
 pub mod aabb;
-pub mod point;
-pub mod vec;
+pub mod point3;
+pub mod vec3;

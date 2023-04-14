@@ -4,14 +4,14 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
-use crate::math::point::Point;
+use crate::math::point3::Point3;
 use crate::physics::optics::hit::{Hit, HitType, Hittable};
 use crate::physics::optics::material::Material;
 use crate::physics::optics::ray::Ray;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct Sphere {
-    center: Point,
+    center: Point3,
     radius: f64,
     material: Material,
 }
@@ -78,7 +78,7 @@ mod tests {
             radius: 1.0,
             material: Default::default(),
         };
-        let ray = Ray::by_two_points(Point::ONE, Point::ZERO);
+        let ray = Ray::by_two_points(Point3::ONE, Point3::ZERO);
         bencher.iter(|| sphere.hit(&ray, &(0.0..f64::INFINITY)));
     }
 }

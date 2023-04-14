@@ -23,6 +23,7 @@ pub struct Material {
     pub emittance: Option<Emittance>,
 }
 
+#[allow(clippy::derivable_impls)]
 impl const Default for Material {
     fn default() -> Self {
         Self {

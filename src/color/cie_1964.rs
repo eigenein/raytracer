@@ -1,4 +1,4 @@
-use crate::math::vec::Vec3;
+use crate::math::vec3::Vec3;
 
 pub const XYZ_TO_RED: Vec3 = Vec3::new(3.2404542, -1.5371385, -0.4985314);
 pub const XYZ_TO_GREEN: Vec3 = Vec3::new(-0.9692660, 1.8760108, 0.0415560);

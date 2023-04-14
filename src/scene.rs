@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::point::Point;
-use crate::math::vec::Vec3;
+use crate::math::point3::Point3;
+use crate::math::vec3::Vec3;
 use crate::physics::optics::material::emittance::Emittance;
 use crate::prelude::*;
 use crate::surface::Surface;
@@ -38,10 +38,10 @@ impl Scene {
 #[derive(Deserialize, JsonSchema)]
 pub struct Camera {
     #[serde(default = "Camera::default_location")]
-    pub location: Point,
+    pub location: Point3,
 
     #[serde(default)]
-    pub look_at: Point,
+    pub look_at: Point3,
 
     /// Vertical field-of-view angle, in degrees.
     #[serde(default = "Camera::default_vertical_fov", alias = "vfov")]
@@ -53,8 +53,8 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub const fn default_location() -> Point {
-        Point::new(0.0, 0.0, -1.0)
+    pub const fn default_location() -> Point3 {
+        Point3::new(0.0, 0.0, -1.0)
     }
 
     pub const fn default_vertical_fov() -> f64 {
@@ -70,7 +70,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             location: Self::default_location(),
-            look_at: Point::default(),
+            look_at: Point3::default(),
             vertical_fov: Self::default_vertical_fov(),
             up: Self::default_up(),
         }

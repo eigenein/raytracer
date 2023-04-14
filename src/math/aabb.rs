@@ -3,7 +3,7 @@ use std::ops::Range;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::point::Point;
+use crate::math::point3::Point3;
 use crate::physics::optics::ray::Ray;
 
 /// Axis-aligned boundary box defined by two points:
@@ -12,10 +12,10 @@ use crate::physics::optics::ray::Ray;
 #[must_use]
 pub struct Aabb {
     #[serde(alias = "min")]
-    pub min_point: Point,
+    pub min_point: Point3,
 
     #[serde(alias = "max")]
-    pub max_point: Point,
+    pub max_point: Point3,
 }
 
 impl Aabb {
@@ -54,40 +54,40 @@ mod tests {
 
     #[test]
     fn hit_ok() {
-        let ray = Ray::by_two_points(Point::ZERO, Point::ONE);
+        let ray = Ray::by_two_points(Point3::ZERO, Point3::ONE);
         let aabb = Aabb {
-            min_point: Point::new(2.0, 2.0, 2.0),
-            max_point: Point::new(3.0, 3.0, 3.0),
+            min_point: Point3::new(2.0, 2.0, 2.0),
+            max_point: Point3::new(3.0, 3.0, 3.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_some());
     }
 
     #[test]
     fn no_hit_behind() {
-        let ray = Ray::by_two_points(Point::ONE, Point::ZERO);
+        let ray = Ray::by_two_points(Point3::ONE, Point3::ZERO);
         let aabb = Aabb {
-            min_point: Point::new(2.0, 2.0, 2.0),
-            max_point: Point::new(3.0, 3.0, 3.0),
+            min_point: Point3::new(2.0, 2.0, 2.0),
+            max_point: Point3::new(3.0, 3.0, 3.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_none());
     }
 
     #[test]
     fn no_hit_parallel() {
-        let ray = Ray::by_two_points(Point::ZERO, Point::new(1.0, 0.0, 0.0));
+        let ray = Ray::by_two_points(Point3::ZERO, Point3::new(1.0, 0.0, 0.0));
         let aabb = Aabb {
-            min_point: Point::new(1.0, 1.0, 1.0),
-            max_point: Point::new(2.0, 2.0, 2.0),
+            min_point: Point3::new(1.0, 1.0, 1.0),
+            max_point: Point3::new(2.0, 2.0, 2.0),
         };
         assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_none());
     }
 
     #[test]
     fn hit_infinity() {
-        let ray = Ray::by_two_points(Point::ZERO, Point::ONE);
+        let ray = Ray::by_two_points(Point3::ZERO, Point3::ONE);
         let aabb = Aabb {
-            min_point: Point::new(-f64::INFINITY, -f64::INFINITY, -f64::INFINITY),
-            max_point: Point::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+            min_point: Point3::new(-f64::INFINITY, -f64::INFINITY, -f64::INFINITY),
+            max_point: Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
         };
         assert_eq!(aabb.hit(&ray, &(0.0..f64::INFINITY)), Some((0.0, f64::INFINITY)));
     }
