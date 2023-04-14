@@ -9,6 +9,7 @@ pub const BOLTZMANN: Quantity<f64, -2, 2, 1, 0, -1, 0, 0> = Quantity(1.380649e-2
 pub const PLANCK: Quantity<f64, -1, 2, 1, 0, 0, 0, 0> = Quantity(6.62607015e-34);
 
 /// <https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law>
+#[allow(unused)]
 pub const STEFAN_BOLTZMANN: Quantity<f64, -3, 0, 1, 0, -4, 0, 0> =
     Bare::from(2.0 / 15.0) * Bare::PI.quintic() * BOLTZMANN.quartic()
         / LIGHT_SPEED.squared()
