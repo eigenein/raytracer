@@ -29,6 +29,10 @@ pub struct Tracer {
 }
 
 impl Tracer {
+    const MAX_WAVELENGTH: Length = Quantity::from_nanos(830.0);
+    const MIN_WAVELENGTH: Length = Quantity::from_nanos(360.0);
+    const SPECTRUM_WIDTH: Length = Self::MAX_WAVELENGTH - Self::MIN_WAVELENGTH;
+
     pub fn new(
         scene: Scene,
         options: TracerOptions,
@@ -36,8 +40,7 @@ impl Tracer {
         output_height: u32,
     ) -> Self {
         let viewport = Viewport::new(&scene.camera, output_width, output_height);
-        let wavelength_step =
-            Length::from(830.0e-9 - 360.0e-9) / Bare::from(options.samples_per_pixel as f64);
+        let wavelength_step = Self::SPECTRUM_WIDTH / Bare::from(options.samples_per_pixel as f64);
 
         Self {
             options,
@@ -90,8 +93,8 @@ impl Tracer {
                     self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
 
                 // Stratified random wavelength:
-                let wavelength = Length::from_nanos(360.0)
-                    + wavelength_step * Bare::from(i as f64 + fastrand::f64());
+                let wavelength =
+                    Self::MIN_WAVELENGTH + wavelength_step * Bare::from(i as f64 + fastrand::f64());
 
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
                 let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
