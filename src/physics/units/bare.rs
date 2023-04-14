@@ -40,6 +40,11 @@ impl Bare<f64> {
     pub const PI: Self = Bare::from(PI);
 
     #[inline]
+    pub fn fastrand() -> Self {
+        Self(fastrand::f64())
+    }
+
+    #[inline]
     pub fn exp(self) -> Self {
         Self(self.0.exp())
     }

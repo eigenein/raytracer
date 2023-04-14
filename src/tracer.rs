@@ -208,7 +208,7 @@ impl Tracer {
             return None;
         }
 
-        if refractive_index.reflectance(cosine_theta_1) > Bare::from(fastrand::f64()) {
+        if refractive_index.reflectance(cosine_theta_1) > Bare::fastrand() {
             // Reflectance wins.
             return None;
         }

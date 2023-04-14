@@ -16,6 +16,7 @@ use serde::Deserialize;
 use crate::physics::units::bare::Bare;
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Deserialize, JsonSchema)]
+#[must_use]
 pub struct Quantity<
     V,
     const T: isize = 0,
