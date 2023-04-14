@@ -206,7 +206,7 @@ impl Tracer {
         // Shell's law:
         let mu = f64::from(refractive_index.relative());
         let direction = {
-            let cosine_theta_2 = (Bare::from(1.0) - sin_theta_2.powi::<2>()).sqrt();
+            let cosine_theta_2 = (Bare::from(1.0) - sin_theta_2.squared()).sqrt();
             mu * incident_ray.direction
                 + hit.normal * (mu * cosine_theta_1 - f64::from(cosine_theta_2))
         };

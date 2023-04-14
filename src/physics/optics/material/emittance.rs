@@ -44,8 +44,8 @@ impl Property<SpectralRadiancePerMeter> for Emittance {
             Self::Constant { radiance } => *radiance,
 
             Self::BlackBody { temperature } => {
-                Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
-                    / wavelength.powi::<5>()
+                Bare::from(2.0) * PLANCK * LIGHT_SPEED.squared()
+                    / wavelength.quintic()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
             }
 

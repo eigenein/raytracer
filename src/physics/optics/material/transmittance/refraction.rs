@@ -48,18 +48,18 @@ impl const Default for AbsoluteRefractiveIndex {
     }
 }
 
-impl Property<Bare> for AbsoluteRefractiveIndex {
+impl const Property<Bare> for AbsoluteRefractiveIndex {
     /// Get the absolute refractive index at the given wavelength.
     fn at(&self, wavelength: Length) -> Bare {
         match self {
             Self::Constant { index } => *index,
 
-            Self::Cauchy2 { a, b } => *a + *b / wavelength.powi::<2>(),
+            Self::Cauchy2 { a, b } => *a + *b / wavelength.squared(),
 
             Self::Cauchy4 { a, b, c, d } => {
-                *a + *b / wavelength.powi::<2>()
-                    + *c / wavelength.powi::<4>()
-                    + *d / wavelength.powi::<6>()
+                *a + *b / wavelength.squared()
+                    + *c / wavelength.quartic()
+                    + *d / wavelength.sextic()
             }
 
             Self::Water => Self::Cauchy4 {
@@ -89,14 +89,14 @@ pub struct RelativeRefractiveIndex {
 }
 
 impl RelativeRefractiveIndex {
-    pub fn relative(&self) -> Bare {
+    pub const fn relative(&self) -> Bare {
         self.incident / self.refracted
     }
 
     /// Calculate Schlick's approximation for reflectance:
     /// https://en.wikipedia.org/wiki/Schlick%27s_approximation.
-    pub fn reflectance(&self, cosine_theta_1: f64) -> Bare {
-        let r0 = ((self.incident - self.refracted) / (self.incident + self.refracted)).powi::<2>();
-        r0 + (Bare::from(1.0) - r0) * (Bare::from(1.0) - cosine_theta_1).powi::<5>()
+    pub const fn reflectance(&self, cosine_theta_1: f64) -> Bare {
+        let r0 = ((self.incident - self.refracted) / (self.incident + self.refracted)).squared();
+        r0 + (Bare::from(1.0) - r0) * (Bare::from(1.0) - cosine_theta_1).quintic()
     }
 }

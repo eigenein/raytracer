@@ -159,22 +159,6 @@ impl<
 > Quantity<f64, T, L, M, EC, TT, AS, LI>
 {
     #[inline]
-    pub fn powi<const P: isize>(
-        self,
-    ) -> Quantity<
-        f64,
-        { T * P },
-        { L * P },
-        { M * P },
-        { EC * P },
-        { TT * P },
-        { AS * P },
-        { LI * P },
-    > {
-        Quantity(self.0.powi(P as i32))
-    }
-
-    #[inline]
     pub fn abs(self) -> Self {
         Self(self.0.abs())
     }
@@ -207,6 +191,7 @@ impl<
         Quantity(self.0 * self.0 * self.0)
     }
 
+    /// Raise the quantity to the 4-th degree.
     #[inline]
     pub const fn quartic(
         self,
@@ -215,12 +200,22 @@ impl<
         Quantity(self.0 * self.0 * self.0 * self.0)
     }
 
+    /// Raise the quantity to the 5-th degree.
     #[inline]
     pub const fn quintic(
         self,
     ) -> Quantity<V, { T * 5 }, { L * 5 }, { M * 5 }, { EC * 5 }, { TT * 5 }, { AS * 5 }, { LI * 5 }>
     {
         Quantity(self.0 * self.0 * self.0 * self.0 * self.0)
+    }
+
+    /// Raise the quantity to the 6-th degree.
+    #[inline]
+    pub const fn sextic(
+        self,
+    ) -> Quantity<V, { T * 6 }, { L * 6 }, { M * 6 }, { EC * 6 }, { TT * 6 }, { AS * 6 }, { LI * 6 }>
+    {
+        Quantity(self.0 * self.0 * self.0 * self.0 * self.0 * self.0)
     }
 }
 
