@@ -1,5 +1,6 @@
 use std::ops::Range;
 
+use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -17,7 +18,7 @@ pub struct Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<Hit> {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, _rng: &Rng) -> Option<Hit> {
         let oc = by_ray.origin - self.center;
         let a = by_ray.direction.length_squared();
         let c = oc.length_squared() - self.radius * self.radius;
@@ -79,6 +80,7 @@ mod tests {
             material: Default::default(),
         };
         let ray = Ray::by_two_points(Vec3::ONE, Vec3::ZERO);
-        bencher.iter(|| sphere.hit(&ray, &(0.0..f64::INFINITY)));
+        let rng = Rng::new();
+        bencher.iter(|| sphere.hit(&ray, &(0.0..f64::INFINITY), &rng));
     }
 }

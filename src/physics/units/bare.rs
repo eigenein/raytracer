@@ -1,6 +1,8 @@
 use std::f64::consts::PI;
 use std::ops::{Add, Sub};
 
+use fastrand::Rng;
+
 use crate::physics::units::quantity::Quantity;
 
 /// Dimensionless quantity: <https://en.wikipedia.org/wiki/Dimensionless_quantity>.
@@ -32,8 +34,8 @@ impl Bare<f64> {
     pub const PI: Self = Bare::from(PI);
 
     #[inline]
-    pub fn fastrand() -> Self {
-        Self(fastrand::f64())
+    pub fn random(rng: &Rng) -> Self {
+        Self(rng.f64())
     }
 
     #[inline]

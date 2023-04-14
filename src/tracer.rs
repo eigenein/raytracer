@@ -3,6 +3,7 @@ mod viewport;
 
 use std::sync::{Arc, Mutex};
 
+use fastrand::Rng;
 use rayon::prelude::*;
 use tracing::info;
 
@@ -69,8 +70,9 @@ impl Tracer {
         y_indices
             .into_par_iter()
             .map(|y| {
+                let rng = Rng::new();
                 let row: Vec<XyzColor> = (0..self.output_width)
-                    .map(|x| self.render_pixel(x, y))
+                    .map(|x| self.render_pixel(x, y, &rng))
                     .collect();
                 progress.lock().unwrap().inc(1);
                 (y, row)
@@ -82,14 +84,14 @@ impl Tracer {
     }
 
     #[inline]
-    fn render_pixel(&self, x: u32, y: u32) -> XyzColor {
+    fn render_pixel(&self, x: u32, y: u32, rng: &Rng) -> XyzColor {
         (0..self.options.samples_per_pixel)
             .map(|_| {
                 let viewport_point =
-                    self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
-                let wavelength = Self::MIN_WAVELENGTH + Self::SPECTRUM_WIDTH * Bare::fastrand();
+                    self.scene.camera.look_at + self.viewport.cast_random_ray(x, y, rng);
+                let wavelength = Self::MIN_WAVELENGTH + Self::SPECTRUM_WIDTH * Bare::random(rng);
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
+                let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces, rng);
                 XyzColor::from_wavelength(wavelength) * radiance.0
             })
             .sum::<XyzColor>()
@@ -102,6 +104,7 @@ impl Tracer {
         mut ray: Ray,
         wavelength: Length,
         n_bounces_left: u16,
+        rng: &Rng,
     ) -> SpectralRadiancePerMeter {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
         let scene_emittance = self.scene.ambient_emittance.at(wavelength);
@@ -117,7 +120,7 @@ impl Tracer {
                 .scene
                 .surfaces
                 .iter()
-                .filter_map(|surface| surface.hit(&ray, &distance_range))
+                .filter_map(|surface| surface.hit(&ray, &distance_range, rng))
                 .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
             let Some(hit) = hit else {
                 // The ray didn't hit anything, finish the tracing:
@@ -129,19 +132,20 @@ impl Tracer {
                 total_radiance += total_attenuation * emittance.at(wavelength);
             }
 
-            let (scattered_ray, attenuation) =
-                if let Some((ray, attenuation)) = Self::trace_refraction(&ray, wavelength, &hit) {
-                    (ray, attenuation)
-                } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
-                    (ray, attenuation)
-                } else if let Some((ray, attenuation)) =
-                    Self::trace_specular_reflection(&ray, wavelength, &hit)
-                {
-                    (ray, attenuation)
-                } else {
-                    // There's no scattered ray (for example, the surface is not reflective nor refractive).
-                    break;
-                };
+            let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
+                Self::trace_refraction(&ray, wavelength, &hit, rng)
+            {
+                (ray, attenuation)
+            } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength, rng) {
+                (ray, attenuation)
+            } else if let Some((ray, attenuation)) =
+                Self::trace_specular_reflection(&ray, wavelength, &hit, rng)
+            {
+                (ray, attenuation)
+            } else {
+                // There's no scattered ray (for example, the surface is not reflective nor refractive).
+                break;
+            };
             assert!(scattered_ray.direction.is_finite());
 
             total_attenuation *= attenuation;
@@ -152,12 +156,12 @@ impl Tracer {
     }
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-    fn trace_diffusion(hit: &Hit, wavelength: Length) -> Option<(Ray, Bare)> {
+    fn trace_diffusion(hit: &Hit, wavelength: Length, rng: &Rng) -> Option<(Ray, Bare)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
 
-        if fastrand::f64() < probability {
-            let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector());
+        if rng.f64() < probability {
+            let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector(rng));
             let attenuation = reflectance.attenuation.at(wavelength);
             Some((ray, attenuation))
         } else {
@@ -171,7 +175,12 @@ impl Tracer {
     ///
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
-    fn trace_refraction(incident_ray: &Ray, wavelength: Length, hit: &Hit) -> Option<(Ray, Bare)> {
+    fn trace_refraction(
+        incident_ray: &Ray,
+        wavelength: Length,
+        hit: &Hit,
+        rng: &Rng,
+    ) -> Option<(Ray, Bare)> {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
@@ -195,7 +204,7 @@ impl Tracer {
             return None;
         }
 
-        if refractive_index.reflectance(cosine_theta_1) > Bare::fastrand() {
+        if refractive_index.reflectance(cosine_theta_1) > Bare::random(rng) {
             // Reflectance wins.
             return None;
         }
@@ -222,11 +231,12 @@ impl Tracer {
         incident_ray: &Ray,
         wavelength: Length,
         hit: &Hit,
+        rng: &Rng,
     ) -> Option<(Ray, Bare)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let mut ray = Ray::new(hit.location, incident_ray.direction.reflect_about(hit.normal));
         if let Some(fuzz) = reflectance.fuzz {
-            ray.direction += Vec3::random_unit_vector() * fuzz;
+            ray.direction += Vec3::random_unit_vector(rng) * fuzz;
         }
         let attenuation = reflectance.attenuation.at(wavelength);
         Some((ray, attenuation))

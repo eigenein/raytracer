@@ -1,5 +1,7 @@
 use std::ops::{Add, Sub};
 
+use fastrand::Rng;
+
 #[repr(simd)]
 #[derive(Copy, Clone, Debug)]
 #[must_use]
@@ -20,11 +22,8 @@ impl Vec2 {
     }
 
     #[inline]
-    pub fn fastrand() -> Self {
-        Self {
-            x: fastrand::f64(),
-            y: fastrand::f64(),
-        }
+    pub fn random(rng: &Rng) -> Self {
+        Self { x: rng.f64(), y: rng.f64() }
     }
 }
 

@@ -3,6 +3,7 @@ mod sphere;
 
 use std::ops::Range;
 
+use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -21,10 +22,10 @@ pub enum Surface {
 }
 
 impl Hittable for Surface {
-    fn hit(&self, by_ray: &Ray, distance: &Range<f64>) -> Option<Hit> {
+    fn hit(&self, by_ray: &Ray, distance: &Range<f64>, rng: &Rng) -> Option<Hit> {
         match self {
-            Self::Sphere(sphere) => sphere.hit(by_ray, distance),
-            Self::UniformFog(fog) => fog.hit(by_ray, distance),
+            Self::Sphere(sphere) => sphere.hit(by_ray, distance, rng),
+            Self::UniformFog(fog) => fog.hit(by_ray, distance, rng),
         }
     }
 
