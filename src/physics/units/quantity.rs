@@ -368,9 +368,27 @@ where
     >;
 
     #[inline]
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity(self.0 * rhs.0)
+    }
+}
+
+impl<
+    V: ~const Mul<f64, Output = V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> const Mul<f64> for Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self(self.0 * rhs)
     }
 }
 
@@ -417,9 +435,27 @@ where
     >;
 
     #[inline]
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Quantity<V, T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
         Quantity(self.0 / rhs.0)
+    }
+}
+
+impl<
+    V: ~const Div<f64, Output = V>,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> const Div<f64> for Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    type Output = Self;
+
+    #[inline]
+    fn div(self, rhs: f64) -> Self::Output {
+        Self(self.0 / rhs)
     }
 }
 

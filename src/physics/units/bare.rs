@@ -1,5 +1,5 @@
 use std::f64::consts::PI;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Sub};
 
 use crate::physics::units::quantity::Quantity;
 
@@ -25,14 +25,6 @@ impl<V: ~const Sub<Output = V>> const Sub<V> for Bare<V> {
 
     fn sub(self, rhs: V) -> Self::Output {
         Self(self.0 - rhs)
-    }
-}
-
-impl<V: ~const Mul<Output = V>> const Mul<V> for Bare<V> {
-    type Output = Self;
-
-    fn mul(self, rhs: V) -> Self::Output {
-        Self(self.0 * rhs)
     }
 }
 
