@@ -18,7 +18,7 @@ use crate::physics::units::*;
 use crate::prelude::*;
 use crate::scene::Scene;
 use crate::tracer::progress::new_progress;
-use crate::tracer::state::TraceState;
+use crate::tracer::state::{Spectrum, TraceState};
 use crate::tracer::viewport::Viewport;
 
 pub struct Tracer {
@@ -27,7 +27,6 @@ pub struct Tracer {
     output_width: u32,
     output_height: u32,
     viewport: Viewport,
-    wavelength_step: Length,
 }
 
 impl Tracer {
@@ -38,8 +37,6 @@ impl Tracer {
         output_height: u32,
     ) -> Self {
         let viewport = Viewport::new(&scene.camera, output_width, output_height);
-        let wavelength_step =
-            Length::from(830.0e-9 - 360.0e-9) / Bare::from(options.samples_per_pixel as f64);
 
         Self {
             options,
@@ -47,7 +44,6 @@ impl Tracer {
             output_width,
             output_height,
             viewport,
-            wavelength_step,
         }
     }
 
@@ -60,7 +56,6 @@ impl Tracer {
         info!(self.scene.camera.vertical_fov);
         info!(%self.viewport.dx);
         info!(%self.viewport.dy);
-        info!(%self.wavelength_step);
 
         let mut y_indices: Vec<u32> = (0..self.output_height).collect();
         fastrand::shuffle(&mut y_indices);
@@ -73,7 +68,7 @@ impl Tracer {
             .into_par_iter()
             .map(|y| {
                 let row: Vec<XyzColor> = (0..self.output_width)
-                    .map(|x| self.render_pixel(x, y, self.wavelength_step))
+                    .map(|x| self.render_pixel(x, y))
                     .collect();
                 progress.lock().unwrap().inc(1);
                 (y, row)
@@ -84,18 +79,13 @@ impl Tracer {
         Ok(rows)
     }
 
-    fn render_pixel(&self, x: u32, y: u32, wavelength_step: Length) -> XyzColor {
+    fn render_pixel(&self, x: u32, y: u32) -> XyzColor {
         (0..self.options.samples_per_pixel)
-            .map(|i| {
+            .map(|_| {
                 let viewport_point =
                     self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
-
-                // Stratified random wavelength:
-                let wavelength = Length::from_nanos(360.0)
-                    + wavelength_step * Bare::from(i as f64 + fastrand::f64());
-
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
-                let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
+                let (wavelength, radiance) = self.trace_ray(ray, self.options.n_max_bounces);
                 XyzColor::from_wavelength(wavelength) * radiance.0
             })
             .sum::<XyzColor>()
@@ -103,14 +93,12 @@ impl Tracer {
     }
 
     /// Trace the ray and return the resulting color.
-    fn trace_ray(
-        &self,
-        mut ray: Ray,
-        wavelength: Length,
-        n_bounces_left: u16,
-    ) -> SpectralRadiancePerMeter {
+    fn trace_ray(&self, mut ray: Ray, n_bounces_left: u16) -> (Length, SpectralRadiancePerMeter) {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
-        let mut state = TraceState::new(wavelength);
+        let mut state = TraceState::Spectrum(Spectrum::new(
+            Length::from_nanos(360.0),
+            Length::from_nanos(830.0),
+        ));
 
         for _ in 0..n_bounces_left {
             let hit = self
@@ -121,12 +109,12 @@ impl Tracer {
                 .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
             let Some(hit) = hit else {
                 // The ray didn't hit anything, finish the tracing:
-                state.add_emittance(&self.scene.ambient_emittance);
+                state.apply_emittance(&self.scene.ambient_emittance);
                 break;
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                state.add_emittance(emittance);
+                state.apply_emittance(emittance);
             }
 
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
@@ -157,12 +145,12 @@ impl Tracer {
     }
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
-    fn trace_diffusion(hit: &Hit, state: &mut TraceState) -> Option<Ray> {
+    fn trace_diffusion<'a>(hit: &Hit<'a>, state: &mut TraceState<'a>) -> Option<Ray> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
             let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector());
-            state.mul_attenuation(&reflectance.attenuation);
+            state.apply_attenuation(&reflectance.attenuation);
             ray
         })
     }
@@ -173,10 +161,10 @@ impl Tracer {
     ///
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
-    fn trace_refraction(
+    fn trace_refraction<'a>(
         incident_ray: &Ray,
-        state: &mut TraceState,
-        hit: &Hit,
+        state: &mut TraceState<'a>,
+        hit: &Hit<'a>,
         cosine_theta_1: f64,
     ) -> Option<Ray> {
         // Checking whether the body is dielectric:
@@ -214,27 +202,27 @@ impl Tracer {
         };
         let ray = Ray::new(hit.location, direction);
 
-        line.mul_attenuation(transmittance.attenuation.at(line.wavelength));
+        line.apply_attenuation(transmittance.attenuation.at(line.wavelength));
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
-            line.mul_attenuation((Length::from(-hit.distance) * coefficient.at(line.wavelength)).exp());
+            line.apply_attenuation((Length::from(-hit.distance) * coefficient.at(line.wavelength)).exp());
         }
 
         Some(ray)
     }
 
     /// Specular reflection: <https://en.wikipedia.org/wiki/Specular_reflection>.
-    fn trace_specular_reflection(
+    fn trace_specular_reflection<'a>(
         incident_ray: &Ray,
-        hit: &Hit,
-        state: &mut TraceState,
+        hit: &Hit<'a>,
+        state: &mut TraceState<'a>,
     ) -> Option<Ray> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let mut ray = Ray::new(hit.location, incident_ray.direction.reflect_about(hit.normal));
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += Vec3::random_unit_vector() * fuzz;
         }
-        state.mul_attenuation(&reflectance.attenuation);
+        state.apply_attenuation(&reflectance.attenuation);
         Some(ray)
     }
 }
