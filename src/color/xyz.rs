@@ -7,6 +7,7 @@ use crate::physics::units::Length;
 
 /// XYZ color: https://en.wikipedia.org/wiki/SRGB#Transformation.
 #[derive(Debug)]
+#[must_use]
 pub struct XyzColor(Vec3);
 
 impl XyzColor {
@@ -19,6 +20,7 @@ impl XyzColor {
     }
 
     #[inline]
+    #[must_use]
     pub fn max_element(&self) -> f64 {
         self.0.max_element()
     }
@@ -34,7 +36,7 @@ impl Sum<XyzColor> for XyzColor {
     }
 }
 
-impl Mul<f64> for XyzColor {
+impl const Mul<f64> for XyzColor {
     type Output = Self;
 
     fn mul(self, rhs: f64) -> Self::Output {
@@ -42,7 +44,7 @@ impl Mul<f64> for XyzColor {
     }
 }
 
-impl Div<f64> for XyzColor {
+impl const Div<f64> for XyzColor {
     type Output = Self;
 
     fn div(self, rhs: f64) -> Self::Output {
