@@ -2,7 +2,7 @@
 type = "Lorentzian"
 maximum = 475e-9
 fwhm = 15e-9
-radiance = 0.1
+radiance = 10e9
 
 [camera]
     location = [-1, 2, -6]
@@ -20,7 +20,6 @@ radiance = 0.1
         [surfaces.material.emittance]
             type = "BlackBody"
             temperature = 5557
-            scale = 10e-12
 
 # Earth:
 [[surfaces]]

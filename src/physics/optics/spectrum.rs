@@ -1,4 +1,3 @@
-use crate::physics::consts::{BOLTZMANN, LIGHT_SPEED, PLANCK};
 use crate::physics::units::*;
 
 /// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
@@ -9,11 +8,4 @@ pub fn lorentzian(
 ) -> Bare {
     let x = (wavelength - maximum_at) / full_width_at_half_maximum * 2.0;
     Bare::from(1.0) / (x.powi::<2>() + 1.0)
-}
-
-/// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
-pub fn black_body(temperature: Temperature, at_wavelength: Length) -> SpectralRadiancePerMeter {
-    Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
-        / at_wavelength.powi::<5>()
-        / ((PLANCK * LIGHT_SPEED / at_wavelength / BOLTZMANN / temperature).exp() - 1.0)
 }

@@ -1,18 +1,16 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::physics::consts::*;
 use crate::physics::optics::material::property::Property;
-use crate::physics::optics::spectrum::{black_body, lorentzian};
+use crate::physics::optics::spectrum::lorentzian;
 use crate::physics::units::*;
 
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Emittance {
     /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
-    BlackBody {
-        temperature: Temperature,
-        scale: Bare,
-    },
+    BlackBody { temperature: Temperature },
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
     Lorentzian {
@@ -31,7 +29,11 @@ pub enum Emittance {
 impl Property<SpectralRadiancePerMeter> for Emittance {
     fn at(&self, wavelength: Length) -> SpectralRadiancePerMeter {
         match self {
-            Self::BlackBody { scale, temperature } => *scale * black_body(*temperature, wavelength),
+            Self::BlackBody { temperature } => {
+                Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
+                    / wavelength.powi::<5>()
+                    / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
+            }
 
             Self::Lorentzian {
                 radiance,
@@ -50,7 +52,6 @@ mod tests {
     fn black_body_ok() {
         let spectrum = Emittance::BlackBody {
             temperature: Temperature::from(5777.0),
-            scale: Bare::from(1.0),
         };
         let intensity = spectrum.at(Length::from_nanos(500.0));
         assert!(
