@@ -1,3 +1,4 @@
+use std::f64::consts::TAU;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
@@ -155,12 +156,14 @@ impl Vec3 {
     }
 
     pub fn random_unit_vector() -> Self {
-        loop {
-            let vector =
-                Vec3::new(fastrand::f64() - 0.5, fastrand::f64() - 0.5, fastrand::f64() - 0.5);
-            if vector.length_squared() <= 0.25 {
-                return vector.normalize();
-            }
+        let theta = TAU * fastrand::f64();
+        let z = 2.0 * fastrand::f64() - 1.0;
+        let scale = (1.0 - z * z).sqrt();
+        let (theta_sin, theta_cos) = theta.sin_cos();
+        Self {
+            x: scale * theta_cos,
+            y: scale * theta_sin,
+            z,
         }
     }
 
@@ -289,5 +292,25 @@ impl Vec3 {
     pub fn reflect_about(self, normal: Self) -> Self {
         normal.assert_normalized();
         self - 2.0 * self.dot(normal) * normal
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate test;
+
+    use approx::*;
+    use test::Bencher;
+
+    use super::*;
+
+    #[test]
+    fn random_unit_vector_ok() {
+        assert_abs_diff_eq!(Vec3::random_unit_vector().length(), 1.0);
+    }
+
+    #[bench]
+    fn bench_random_unit_vector(bencher: &mut Bencher) {
+        bencher.iter(Vec3::random_unit_vector);
     }
 }

@@ -7,6 +7,7 @@
 #![feature(generic_const_exprs)]
 #![feature(let_chains)]
 #![feature(repr_simd)]
+#![feature(test)]
 #![warn(
     clippy::all,
     clippy::explicit_into_iter_loop,
