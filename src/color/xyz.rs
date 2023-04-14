@@ -39,6 +39,7 @@ impl Sum<XyzColor> for XyzColor {
 impl const Mul<f64> for XyzColor {
     type Output = Self;
 
+    #[inline]
     fn mul(self, rhs: f64) -> Self::Output {
         Self(self.0 * rhs)
     }
@@ -47,12 +48,14 @@ impl const Mul<f64> for XyzColor {
 impl const Div<f64> for XyzColor {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: f64) -> Self::Output {
         Self(self.0 / rhs)
     }
 }
 
 impl const From<XyzColor> for Vec3 {
+    #[inline]
     fn from(value: XyzColor) -> Self {
         value.0
     }
