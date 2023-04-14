@@ -155,11 +155,14 @@ impl Tracer {
     fn trace_diffusion(hit: &Hit, wavelength: Length) -> Option<(Ray, Bare)> {
         let Some(reflectance) = &hit.material.reflectance else { return None };
         let Some(probability) = reflectance.diffusion else { return None };
-        (fastrand::f64() < probability).then(|| {
+
+        if fastrand::f64() < probability {
             let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector());
             let attenuation = reflectance.attenuation.at(wavelength);
-            (ray, attenuation)
-        })
+            Some((ray, attenuation))
+        } else {
+            None
+        }
     }
 
     /// Trace a possible refraction.
