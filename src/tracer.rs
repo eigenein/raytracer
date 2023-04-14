@@ -25,7 +25,6 @@ pub struct Tracer {
     output_width: u32,
     output_height: u32,
     viewport: Viewport,
-    wavelength_step: Length,
 }
 
 impl Tracer {
@@ -40,7 +39,6 @@ impl Tracer {
         output_height: u32,
     ) -> Self {
         let viewport = Viewport::new(&scene.camera, output_width, output_height);
-        let wavelength_step = Self::SPECTRUM_WIDTH / Bare::from(options.samples_per_pixel as f64);
 
         Self {
             options,
@@ -48,7 +46,6 @@ impl Tracer {
             output_width,
             output_height,
             viewport,
-            wavelength_step,
         }
     }
 
@@ -61,7 +58,6 @@ impl Tracer {
         info!(self.scene.camera.vertical_fov);
         info!(%self.viewport.dx);
         info!(%self.viewport.dy);
-        info!(%self.wavelength_step);
 
         let mut y_indices: Vec<u32> = (0..self.output_height).collect();
         fastrand::shuffle(&mut y_indices);
@@ -74,7 +70,7 @@ impl Tracer {
             .into_par_iter()
             .map(|y| {
                 let row: Vec<XyzColor> = (0..self.output_width)
-                    .map(|x| self.render_pixel(x, y, self.wavelength_step))
+                    .map(|x| self.render_pixel(x, y))
                     .collect();
                 progress.lock().unwrap().inc(1);
                 (y, row)
@@ -86,16 +82,12 @@ impl Tracer {
     }
 
     #[inline]
-    fn render_pixel(&self, x: u32, y: u32, wavelength_step: Length) -> XyzColor {
+    fn render_pixel(&self, x: u32, y: u32) -> XyzColor {
         (0..self.options.samples_per_pixel)
-            .map(|i| {
+            .map(|_| {
                 let viewport_point =
                     self.scene.camera.look_at + self.viewport.cast_random_ray(x, y);
-
-                // Stratified random wavelength:
-                let wavelength =
-                    Self::MIN_WAVELENGTH + wavelength_step * Bare::from(i as f64 + fastrand::f64());
-
+                let wavelength = Self::MIN_WAVELENGTH + Self::SPECTRUM_WIDTH * Bare::fastrand();
                 let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
                 let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces);
                 XyzColor::from_wavelength(wavelength) * radiance.0
