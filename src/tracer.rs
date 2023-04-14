@@ -129,23 +129,19 @@ impl Tracer {
                 total_radiance += total_attenuation * emittance.at(wavelength);
             }
 
-            let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
-            assert!(cosine_theta_1 >= 0.0);
-
-            let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
-                Self::trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
-            {
-                (ray, attenuation)
-            } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
-                (ray, attenuation)
-            } else if let Some((ray, attenuation)) =
-                Self::trace_specular_reflection(&ray, wavelength, &hit)
-            {
-                (ray, attenuation)
-            } else {
-                // There's no scattered ray (for example, the surface is not reflective nor refractive).
-                break;
-            };
+            let (scattered_ray, attenuation) =
+                if let Some((ray, attenuation)) = Self::trace_refraction(&ray, wavelength, &hit) {
+                    (ray, attenuation)
+                } else if let Some((ray, attenuation)) = Self::trace_diffusion(&hit, wavelength) {
+                    (ray, attenuation)
+                } else if let Some((ray, attenuation)) =
+                    Self::trace_specular_reflection(&ray, wavelength, &hit)
+                {
+                    (ray, attenuation)
+                } else {
+                    // There's no scattered ray (for example, the surface is not reflective nor refractive).
+                    break;
+                };
             assert!(scattered_ray.direction.is_finite());
 
             total_attenuation *= attenuation;
@@ -172,12 +168,7 @@ impl Tracer {
     ///
     /// - Shell's law in vector form: <https://physics.stackexchange.com/a/436252/11966>
     /// - Shell's law in vector form: <https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form>
-    fn trace_refraction(
-        incident_ray: &Ray,
-        wavelength: Length,
-        hit: &Hit,
-        cosine_theta_1: f64,
-    ) -> Option<(Ray, Bare)> {
+    fn trace_refraction(incident_ray: &Ray, wavelength: Length, hit: &Hit) -> Option<(Ray, Bare)> {
         // Checking whether the body is dielectric:
         let Some(transmittance) = &hit.material.transmittance else { return None };
 
@@ -191,6 +182,9 @@ impl Tracer {
                 refracted: transmittance.incident_index.at(wavelength),
             },
         };
+
+        let cosine_theta_1 = (-hit.normal.dot(incident_ray.direction)).min(1.0);
+        assert!(cosine_theta_1 >= 0.0);
 
         let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
         if sin_theta_2 > Bare::from(1.0) {
