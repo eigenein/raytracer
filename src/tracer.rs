@@ -135,12 +135,7 @@ impl Tracer {
             }
 
             let cosine_theta_1 = (-hit.normal.dot(ray.direction)).min(1.0);
-            assert!(
-                cosine_theta_1 >= 0.0,
-                "cos θ₁ = {cosine_theta_1}, normal: {:?}, ray: {:?}",
-                hit.normal,
-                ray.direction,
-            );
+            assert!(cosine_theta_1 >= 0.0);
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
                 Self::trace_refraction(&ray, wavelength, &hit, cosine_theta_1)
