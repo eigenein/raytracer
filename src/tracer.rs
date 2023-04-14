@@ -157,8 +157,8 @@ impl Tracer {
         let Some(probability) = reflectance.diffusion else { return None };
         (fastrand::f64() < probability).then(|| {
             let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector());
-            let intensity = reflectance.attenuation.at(wavelength);
-            (ray, intensity)
+            let attenuation = reflectance.attenuation.at(wavelength);
+            (ray, attenuation)
         })
     }
 
@@ -186,8 +186,8 @@ impl Tracer {
         let cosine_theta_1 = (-hit.normal.dot(incident_ray.direction)).min(1.0);
         assert!(cosine_theta_1 >= 0.0);
 
-        let sin_theta_2 = refractive_index.relative() * (1.0 - cosine_theta_1.powi(2)).sqrt();
-        if sin_theta_2 > Bare::from(1.0) {
+        let sin_theta_2 = refractive_index.relative().0 * (1.0 - cosine_theta_1.powi(2)).sqrt();
+        if sin_theta_2 > 1.0 {
             // Total internal reflection, refraction is not possible.
             return None;
         }
@@ -198,21 +198,20 @@ impl Tracer {
         }
 
         // Shell's law:
-        let mu = f64::from(refractive_index.relative());
         let direction = {
-            let cosine_theta_2 = (Bare::from(1.0) - sin_theta_2.squared()).sqrt();
-            mu * incident_ray.direction
-                + hit.normal * (mu * cosine_theta_1 - f64::from(cosine_theta_2))
+            let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
+            let mu = refractive_index.relative().0;
+            mu * incident_ray.direction + hit.normal * (mu * cosine_theta_1 - cosine_theta_2)
         };
         let ray = Ray::new(hit.location, direction);
 
-        let mut intensity = transmittance.attenuation.at(wavelength);
+        let mut attenuation = transmittance.attenuation.at(wavelength);
         if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
             // Hit from inside, apply the possible exponential decay coefficient:
-            intensity *= (Length::from(-hit.distance) * coefficient.at(wavelength)).exp();
+            attenuation *= (Length::from(-hit.distance) * coefficient.at(wavelength)).exp();
         }
 
-        Some((ray, intensity))
+        Some((ray, attenuation))
     }
 
     /// Specular reflection: <https://en.wikipedia.org/wiki/Specular_reflection>.
@@ -226,7 +225,7 @@ impl Tracer {
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += Vec3::random_unit_vector() * fuzz;
         }
-        let intensity = reflectance.attenuation.at(wavelength);
-        Some((ray, intensity))
+        let attenuation = reflectance.attenuation.at(wavelength);
+        Some((ray, attenuation))
     }
 }
