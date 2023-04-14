@@ -9,8 +9,14 @@ use crate::physics::units::*;
 #[derive(Deserialize, JsonSchema, Clone)]
 #[serde(tag = "type")]
 pub enum Emittance {
+    Constant {
+        radiance: SpectralRadiancePerMeter,
+    },
+
     /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
-    BlackBody { temperature: Temperature },
+    BlackBody {
+        temperature: Temperature,
+    },
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
     Lorentzian {
@@ -26,9 +32,17 @@ pub enum Emittance {
     },
 }
 
+impl const Default for Emittance {
+    fn default() -> Self {
+        Self::Constant { radiance: Quantity(0.0) }
+    }
+}
+
 impl Property<SpectralRadiancePerMeter> for Emittance {
     fn at(&self, wavelength: Length) -> SpectralRadiancePerMeter {
         match self {
+            Self::Constant { radiance } => *radiance,
+
             Self::BlackBody { temperature } => {
                 Bare::from(2.0) * PLANCK * LIGHT_SPEED.powi::<2>()
                     / wavelength.powi::<5>()

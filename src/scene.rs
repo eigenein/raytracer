@@ -19,7 +19,7 @@ pub struct Scene {
     pub camera: Camera,
 
     /// Scene background and ambient color.
-    #[serde(alias = "ambient_spectrum")]
+    #[serde(default, alias = "ambient_spectrum")]
     pub ambient_emittance: Emittance,
 
     /// Surfaces to render.
