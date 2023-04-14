@@ -41,27 +41,7 @@ impl<
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)?;
-        if T != 0 {
-            write!(f, " s^{T}")?;
-        }
-        if L != 0 {
-            write!(f, " m^{L}")?;
-        }
-        if M != 0 {
-            write!(f, " kg^{M}")?;
-        }
-        if EC != 0 {
-            write!(f, " A^{EC}")?;
-        }
-        if TT != 0 {
-            write!(f, " K^{TT}")?;
-        }
-        if AS != 0 {
-            write!(f, " mol^{AS}")?;
-        }
-        if LI != 0 {
-            write!(f, " cd^{LI}")?;
-        }
+        Self::write_units(f)?;
         Ok(())
     }
 }
@@ -79,6 +59,23 @@ impl<
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)?;
+        Self::write_units(f)?;
+        Ok(())
+    }
+}
+
+impl<
+    V,
+    const T: isize,
+    const L: isize,
+    const M: isize,
+    const EC: isize,
+    const TT: isize,
+    const AS: isize,
+    const LI: isize,
+> Quantity<V, T, L, M, EC, TT, AS, LI>
+{
+    pub fn write_units(f: &mut Formatter<'_>) -> std::fmt::Result {
         if T != 0 {
             write!(f, " s^{T}")?;
         }
