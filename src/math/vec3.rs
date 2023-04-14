@@ -293,6 +293,12 @@ impl Vec3 {
         normal.assert_normalized();
         self - 2.0 * self.dot(normal) * normal
     }
+
+    #[inline]
+    #[must_use]
+    pub const fn is_infinite(self) -> bool {
+        self.x.is_infinite() || self.y.is_infinite() || self.z.is_infinite()
+    }
 }
 
 #[cfg(test)]

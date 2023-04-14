@@ -3,9 +3,6 @@
   "title": "Scene",
   "description": "A scene to render.\n\nThis is a root object in a scene TOML file.",
   "type": "object",
-  "required": [
-    "ambient_emittance"
-  ],
   "properties": {
     "ambient_emittance": {
       "description": "Scene background and ambient color.",
@@ -36,10 +33,10 @@
       ],
       "properties": {
         "max_point": {
-          "$ref": "#/definitions/Point"
+          "$ref": "#/definitions/Vec3"
         },
         "min_point": {
-          "$ref": "#/definitions/Point"
+          "$ref": "#/definitions/Vec3"
         }
       }
     },
@@ -275,25 +272,28 @@
       "type": "object",
       "properties": {
         "location": {
-          "$ref": "#/definitions/Point"
+          "description": "Camera location point.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Vec3"
+            }
+          ]
         },
         "look_at": {
-          "$ref": "#/definitions/Point"
+          "description": "Point to look at.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Vec3"
+            }
+          ]
         },
         "up": {
-          "description": "Up direction.",
-          "default": [
-            0.0,
-            1.0,
-            0.0
-          ],
-          "type": "array",
-          "items": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxItems": 3,
-          "minItems": 3
+          "description": "Up **direction** (not a point).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Vec3"
+            }
+          ]
         },
         "vertical_fov": {
           "description": "Vertical field-of-view angle, in degrees.",
@@ -306,17 +306,31 @@
     "Emittance": {
       "oneOf": [
         {
+          "type": "object",
+          "required": [
+            "radiance",
+            "type"
+          ],
+          "properties": {
+            "radiance": {
+              "$ref": "#/definitions/Quantity_for_double"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Constant"
+              ]
+            }
+          }
+        },
+        {
           "description": "Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.",
           "type": "object",
           "required": [
-            "scale",
             "temperature",
             "type"
           ],
           "properties": {
-            "scale": {
-              "$ref": "#/definitions/Quantity_for_double"
-            },
             "temperature": {
               "$ref": "#/definitions/Quantity_for_double"
             },
@@ -402,15 +416,6 @@
         }
       }
     },
-    "Point": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "format": "double"
-      },
-      "maxItems": 3,
-      "minItems": 3
-    },
     "Quantity_for_double": {
       "type": "number",
       "format": "double"
@@ -452,7 +457,7 @@
           ],
           "properties": {
             "center": {
-              "$ref": "#/definitions/Point"
+              "$ref": "#/definitions/Vec3"
             },
             "material": {
               "$ref": "#/definitions/Material"
@@ -544,6 +549,28 @@
               "$ref": "#/definitions/AbsoluteRefractiveIndex"
             }
           ]
+        }
+      }
+    },
+    "Vec3": {
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        },
+        "z": {
+          "type": "number",
+          "format": "double"
         }
       }
     }
