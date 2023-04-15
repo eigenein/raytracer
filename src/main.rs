@@ -67,7 +67,6 @@ fn main() -> Result {
             let mut scene = Scene::read_from(&input_path)?;
             info!(n_surfaces = scene.surfaces.len(), "building bounded volume hierarchy…");
             let bvh = Bvh::new(&mut scene.surfaces, max_bvh_leaf_size);
-            info!(?bvh);
 
             let pixels = Tracer::new(
                 bvh,

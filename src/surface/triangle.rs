@@ -53,13 +53,12 @@ impl Hittable for Triangle {
         }
 
         let distance = f * edge_2.dot(q);
-
-        let mut normal = edge_1.cross(edge_2).normalize();
-        if normal.dot(by_ray.direction) > 0.0 {
-            normal = -normal;
-        }
-
         if distance_range.contains(&distance) {
+            let mut normal = edge_1.cross(edge_2).normalize();
+            if normal.dot(by_ray.direction) > 0.0 {
+                normal = -normal;
+            }
+
             Some(Hit {
                 location: by_ray.at(distance),
                 normal,
