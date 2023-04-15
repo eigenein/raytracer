@@ -1,4 +1,4 @@
-mod bvh;
+pub mod bvh;
 pub mod progress;
 mod viewport;
 
@@ -13,38 +13,47 @@ use crate::color::xyz::XyzColor;
 use crate::math::hit::*;
 use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
+use crate::physics::optics::material::emittance::Emittance;
 use crate::physics::optics::material::property::Property;
 use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;
 use crate::physics::units::*;
 use crate::prelude::*;
-use crate::scene::Scene;
+use crate::scene::Camera;
+use crate::surface::Surface;
+use crate::tracer::bvh::Bvh;
 use crate::tracer::progress::new_progress;
 use crate::tracer::viewport::Viewport;
 
-pub struct Tracer {
-    scene: Scene,
+pub struct Tracer<'a> {
+    bvh: Bvh<'a, Surface>,
+    ambient_emittance: Emittance,
+    camera: Camera,
     options: TracerOptions,
     output_width: u32,
     output_height: u32,
     viewport: Viewport,
 }
 
-impl Tracer {
+impl<'a> Tracer<'a> {
     const MAX_WAVELENGTH: Length = Quantity::from_nanos(830.0);
     const MIN_WAVELENGTH: Length = Quantity::from_nanos(360.0);
     const SPECTRUM_WIDTH: Length = Self::MAX_WAVELENGTH - Self::MIN_WAVELENGTH;
 
     pub fn new(
-        scene: Scene,
+        bvh: Bvh<'a, Surface>,
+        ambient_emittance: Emittance,
+        camera: Camera,
         options: TracerOptions,
         output_width: u32,
         output_height: u32,
     ) -> Self {
-        let viewport = Viewport::new(&scene.camera, output_width, output_height);
+        let viewport = Viewport::new(&camera, output_width, output_height);
 
         Self {
+            bvh,
+            ambient_emittance,
+            camera,
             options,
-            scene,
             output_width,
             output_height,
             viewport,
@@ -54,10 +63,10 @@ impl Tracer {
     pub fn trace(&self) -> Result<Vec<(u32, Vec<XyzColor>)>> {
         info!(self.options.samples_per_pixel);
         info!(self.options.n_max_bounces, self.options.min_hit_distance);
-        info!(%self.scene.camera.location);
-        info!(%self.scene.camera.look_at);
-        info!(%self.scene.camera.up);
-        info!(self.scene.camera.vertical_fov);
+        info!(%self.camera.location);
+        info!(%self.camera.look_at);
+        info!(%self.camera.up);
+        info!(self.camera.vertical_fov);
         info!(%self.viewport.dx);
         info!(%self.viewport.dy);
 
@@ -88,10 +97,9 @@ impl Tracer {
     fn render_pixel(&self, x: u32, y: u32, rng: &Rng) -> XyzColor {
         (0..self.options.samples_per_pixel)
             .map(|_| {
-                let viewport_point =
-                    self.scene.camera.look_at + self.viewport.cast_random_ray(x, y, rng);
+                let viewport_point = self.camera.look_at + self.viewport.cast_random_ray(x, y, rng);
                 let wavelength = Self::MIN_WAVELENGTH + Self::SPECTRUM_WIDTH * Bare::random(rng);
-                let ray = Ray::by_two_points(self.scene.camera.location, viewport_point);
+                let ray = Ray::by_two_points(self.camera.location, viewport_point);
                 let radiance = self.trace_ray(ray, wavelength, self.options.n_max_bounces, rng);
                 XyzColor::from_wavelength(wavelength) * radiance.0
             })
@@ -108,7 +116,7 @@ impl Tracer {
         rng: &Rng,
     ) -> SpectralRadiancePerMeter {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
-        let scene_emittance = self.scene.ambient_emittance.at(wavelength);
+        let scene_emittance = self.ambient_emittance.at(wavelength);
 
         let mut total_radiance = SpectralRadiancePerMeter::from(0.0);
         let mut total_attenuation = Bare::from(1.0);
@@ -117,12 +125,7 @@ impl Tracer {
             if total_attenuation < Bare::from(self.options.min_attenuation) {
                 break;
             }
-            let hit = self
-                .scene
-                .surfaces
-                .iter()
-                .filter_map(|surface| surface.hit(&ray, &distance_range, rng))
-                .min_by(|hit_1, hit_2| hit_1.distance.total_cmp(&hit_2.distance));
+            let hit = self.bvh.hit(&ray, &distance_range, rng);
             let Some(hit) = hit else {
                 // The ray didn't hit anything, finish the tracing:
                 total_radiance += total_attenuation * scene_emittance;

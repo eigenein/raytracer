@@ -1,4 +1,5 @@
 #![allow(incomplete_features)]
+#![feature(const_cmp)]
 #![feature(const_convert)]
 #![feature(const_float_classify)]
 #![feature(const_fn_floating_point_arithmetic)]
@@ -40,6 +41,7 @@ mod tracer;
 
 use crate::prelude::*;
 use crate::scene::Scene;
+use crate::tracer::bvh::Bvh;
 use crate::tracer::progress::new_progress;
 use crate::tracer::Tracer;
 
@@ -55,14 +57,26 @@ fn main() -> Result {
             gamma,
             output_path,
             n_threads,
+            max_bvh_leaf_size,
         } => {
             rayon::ThreadPoolBuilder::new()
                 .num_threads(n_threads)
                 .build_global()?;
             info!(current_num_threads = rayon::current_num_threads());
 
-            let scene = Scene::read_from(&input_path)?;
-            let pixels = Tracer::new(scene, tracer_options, output_width, output_height).trace()?;
+            let mut scene = Scene::read_from(&input_path)?;
+            info!(n_surfaces = scene.surfaces.len(), "building bounded volume hierarchy…");
+            let bvh = Bvh::new(&mut scene.surfaces, max_bvh_leaf_size);
+
+            let pixels = Tracer::new(
+                bvh,
+                scene.ambient_emittance,
+                scene.camera,
+                tracer_options,
+                output_width,
+                output_height,
+            )
+            .trace()?;
             convert_pixels_to_image(output_width, output_height, pixels, gamma)?
                 .save(output_path)
                 .context("failed to save the output image")?;

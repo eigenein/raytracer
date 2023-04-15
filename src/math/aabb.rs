@@ -8,7 +8,7 @@ use crate::math::vec3::Vec3;
 
 /// Axis-aligned boundary box defined by two points:
 /// the one with the minimal coordinates, and the other – with the maximal coordinates.
-#[derive(Deserialize, JsonSchema, Copy, Clone)]
+#[derive(Deserialize, JsonSchema, Copy, Clone, Debug)]
 #[must_use]
 pub struct Aabb {
     #[serde(alias = "min")]

@@ -33,6 +33,9 @@ pub enum Command {
         #[arg(short = 't', long = "threads", default_value = "0")]
         n_threads: usize,
 
+        #[arg(long, default_value = "8")]
+        max_bvh_leaf_size: usize,
+
         #[clap(flatten)]
         tracer_options: TracerOptions,
     },

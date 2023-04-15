@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::ops::Range;
 
 use fastrand::Rng;
@@ -26,6 +27,18 @@ pub struct Hit<'a> {
 
     /// Material at the hit point.
     pub material: &'a Material,
+}
+
+impl<'a> const PartialEq for Hit<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.distance.eq(&other.distance)
+    }
+}
+
+impl<'a> const PartialOrd for Hit<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.distance.partial_cmp(&other.distance)
+    }
 }
 
 pub trait Hittable {
