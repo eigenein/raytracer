@@ -1,3 +1,4 @@
+mod bvh;
 pub mod progress;
 mod viewport;
 

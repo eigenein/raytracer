@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::{BitOr, Range};
 
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -19,8 +19,17 @@ pub struct Aabb {
 }
 
 impl Aabb {
+    #[inline]
+    pub const fn size(&self) -> Vec3 {
+        self.max_point - self.min_point
+    }
+
+    #[inline]
+    pub const fn center(&self) -> Vec3 {
+        self.min_point + self.size() / 2.0
+    }
+
     /// See the original: <https://gamedev.stackexchange.com/a/18459/171067>.
-    #[allow(dead_code)]
     pub fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>) -> Option<(f64, f64)> {
         if self.min_point.is_infinite() && self.max_point.is_infinite() {
             return Some((distance_range.start, distance_range.end));
@@ -45,6 +54,18 @@ impl Aabb {
             .max(distance_range.start);
 
         (distance_min <= distance_max).then_some((distance_min, distance_max))
+    }
+}
+
+impl BitOr for Aabb {
+    type Output = Self;
+
+    /// Union the two AABBs.
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self {
+            min_point: self.min_point.min(rhs.min_point),
+            max_point: self.max_point.max(rhs.max_point),
+        }
     }
 }
 
