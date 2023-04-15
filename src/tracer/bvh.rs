@@ -28,16 +28,15 @@ impl<'a, T: Bounded> Bvh<'a, T> {
             return Self::Empty;
         }
 
+        if surfaces.len() <= max_leaf_size {
+            return Self::Leaf(surfaces);
+        }
+
         // Find out the AABB that encompasses all the surfaces.
         let aabb = surfaces[1..]
             .iter()
             .map(|surface| surface.aabb())
             .fold(surfaces[0].aabb(), |accumulator, aabb| accumulator | aabb);
-
-        if surfaces.len() <= max_leaf_size {
-            return Self::Leaf(surfaces);
-        }
-
         let size = aabb.size();
         let center = aabb.center();
 
@@ -84,10 +83,16 @@ impl<'a, T: Hittable> Hittable for Bvh<'a, T> {
                 if node.aabb.hit(by_ray, distance_range).is_some() {
                     let left_hit = node.left.hit(by_ray, distance_range, rng);
                     let right_hit = node.right.hit(by_ray, distance_range, rng);
-                    if left_hit < right_hit {
-                        left_hit
-                    } else {
-                        right_hit
+                    match (left_hit, right_hit) {
+                        (Some(left_hit), Some(right_hit)) => {
+                            if left_hit.distance < right_hit.distance {
+                                Some(left_hit)
+                            } else {
+                                Some(right_hit)
+                            }
+                        }
+                        (left_hit @ Some(_), None) => left_hit,
+                        (_, right_hit) => right_hit,
                     }
                 } else {
                     None

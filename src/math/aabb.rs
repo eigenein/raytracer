@@ -92,6 +92,16 @@ mod tests {
     }
 
     #[test]
+    fn hit_from_inside_ok() {
+        let ray = Ray::by_two_points(Vec3::ZERO, Vec3::ONE);
+        let aabb = Aabb {
+            min_point: Vec3::splat(-100.0),
+            max_point: Vec3::splat(100.0),
+        };
+        assert!(aabb.hit(&ray, &(0.0..f64::INFINITY)).is_some());
+    }
+
+    #[test]
     fn no_hit_behind() {
         let ray = Ray::by_two_points(Vec3::ONE, Vec3::ZERO);
         let aabb = Aabb {

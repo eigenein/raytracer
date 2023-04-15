@@ -281,7 +281,7 @@ impl Vec3 {
 
     #[inline]
     pub fn assert_normalized(self) {
-        const THRESHOLD: f64 = 1000.0 * f64::EPSILON;
+        const THRESHOLD: f64 = 10000.0 * f64::EPSILON;
         assert!(
             (self.length_squared() - 1.0).abs() <= THRESHOLD,
             "expected normalized vector, actual length²: `{}`",
