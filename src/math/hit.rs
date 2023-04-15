@@ -4,9 +4,9 @@ use fastrand::Rng;
 use serde::Deserialize;
 
 use crate::math::aabb::Aabb;
+use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
 use crate::physics::optics::material::Material;
-use crate::physics::optics::ray::Ray;
 
 /// Hit result.
 pub struct Hit<'a> {

@@ -3,8 +3,8 @@ use std::ops::Range;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
-use crate::physics::optics::ray::Ray;
 
 /// Axis-aligned boundary box defined by two points:
 /// the one with the minimal coordinates, and the other – with the maximal coordinates.
@@ -51,6 +51,7 @@ impl Aabb {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::math::ray::Ray;
 
     #[test]
     fn hit_ok() {

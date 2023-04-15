@@ -9,11 +9,11 @@ use tracing::info;
 
 use crate::args::TracerOptions;
 use crate::color::xyz::XyzColor;
+use crate::math::hit::*;
+use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
-use crate::physics::optics::hit::{Hit, HitType, Hittable};
 use crate::physics::optics::material::property::Property;
 use crate::physics::optics::material::transmittance::refraction::RelativeRefractiveIndex;
-use crate::physics::optics::ray::Ray;
 use crate::physics::units::*;
 use crate::prelude::*;
 use crate::scene::Scene;
