@@ -4,7 +4,7 @@ use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::aabb::Aabb;
+use crate::math::aabb::{Aabb, Bounded};
 use crate::math::hit::*;
 use crate::math::ray::Ray;
 use crate::physics::optics::material::Material;
@@ -27,6 +27,13 @@ impl UniformFog {
     }
 }
 
+impl const Bounded for UniformFog {
+    #[inline]
+    fn aabb(&self) -> Aabb {
+        self.aabb
+    }
+}
+
 impl Hittable for UniformFog {
     fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &Rng) -> Option<Hit> {
         let Some((min_distance, max_distance)) = self.aabb.hit(by_ray, distance_range) else { return None };
@@ -44,9 +51,5 @@ impl Hittable for UniformFog {
         } else {
             None
         }
-    }
-
-    fn aabb(&self) -> Option<Aabb> {
-        Some(self.aabb)
     }
 }

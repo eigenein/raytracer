@@ -3,7 +3,6 @@ use std::ops::Range;
 use fastrand::Rng;
 use serde::Deserialize;
 
-use crate::math::aabb::Aabb;
 use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
 use crate::physics::optics::material::Material;
@@ -32,9 +31,6 @@ pub struct Hit<'a> {
 pub trait Hittable {
     /// Check whether the ray hits the surface.
     fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &Rng) -> Option<Hit>;
-
-    /// Get a boundary box for the surface.
-    fn aabb(&self) -> Option<Aabb>;
 }
 
 #[derive(Deserialize, PartialEq, Copy, Clone)]

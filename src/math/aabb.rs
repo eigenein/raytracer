@@ -48,6 +48,13 @@ impl Aabb {
     }
 }
 
+/// Implement to provide an AABB.
+#[const_trait]
+pub trait Bounded {
+    /// Get a boundary box for the surface.
+    fn aabb(&self) -> Aabb;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -4,7 +4,7 @@ use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::math::aabb::Aabb;
+use crate::math::aabb::{Aabb, Bounded};
 use crate::math::hit::*;
 use crate::math::ray::Ray;
 use crate::math::vec3::Vec3;
@@ -15,6 +15,16 @@ pub struct Sphere {
     center: Vec3,
     radius: f64,
     material: Material,
+}
+
+impl const Bounded for Sphere {
+    #[inline]
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            min_point: self.center - self.radius,
+            max_point: self.center + self.radius,
+        }
+    }
 }
 
 impl Hittable for Sphere {
@@ -52,14 +62,6 @@ impl Hittable for Sphere {
             type_,
             normal,
             material: &self.material,
-        })
-    }
-
-    #[inline]
-    fn aabb(&self) -> Option<Aabb> {
-        Some(Aabb {
-            min_point: self.center - self.radius,
-            max_point: self.center + self.radius,
         })
     }
 }
