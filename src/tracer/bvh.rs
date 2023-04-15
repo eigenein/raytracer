@@ -6,6 +6,7 @@ use fastrand::Rng;
 use crate::math::aabb::{Aabb, Bounded};
 use crate::math::hit::{Hit, Hittable};
 use crate::math::ray::Ray;
+use crate::math::vec3::Vec3;
 
 /// Bounding volume hierarchy.
 pub enum Bvh<'a, T> {
@@ -37,17 +38,28 @@ impl<'a, T: Bounded> Bvh<'a, T> {
             return Self::Leaf(surfaces);
         }
 
-        // Split by maximal dimension:
         let size = aabb.size();
+        let center = aabb.center();
+
+        // Split by maximal dimension:
         let key = if size.x > size.y && size.x > size.z {
-            |surface: &T| surface.aabb().center().x
+            |vec: Vec3| vec.x
         } else if size.y > size.x && size.y > size.z {
-            |surface: &T| surface.aabb().center().y
+            |vec: Vec3| vec.y
         } else {
-            |surface: &T| surface.aabb().center().z
+            |vec: Vec3| vec.z
         };
-        surfaces.sort_unstable_by(|lhs, rhs| key(lhs).total_cmp(&key(rhs)));
-        let (left, right) = surfaces.split_at_mut(surfaces.len() / 2);
+
+        // Sort by the maximal dimension:
+        surfaces.sort_unstable_by(|lhs, rhs| {
+            key(lhs.aabb().center()).total_cmp(&key(rhs.aabb().center()))
+        });
+
+        // Split by the mean:
+        let (left, right) = surfaces.split_at_mut(
+            surfaces.partition_point(|surface| key(surface.aabb().center()) < key(center)),
+        );
+
         Self::Node(Box::new(Node {
             aabb,
             left: Bvh::new(left, max_leaf_size),

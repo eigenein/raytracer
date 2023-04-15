@@ -33,7 +33,8 @@ pub enum Command {
         #[arg(short = 't', long = "threads", default_value = "0")]
         n_threads: usize,
 
-        #[arg(long, default_value = "8")]
+        /// Maximal number of surfaces in a single leaf of the bounding volume hierarchy.
+        #[arg(long, default_value = "4")]
         max_bvh_leaf_size: usize,
 
         #[clap(flatten)]
