@@ -38,9 +38,8 @@ impl<'a, T: Bounded> Bvh<'a, T> {
             .map(|surface| surface.aabb())
             .fold(surfaces[0].aabb(), |accumulator, aabb| accumulator | aabb);
         let size = aabb.size();
-        let center = aabb.center();
 
-        // Split by maximal dimension:
+        // Sort by the maximal dimension:
         let key = if size.x > size.y && size.x > size.z {
             |vec: Vec3| vec.x
         } else if size.y > size.x && size.y > size.z {
@@ -48,16 +47,12 @@ impl<'a, T: Bounded> Bvh<'a, T> {
         } else {
             |vec: Vec3| vec.z
         };
-
-        // Sort by the maximal dimension:
         surfaces.sort_unstable_by(|lhs, rhs| {
             key(lhs.aabb().center()).total_cmp(&key(rhs.aabb().center()))
         });
 
-        // Split by the mean:
-        let (left, right) = surfaces.split_at_mut(
-            surfaces.partition_point(|surface| key(surface.aabb().center()) < key(center)),
-        );
+        // Split by the median:
+        let (left, right) = surfaces.split_at_mut(surfaces.len() / 2);
 
         Self::Node(Box::new(Node {
             aabb,
