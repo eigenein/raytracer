@@ -77,7 +77,7 @@ fn main() -> Result {
                 output_height,
             )
             .trace()?;
-            convert_pixels_to_image(output_width, output_height, pixels, gamma)?
+            convert_pixels_to_image(output_width, pixels, gamma)?
                 .save(output_path)
                 .context("failed to save the output image")?;
         }
@@ -91,7 +91,6 @@ fn main() -> Result {
 
 fn convert_pixels_to_image(
     output_width: u32,
-    output_height: u32,
     rows: Vec<(u32, Vec<XyzColor>)>,
     gamma: f64,
 ) -> Result<Rgb16Image> {
@@ -105,7 +104,7 @@ fn convert_pixels_to_image(
     let scale = 1.0 / max_intensity;
     info!(max_intensity, scale);
 
-    let mut image = Rgb16Image::new(output_width, output_height);
+    let mut image = Rgb16Image::new(output_width, rows.len() as u32);
     let progress = new_progress(rows.len() as u64, "converting to image")?;
     for (y, row) in rows {
         for (x, color) in row.into_iter().enumerate() {
