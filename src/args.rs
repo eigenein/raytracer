@@ -19,29 +19,29 @@ pub struct Args {
 pub struct RenderArgs {
     /// Scene configuration, in TOML format.
     #[arg(value_name = "INPUT")]
-    input_path: PathBuf,
+    pub input_path: PathBuf,
 
     /// Output image path.
     #[arg(value_name = "OUTPUT")]
-    output_path: PathBuf,
+    pub output_path: PathBuf,
 
     /// Output image width.
     #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
-    output_width: u32,
+    pub output_width: u32,
 
     /// Output image height.
     #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
-    output_height: u32,
+    pub output_height: u32,
 
     /// Gamma for the post-correction.
     ///
     /// It is applied after the conversion to 3-float RGB
     /// but before the conversion to the 16-bit RGB.
     #[arg(short = 'g', long = "gamma", default_value = "1.0")]
-    gamma: f64,
+    pub gamma: f64,
 
     #[clap(flatten)]
-    tracer_options: TracerOptions,
+    pub tracer_options: TracerOptions,
 }
 
 #[derive(Parser)]

@@ -7,9 +7,12 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 [dependencies]
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 clap = { version = "4.1.13", features = ["env", "unicode", "derive", "color"] }
+futures-intrusive = "0.5.0"
 image = { version = "0.24.6", default-features = false, features = ["png"] }
+pollster = { version = "0.3.0", features = ["macro"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
+wgpu = { version = "0.17.0", features = ["spirv"] }
 
 [dev-dependencies]
 approx = "0.5.1"

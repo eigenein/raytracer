@@ -15,16 +15,26 @@ use tracing_subscriber::FmtSubscriber;
 use crate::args::{Args, Command};
 
 mod args;
-mod image;
+mod graphics;
 mod prelude;
 
+use crate::graphics::Device;
 use crate::prelude::*;
 
-fn main() -> Result {
+#[pollster::main]
+async fn main() -> Result {
     tracing::subscriber::set_global_default(FmtSubscriber::new())?;
     let args = Args::parse();
     match args.command {
-        Command::Render(_) => {}
+        Command::Render(args) => {
+            Device::new()
+                .await?
+                .create_texture_view(args.output_width, args.output_height)
+                .create_output_buffer()
+                .init_command_encoder()
+                .render_to(&args.output_path)
+                .await?;
+        }
     }
     Ok(())
 }
