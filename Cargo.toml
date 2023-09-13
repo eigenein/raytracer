@@ -7,14 +7,7 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 [dependencies]
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 clap = { version = "4.1.13", features = ["env", "unicode", "derive", "color"] }
-fastrand = "1.9.0"
 image = { version = "0.24.6", default-features = false, features = ["png"] }
-indicatif = { version = "0.17.3", features = ["improved_unicode"] }
-rayon = "1.7.0"
-schemars = "0.8.12"
-serde = { version = "1.0.158", features = ["derive"] }
-serde_json = "1.0.95"
-toml = { version = "0.7.3", default-features = false, features = ["parse"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 

@@ -5,44 +5,7 @@ use clap::{value_parser, Parser, Subcommand};
 #[derive(Subcommand)]
 pub enum Command {
     /// Trace and render the scene.
-    Render {
-        /// Scene configuration, in TOML format.
-        #[arg(value_name = "INPUT")]
-        input_path: PathBuf,
-
-        /// Output image path.
-        #[arg(value_name = "OUTPUT")]
-        output_path: PathBuf,
-
-        /// Output image width.
-        #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
-        output_width: u32,
-
-        /// Output image height.
-        #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
-        output_height: u32,
-
-        /// Gamma for the post-correction.
-        ///
-        /// It is applied after the conversion to 3-float RGB
-        /// but before the conversion to the 16-bit RGB.
-        #[arg(short = 'g', long = "gamma", default_value = "1.0")]
-        gamma: f64,
-
-        /// Number of rendering threads (`0` for automatic choice).
-        #[arg(short = 't', long = "threads", default_value = "0")]
-        n_threads: usize,
-
-        /// Maximal number of surfaces in a single leaf of the bounding volume hierarchy.
-        #[arg(long, default_value = "8")]
-        max_bvh_leaf_size: usize,
-
-        #[clap(flatten)]
-        tracer_options: TracerOptions,
-    },
-
-    /// Print the scene JSON schema.
-    Schema,
+    Render(RenderArgs),
 }
 
 #[derive(Parser)]
@@ -50,6 +13,35 @@ pub enum Command {
 pub struct Args {
     #[command(subcommand)]
     pub command: Command,
+}
+
+#[derive(Parser)]
+pub struct RenderArgs {
+    /// Scene configuration, in TOML format.
+    #[arg(value_name = "INPUT")]
+    input_path: PathBuf,
+
+    /// Output image path.
+    #[arg(value_name = "OUTPUT")]
+    output_path: PathBuf,
+
+    /// Output image width.
+    #[arg(long = "width", default_value = "1920", value_parser = value_parser!(u32).range(1..))]
+    output_width: u32,
+
+    /// Output image height.
+    #[arg(long = "height", default_value = "1080", value_parser = value_parser!(u32).range(1..))]
+    output_height: u32,
+
+    /// Gamma for the post-correction.
+    ///
+    /// It is applied after the conversion to 3-float RGB
+    /// but before the conversion to the 16-bit RGB.
+    #[arg(short = 'g', long = "gamma", default_value = "1.0")]
+    gamma: f64,
+
+    #[clap(flatten)]
+    tracer_options: TracerOptions,
 }
 
 #[derive(Parser)]
@@ -76,7 +68,7 @@ pub struct TracerOptions {
     /// When the total attenuation drops below the setting, no scattered rays get traced any more.
     /// This saves some time because low attenuation doesn't contribute enough to the final intensity.
     ///
-    /// This helps a lot in, for example, a foggy environment.
+    /// This helps a lot, for example, in a foggy environment.
     #[arg(long, default_value = "0.000001")]
     pub min_attenuation: f64,
 }
