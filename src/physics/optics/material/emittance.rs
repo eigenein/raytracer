@@ -10,7 +10,7 @@ use crate::physics::units::*;
 #[serde(tag = "type")]
 pub enum Emittance {
     Constant {
-        radiance: SpectralRadiancePerMeter,
+        radiance: SpectralRadiance,
     },
 
     /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
@@ -20,7 +20,7 @@ pub enum Emittance {
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
     Lorentzian {
-        radiance: SpectralRadiancePerMeter,
+        radiance: SpectralRadiance,
 
         /// Wavelength of the maximum, meters.
         #[serde(alias = "max", alias = "maximum")]
@@ -38,8 +38,8 @@ impl Default for Emittance {
     }
 }
 
-impl Property<SpectralRadiancePerMeter> for Emittance {
-    fn at(&self, wavelength: Length) -> SpectralRadiancePerMeter {
+impl Property<SpectralRadiance> for Emittance {
+    fn at(&self, wavelength: Length) -> SpectralRadiance {
         match self {
             Self::Constant { radiance } => *radiance,
 
@@ -47,6 +47,7 @@ impl Property<SpectralRadiancePerMeter> for Emittance {
                 Bare::from(2.0) * PLANCK * LIGHT_SPEED.squared()
                     / wavelength.quintic()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
+                    / Steradian::from(1.0)
             }
 
             Self::Lorentzian {

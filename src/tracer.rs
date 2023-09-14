@@ -114,11 +114,11 @@ impl<'a> Tracer<'a> {
         wavelength: Length,
         n_bounces_left: u16,
         rng: &Rng,
-    ) -> SpectralRadiancePerMeter {
+    ) -> SpectralRadiance {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
         let scene_emittance = self.ambient_emittance.at(wavelength);
 
-        let mut total_radiance = SpectralRadiancePerMeter::from(0.0);
+        let mut total_radiance = SpectralRadiance::from(0.0);
         let mut total_attenuation = Bare::from(1.0);
 
         for _ in 0..n_bounces_left {

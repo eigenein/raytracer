@@ -24,7 +24,7 @@ pub struct Quantity<
     const EC: isize = 0,
     const TT: isize = 0,
     const AS: isize = 0,
-    const LI: isize = 0,
+    const SR: isize = 0,
 >(pub f64);
 
 impl<
@@ -34,8 +34,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Display for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Display for Quantity<T, L, M, EC, TT, AS, SR>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ", self.0)?;
@@ -51,8 +51,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Debug for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Debug for Quantity<T, L, M, EC, TT, AS, SR>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} ", self.0)?;
@@ -68,8 +68,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Quantity<T, L, M, EC, TT, AS, SR>
 {
     pub fn write_units(f: &mut Formatter<'_>) -> std::fmt::Result {
         Self::write_unit::<T>(f, "s")?;
@@ -78,7 +78,7 @@ impl<
         Self::write_unit::<EC>(f, "A")?;
         Self::write_unit::<TT>(f, "K")?;
         Self::write_unit::<AS>(f, "mol")?;
-        Self::write_unit::<LI>(f, "cd")?;
+        Self::write_unit::<SR>(f, "sr")?;
         Ok(())
     }
 
@@ -117,8 +117,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> From<f64> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> From<f64> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     #[inline]
     fn from(value: f64) -> Self {
@@ -133,8 +133,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Quantity<T, L, M, EC, TT, AS, SR>
 {
     #[inline]
     pub const fn from_millis(value: f64) -> Self {
@@ -159,8 +159,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Quantity<T, L, M, EC, TT, AS, SR>
 {
     #[inline]
     pub fn abs(self) -> Self {
@@ -175,13 +175,13 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Quantity<T, L, M, EC, TT, AS, SR>
 {
     #[inline]
     pub const fn squared(
         self,
-    ) -> Quantity<{ T * 2 }, { L * 2 }, { M * 2 }, { EC * 2 }, { TT * 2 }, { AS * 2 }, { LI * 2 }>
+    ) -> Quantity<{ T * 2 }, { L * 2 }, { M * 2 }, { EC * 2 }, { TT * 2 }, { AS * 2 }, { SR * 2 }>
     {
         Quantity(self.0 * self.0)
     }
@@ -189,7 +189,7 @@ impl<
     #[inline]
     pub const fn cubed(
         self,
-    ) -> Quantity<{ T * 3 }, { L * 3 }, { M * 3 }, { EC * 3 }, { TT * 3 }, { AS * 3 }, { LI * 3 }>
+    ) -> Quantity<{ T * 3 }, { L * 3 }, { M * 3 }, { EC * 3 }, { TT * 3 }, { AS * 3 }, { SR * 3 }>
     {
         Quantity(self.0 * self.0 * self.0)
     }
@@ -198,7 +198,7 @@ impl<
     #[inline]
     pub const fn quartic(
         self,
-    ) -> Quantity<{ T * 4 }, { L * 4 }, { M * 4 }, { EC * 4 }, { TT * 4 }, { AS * 4 }, { LI * 4 }>
+    ) -> Quantity<{ T * 4 }, { L * 4 }, { M * 4 }, { EC * 4 }, { TT * 4 }, { AS * 4 }, { SR * 4 }>
     {
         Quantity(self.0 * self.0 * self.0 * self.0)
     }
@@ -207,7 +207,7 @@ impl<
     #[inline]
     pub const fn quintic(
         self,
-    ) -> Quantity<{ T * 5 }, { L * 5 }, { M * 5 }, { EC * 5 }, { TT * 5 }, { AS * 5 }, { LI * 5 }>
+    ) -> Quantity<{ T * 5 }, { L * 5 }, { M * 5 }, { EC * 5 }, { TT * 5 }, { AS * 5 }, { SR * 5 }>
     {
         Quantity(self.0 * self.0 * self.0 * self.0 * self.0)
     }
@@ -216,7 +216,7 @@ impl<
     #[inline]
     pub const fn sextic(
         self,
-    ) -> Quantity<{ T * 6 }, { L * 6 }, { M * 6 }, { EC * 6 }, { TT * 6 }, { AS * 6 }, { LI * 6 }>
+    ) -> Quantity<{ T * 6 }, { L * 6 }, { M * 6 }, { EC * 6 }, { TT * 6 }, { AS * 6 }, { SR * 6 }>
     {
         Quantity(self.0 * self.0 * self.0 * self.0 * self.0 * self.0)
     }
@@ -229,8 +229,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Add<Self> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Add<Self> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     type Output = Self;
 
@@ -263,8 +263,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Sum<Self> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Sum<Self> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         let mut sum = 0.0;
@@ -282,8 +282,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Sub<Self> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Sub<Self> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     type Output = Self;
 
@@ -300,8 +300,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> MulAssign<Bare> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> MulAssign<Bare> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     #[inline]
     fn mul_assign(&mut self, rhs: Bare) {
@@ -316,15 +316,15 @@ impl<
     const EC1: isize,
     const TT1: isize,
     const AS1: isize,
-    const LI1: isize,
+    const SR1: isize,
     const T2: isize,
     const L2: isize,
     const M2: isize,
     const EC2: isize,
     const TT2: isize,
     const AS2: isize,
-    const LI2: isize,
-> Mul<Quantity<T2, L2, M2, EC2, TT2, AS2, LI2>> for Quantity<T1, L1, M1, EC1, TT1, AS1, LI1>
+    const SR2: isize,
+> Mul<Quantity<T2, L2, M2, EC2, TT2, AS2, SR2>> for Quantity<T1, L1, M1, EC1, TT1, AS1, SR1>
 where
     Quantity<
         { T1 + T2 },
@@ -333,7 +333,7 @@ where
         { EC1 + EC2 },
         { TT1 + TT2 },
         { AS1 + AS2 },
-        { LI1 + LI2 },
+        { SR1 + SR2 },
     >: Sized,
 {
     type Output = Quantity<
@@ -343,11 +343,11 @@ where
         { EC1 + EC2 },
         { TT1 + TT2 },
         { AS1 + AS2 },
-        { LI1 + LI2 },
+        { SR1 + SR2 },
     >;
 
     #[inline]
-    fn mul(self, rhs: Quantity<T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
+    fn mul(self, rhs: Quantity<T2, L2, M2, EC2, TT2, AS2, SR2>) -> Self::Output {
         Quantity(self.0 * rhs.0)
     }
 }
@@ -359,8 +359,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Mul<f64> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Mul<f64> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     type Output = Self;
 
@@ -377,15 +377,15 @@ impl<
     const EC1: isize,
     const TT1: isize,
     const AS1: isize,
-    const LI1: isize,
+    const SR1: isize,
     const T2: isize,
     const L2: isize,
     const M2: isize,
     const EC2: isize,
     const TT2: isize,
     const AS2: isize,
-    const LI2: isize,
-> Div<Quantity<T2, L2, M2, EC2, TT2, AS2, LI2>> for Quantity<T1, L1, M1, EC1, TT1, AS1, LI1>
+    const SR2: isize,
+> Div<Quantity<T2, L2, M2, EC2, TT2, AS2, SR2>> for Quantity<T1, L1, M1, EC1, TT1, AS1, SR1>
 where
     Quantity<
         { T1 - T2 },
@@ -394,7 +394,7 @@ where
         { EC1 - EC2 },
         { TT1 - TT2 },
         { AS1 - AS2 },
-        { LI1 - LI2 },
+        { SR1 - SR2 },
     >: Sized,
 {
     type Output = Quantity<
@@ -404,11 +404,11 @@ where
         { EC1 - EC2 },
         { TT1 - TT2 },
         { AS1 - AS2 },
-        { LI1 - LI2 },
+        { SR1 - SR2 },
     >;
 
     #[inline]
-    fn div(self, rhs: Quantity<T2, L2, M2, EC2, TT2, AS2, LI2>) -> Self::Output {
+    fn div(self, rhs: Quantity<T2, L2, M2, EC2, TT2, AS2, SR2>) -> Self::Output {
         Quantity(self.0 / rhs.0)
     }
 }
@@ -420,8 +420,8 @@ impl<
     const EC: isize,
     const TT: isize,
     const AS: isize,
-    const LI: isize,
-> Div<f64> for Quantity<T, L, M, EC, TT, AS, LI>
+    const SR: isize,
+> Div<f64> for Quantity<T, L, M, EC, TT, AS, SR>
 {
     type Output = Self;
 
@@ -440,6 +440,6 @@ mod tests {
         assert_eq!(format!("{}", Velocity::from(1.0)), "1 s⁻¹m");
         assert_eq!(format!("{}", Length::from(1.0)), "1 m");
         assert_eq!(format!("{}", Temperature::from(1.0)), "1 K");
-        assert_eq!(format!("{}", SpectralRadiancePerMeter::from(1.0)), "1 s⁻³m⁻¹kg");
+        assert_eq!(format!("{}", SpectralRadiance::from(1.0)), "1 s⁻³m⁻¹kg");
     }
 }
