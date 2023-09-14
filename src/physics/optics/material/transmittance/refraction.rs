@@ -14,13 +14,15 @@ pub enum AbsoluteRefractiveIndex {
         index: Bare,
     },
 
-    /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
+    /// [Cauchy's transmission equation][1] –  an empirical relationship between
+    /// the refractive index and wavelength of light for a particular transparent material.
+    ///
+    /// [1]: https://en.wikipedia.org/wiki/Cauchy%27s_equation
     Cauchy2 {
         a: Bare,
         b: Quantity<0, 2, 0, 0, 0>,
     },
 
-    /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy4 {
         a: Bare,
         b: Quantity<0, 2, 0, 0, 0>,
@@ -34,8 +36,11 @@ pub enum AbsoluteRefractiveIndex {
     /// (13 October 2003); <https://doi.org/10.1117/12.518857>.
     Water,
 
-    /// - <https://en.wikipedia.org/wiki/Fused_quartz>
-    /// - <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
+    /// [Fused quartz][1], fused silica or quartz glass.
+    ///
+    /// TODO: Sellmeier equation.
+    ///
+    /// [1]: https://en.wikipedia.org/wiki/Fused_quartz
     #[serde(alias = "FusedSilica", alias = "QuartzGlass")]
     FusedQuartz,
 }
