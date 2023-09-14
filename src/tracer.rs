@@ -152,6 +152,7 @@ impl<'a> Tracer<'a> {
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
+                // FIXME: what about the distance?
                 total_radiance += total_attenuation * emittance.at(wavelength);
             }
 

@@ -15,7 +15,7 @@ pub type ReciprocalLength = Quantity<0, -1, 0, 0, 0>;
 
 pub type Temperature = Quantity<0, 0, 0, 1, 0>;
 
-/// [Spectral radiance][1] per steradian per unit wavelength.
+/// [Spectral radiance][1] per unit wavelength.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Spectral_radiance
 pub type SpectralRadiance = Quantity<-3, -1, 1, 0, -1>;

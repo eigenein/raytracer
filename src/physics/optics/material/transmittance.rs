@@ -21,14 +21,13 @@ pub struct Transmittance {
     /// [Attenuation coefficient][1].
     ///
     /// [1]: https://en.wikipedia.org/wiki/Attenuation_coefficient
-    ///
-    /// FIXME: rename to `attenuation_coefficient`, alias to `attenuation`.
     #[serde(alias = "attenuation")]
     pub attenuation_coefficient: AttenuationCoefficient,
 }
 
 #[derive(Copy, Clone, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
+/// TODO: needs more options, including colored material.
 pub enum AttenuationCoefficient {
     Constant {
         coefficient: ReciprocalLength,

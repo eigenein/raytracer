@@ -14,11 +14,11 @@ use crate::physics::optics::material::reflectance::Reflectance;
 #[derive(Default, Deserialize, JsonSchema)]
 pub struct Material {
     #[serde(default)]
-    pub reflectance: Option<Reflectance>,
+    pub reflectance: Option<Reflectance>, // TODO: make it a vector.
 
     #[serde(default)]
     pub transmittance: Option<Transmittance>,
 
     #[serde(default)]
-    pub emittance: Option<Emittance>,
+    pub emittance: Option<Emittance>, // TODO: make it a vector.
 }
