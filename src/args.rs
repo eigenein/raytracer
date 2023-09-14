@@ -54,13 +54,9 @@ pub struct Args {
 
 #[derive(Parser)]
 pub struct TracerOptions {
-    /// Number of different rays per pixel per wavelength that get averaged to obtain a final color.
+    /// Number of different rays per pixel that get averaged to obtain a final color.
     #[arg(short = 's', long = "samples", default_value = "1", value_parser = value_parser!(u32).range(1..))]
     pub n_samples_per_pixel: u32,
-
-    /// Number of different wavelengths per sample.
-    #[arg(short = 'w', long = "wavelengths", default_value = "1", value_parser = value_parser!(u32).range(1..))]
-    pub n_wavelengths_per_sample: u32,
 
     /// Maximum number of ray bounces of the scene's surfaces.
     ///

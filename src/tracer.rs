@@ -4,6 +4,7 @@ mod viewport;
 
 use std::sync::{Arc, Mutex};
 
+use fastrand::Rng;
 use rayon::prelude::*;
 use tracing::info;
 
@@ -62,7 +63,7 @@ impl<'a> Tracer<'a> {
     }
 
     pub fn trace(&self) -> Result<Vec<(u32, Vec<XyzColor>)>> {
-        info!(self.options.n_samples_per_pixel, self.options.n_wavelengths_per_sample);
+        info!(self.options.n_samples_per_pixel);
         info!(self.options.n_max_bounces, self.options.min_hit_distance);
         info!(%self.camera.location);
         info!(%self.camera.look_at);
@@ -81,8 +82,9 @@ impl<'a> Tracer<'a> {
         y_indices
             .into_par_iter()
             .map(|y| {
+                let rng = Rng::new();
                 let row: Vec<XyzColor> = (0..self.output_width)
-                    .map(|x| self.render_pixel(x, y))
+                    .map(|x| self.render_pixel(x, y, &rng))
                     .collect();
                 progress.lock().unwrap().inc(1);
                 (y, row)
@@ -94,8 +96,9 @@ impl<'a> Tracer<'a> {
     }
 
     #[inline]
-    fn render_pixel(&self, x: u32, y: u32) -> XyzColor {
+    fn render_pixel(&self, x: u32, y: u32, rng: &Rng) -> XyzColor {
         let mut subpixel_sequence = Halton2::new(2, 3);
+        let mut wavelength_sequence = VanDerCorput::new(2).offset(rng.f64());
         let mut diffusion_sequence = RandomSequence::new();
         let mut effect_check_sequence = RandomSequence::new();
 
@@ -107,21 +110,16 @@ impl<'a> Tracer<'a> {
                         self.camera.look_at + self.viewport.cast_ray(x, y, subpixel);
                     Ray::with_two_points(self.camera.location, viewport_point)
                 };
-                let mut wavelength_sequence = VanDerCorput::new(2);
-                (0..self.options.n_wavelengths_per_sample)
-                    .map(|_| {
-                        let wavelength = Self::MIN_WAVELENGTH
-                            + Self::SPECTRUM_WIDTH * Bare::from(wavelength_sequence.next());
-                        let radiance = self.trace_ray(
-                            ray,
-                            wavelength,
-                            self.options.n_max_bounces,
-                            &mut effect_check_sequence,
-                            &mut diffusion_sequence,
-                        );
-                        XyzColor::from_wavelength(wavelength) * radiance.0
-                    })
-                    .sum::<XyzColor>()
+                let wavelength = Self::MIN_WAVELENGTH
+                    + Self::SPECTRUM_WIDTH * Bare::from(wavelength_sequence.next());
+                let radiance = self.trace_ray(
+                    ray,
+                    wavelength,
+                    self.options.n_max_bounces,
+                    &mut effect_check_sequence,
+                    &mut diffusion_sequence,
+                );
+                XyzColor::from_wavelength(wavelength) * radiance.0
             })
             .sum::<XyzColor>()
     }
