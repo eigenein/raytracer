@@ -34,7 +34,7 @@ pub enum Emittance {
 
 impl Default for Emittance {
     fn default() -> Self {
-        Self::Constant { radiance: Quantity(0.0) }
+        Self::Constant { radiance: Quantity::ZERO }
     }
 }
 
@@ -47,7 +47,7 @@ impl Property<SpectralRadiance> for Emittance {
                 Bare::from(2.0) * PLANCK * LIGHT_SPEED.squared()
                     / wavelength.quintic()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
-                    / Steradian::from(1.0)
+                    / Steradian::ONE
             }
 
             Self::Lorentzian {

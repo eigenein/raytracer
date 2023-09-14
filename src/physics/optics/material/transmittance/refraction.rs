@@ -53,7 +53,7 @@ impl AbsoluteRefractiveIndex {
         a: Quantity(1.4580),
         b: Quantity(3.54e-15),
     };
-    const VACUUM: Self = Self::Constant { index: Quantity(1.0) };
+    const VACUUM: Self = Self::Constant { index: Quantity::ONE };
     const WATER: Self = Self::Cauchy4 {
         a: Quantity(1.3199),
         b: Quantity(6878e-18),

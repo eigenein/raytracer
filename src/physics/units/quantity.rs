@@ -25,6 +25,13 @@ pub struct Quantity<
     const SR: isize = 0,
 >(pub f64);
 
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
+    Quantity<T, L, M, TT, SR>
+{
+    pub const ONE: Self = Quantity(1.0);
+    pub const ZERO: Self = Quantity(0.0);
+}
+
 impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Display
     for Quantity<T, L, M, TT, SR>
 {
