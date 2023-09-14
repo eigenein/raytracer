@@ -4,13 +4,13 @@ mod triangle;
 
 use std::ops::Range;
 
-use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::math::aabb::{Aabb, Bounded};
 use crate::math::hit::*;
 use crate::math::ray::Ray;
+use crate::math::sequence::Sequence;
 use crate::surface::fog::UniformFog;
 use crate::surface::sphere::Sphere;
 use crate::surface::triangle::Triangle;
@@ -34,8 +34,8 @@ impl Bounded for Surface {
     }
 }
 
-impl Hittable for Surface {
-    fn hit(&self, by_ray: &Ray, distance: &Range<f64>, rng: &Rng) -> Option<Hit> {
+impl<S: Sequence<f64>> Hittable<S> for Surface {
+    fn hit(&self, by_ray: &Ray, distance: &Range<f64>, rng: &mut S) -> Option<Hit> {
         match self {
             Self::Sphere(sphere) => sphere.hit(by_ray, distance, rng),
             Self::Triangle(triangle) => triangle.hit(by_ray, distance, rng),

@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 use std::ops::Range;
 
-use fastrand::Rng;
 use serde::Deserialize;
 
 use crate::math::ray::Ray;
@@ -41,9 +40,9 @@ impl<'a> PartialOrd for Hit<'a> {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable<S> {
     /// Check whether the ray hits the surface.
-    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &Rng) -> Option<Hit>;
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &mut S) -> Option<Hit>;
 }
 
 #[derive(Deserialize, PartialEq, Copy, Clone)]

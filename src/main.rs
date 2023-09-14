@@ -91,15 +91,15 @@ fn convert_pixels_to_image(
     rows: Vec<(u32, Vec<XyzColor>)>,
     gamma: f64,
 ) -> Result<Rgb16Image> {
-    let max_intensity = rows
+    let max_luminance = rows
         .iter()
         .flat_map(|(_, row)| row)
-        .map(|pixel| pixel.max_element())
+        .map(|pixel| pixel.luminance())
         .max_by(|lhs, rhs| lhs.total_cmp(rhs))
         .unwrap_or(1.0)
         .max(1.0);
-    let scale = 1.0 / max_intensity;
-    info!(max_intensity, scale);
+    let scale = 1.0 / max_luminance;
+    info!(max_luminance, scale);
 
     let mut image = Rgb16Image::new(output_width, rows.len() as u32);
     let progress = new_progress(rows.len() as u64, "converting to image")?;

@@ -1,6 +1,5 @@
 use std::ops::Range;
 
-use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -25,12 +24,12 @@ impl Bounded for Triangle {
     }
 }
 
-impl Hittable for Triangle {
+impl<S> Hittable<S> for Triangle {
     /// Implement [Möller–Trumbore intersection algorithm][1].
     /// I have no idea what's going on here.
     ///
     /// [1]: https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, _rng: &Rng) -> Option<Hit> {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, _rng: &mut S) -> Option<Hit> {
         let edge_1 = self.vertices[1] - self.vertices[0];
         let edge_2 = self.vertices[2] - self.vertices[0];
 

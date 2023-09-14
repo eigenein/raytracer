@@ -1,6 +1,5 @@
 use std::ops::Range;
 
-use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -27,8 +26,8 @@ impl Bounded for Sphere {
     }
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, _rng: &Rng) -> Option<Hit> {
+impl<S> Hittable<S> for Sphere {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, _rng: &mut S) -> Option<Hit> {
         let oc = by_ray.origin - self.center;
         let a = by_ray.direction.length_squared();
         let c = oc.length_squared() - self.radius * self.radius;
@@ -74,6 +73,7 @@ mod tests {
 
     use super::*;
     use crate::math::ray::Ray;
+    use crate::math::sequence::RandomSequence;
 
     #[bench]
     fn bench_hit(bencher: &mut Bencher) {
@@ -82,8 +82,8 @@ mod tests {
             radius: 1.0,
             material: Default::default(),
         };
-        let ray = Ray::by_two_points(Vec3::ONE, Vec3::ZERO);
-        let rng = Rng::new();
-        bencher.iter(|| sphere.hit(&ray, &(0.0..f64::INFINITY), &rng));
+        let ray = Ray::with_two_points(Vec3::ONE, Vec3::ZERO);
+        let mut rng = RandomSequence::new();
+        bencher.iter(|| sphere.hit(&ray, &(0.0..f64::INFINITY), &mut rng));
     }
 }

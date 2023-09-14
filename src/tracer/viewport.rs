@@ -1,7 +1,5 @@
 use std::f64::consts::FRAC_PI_2;
 
-use fastrand::Rng;
-
 use crate::math::vec2::Vec2;
 use crate::math::vec3::Vec3;
 use crate::scene::Camera;
@@ -45,14 +43,13 @@ impl Viewport {
         image_point.x * self.dx + image_point.y * self.dy
     }
 
-    /// Cast a random ray to the specified image coordinates and return the viewport vector.
+    /// Cast a ray to the specified image pixel coordinates and return the viewport vector.
     ///
     /// # Notes
     ///
     /// You still **need** to add the resulting vector to the «look at» point.
     #[inline]
-    pub fn cast_random_ray(&self, to_image_x: u32, to_image_y: u32, rng: &Rng) -> Vec3 {
-        self.at(Vec2::new(to_image_x, to_image_y) - self.image_half_size + Vec2::random(rng)
-            - Vec2::splat(0.5))
+    pub fn cast_ray(&self, image_x: u32, image_y: u32, subpixel: Vec2) -> Vec3 {
+        self.at(Vec2::new(image_x, image_y) - self.image_half_size + subpixel)
     }
 }

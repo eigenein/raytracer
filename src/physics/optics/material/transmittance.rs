@@ -20,11 +20,16 @@ pub struct Transmittance {
     pub incident_index: AbsoluteRefractiveIndex,
 
     /// Attenuation of the body inner material.
+    ///
+    /// FIXME: remove.
     #[serde(default)]
     pub attenuation: Attenuation,
 
-    /// Attenuation coefficient: <https://en.wikipedia.org/wiki/Attenuation_coefficient>.
-    /// Considered to be zero by default.
+    /// [Attenuation coefficient][1].
+    ///
+    /// [1]: https://en.wikipedia.org/wiki/Attenuation_coefficient
+    ///
+    /// FIXME: rename to `attenuation_coefficient`, alias to `attenuation`.
     #[serde(default)]
     pub coefficient: Option<AttenuationCoefficient>,
 }
@@ -49,6 +54,7 @@ impl Property<ReciprocalLength> for AttenuationCoefficient {
             Self::Constant { coefficient } => *coefficient,
 
             Self::Water { scale } => {
+                // FIXME: find a better model.
                 *scale
                     * Bare::from(10.0_f64)
                         .powf((wavelength - Length::from_nanos(450.0)) / Length::from_nanos(133.3))

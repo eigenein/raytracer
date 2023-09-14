@@ -5,7 +5,10 @@ use crate::color::cie_1964::WAVELENGTH_TO_XYZ;
 use crate::math::vec3::Vec3;
 use crate::physics::units::Length;
 
-/// XYZ color: https://en.wikipedia.org/wiki/SRGB#Transformation.
+/// [XYZ color][1]: `Y` is the luminance, `Z` is quasi-equal to blue (of CIE RGB),
+/// and `X` is a mix of the three CIE RGB curves chosen to be non-negative.
+///
+/// [1]: https://en.wikipedia.org/wiki/CIE_1931_color_space#Meaning_of_X,_Y_and_Z
 #[derive(Debug)]
 #[must_use]
 pub struct XyzColor(Vec3);
@@ -17,6 +20,12 @@ impl XyzColor {
         let nanos = nanos as usize - 360;
         assert!(nanos < 470, "actual: {nanos}, wavelength = {wavelength}");
         Self((1.0 - fract) * WAVELENGTH_TO_XYZ[nanos] + fract * WAVELENGTH_TO_XYZ[nanos + 1])
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn luminance(&self) -> f64 {
+        self.0.y
     }
 
     #[inline]

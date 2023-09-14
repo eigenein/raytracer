@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn hit_ok() {
-        let ray = Ray::by_two_points(Vec3::ZERO, Vec3::ONE);
+        let ray = Ray::with_two_points(Vec3::ZERO, Vec3::ONE);
         let aabb = Aabb {
             min_point: Vec3::new(2.0, 2.0, 2.0),
             max_point: Vec3::new(3.0, 3.0, 3.0),
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn hit_from_inside_ok() {
-        let ray = Ray::by_two_points(Vec3::ZERO, Vec3::ONE);
+        let ray = Ray::with_two_points(Vec3::ZERO, Vec3::ONE);
         let aabb = Aabb {
             min_point: Vec3::splat(-100.0),
             max_point: Vec3::splat(100.0),
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn no_hit_behind() {
-        let ray = Ray::by_two_points(Vec3::ONE, Vec3::ZERO);
+        let ray = Ray::with_two_points(Vec3::ONE, Vec3::ZERO);
         let aabb = Aabb {
             min_point: Vec3::new(2.0, 2.0, 2.0),
             max_point: Vec3::new(3.0, 3.0, 3.0),
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn no_hit_parallel() {
-        let ray = Ray::by_two_points(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0));
+        let ray = Ray::with_two_points(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0));
         let aabb = Aabb {
             min_point: Vec3::new(1.0, 1.0, 1.0),
             max_point: Vec3::new(2.0, 2.0, 2.0),
@@ -122,7 +122,7 @@ mod tests {
 
     #[test]
     fn hit_infinity() {
-        let ray = Ray::by_two_points(Vec3::ZERO, Vec3::ONE);
+        let ray = Ray::with_two_points(Vec3::ZERO, Vec3::ONE);
         let aabb = Aabb {
             min_point: Vec3::new(-f64::INFINITY, -f64::INFINITY, -f64::INFINITY),
             max_point: Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),

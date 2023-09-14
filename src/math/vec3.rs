@@ -2,9 +2,11 @@ use std::f64::consts::TAU;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
-use fastrand::Rng;
 use schemars::JsonSchema;
 use serde::Deserialize;
+
+use crate::math::sequence::Sequence;
+use crate::math::vec2::Vec2;
 
 #[repr(simd)]
 #[derive(Copy, Clone, Debug, Deserialize, JsonSchema)]
@@ -156,9 +158,11 @@ impl Vec3 {
         Self { x: value, y: value, z: value }
     }
 
-    pub fn random_unit_vector(rng: &Rng) -> Self {
-        let theta = TAU * rng.f64();
-        let z = 2.0 * rng.f64() - 1.0;
+    /// Sample a unit vector from a uniform 2D-sequence.
+    pub fn sample_unit_vector(sequence: &mut impl Sequence<Vec2>) -> Self {
+        let sample = sequence.next();
+        let theta = TAU * sample.x;
+        let z = 2.0 * sample.y - 1.0;
         let scale = (1.0 - z * z).sqrt();
         let (theta_sin, theta_cos) = theta.sin_cos();
         Self {
@@ -307,18 +311,12 @@ mod tests {
     extern crate test;
 
     use approx::*;
-    use test::Bencher;
 
     use super::*;
+    use crate::math::sequence::Halton2;
 
     #[test]
     fn random_unit_vector_ok() {
-        assert_abs_diff_eq!(Vec3::random_unit_vector(&Rng::new()).length(), 1.0);
-    }
-
-    #[bench]
-    fn bench_random_unit_vector(bencher: &mut Bencher) {
-        let rng = Rng::new();
-        bencher.iter(|| Vec3::random_unit_vector(&rng));
+        assert_abs_diff_eq!(Vec3::sample_unit_vector(&mut Halton2::new(2, 3)).length(), 1.0);
     }
 }

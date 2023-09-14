@@ -1,11 +1,10 @@
 use std::fmt::{Debug, Formatter};
 use std::ops::Range;
 
-use fastrand::Rng;
-
 use crate::math::aabb::{Aabb, Bounded};
 use crate::math::hit::{Hit, Hittable};
 use crate::math::ray::Ray;
+use crate::math::sequence::Sequence;
 use crate::math::vec3::Vec3;
 
 /// Bounding volume hierarchy.
@@ -62,8 +61,8 @@ impl<'a, T: Bounded> Bvh<'a, T> {
     }
 }
 
-impl<'a, T: Hittable> Hittable for Bvh<'a, T> {
-    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &Rng) -> Option<Hit> {
+impl<'a, T: Hittable<S>, S: Sequence<f64>> Hittable<S> for Bvh<'a, T> {
+    fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &mut S) -> Option<Hit> {
         match self {
             Self::Empty => None,
 

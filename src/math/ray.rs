@@ -16,7 +16,7 @@ impl Ray {
     }
 
     #[inline]
-    pub fn by_two_points(from: Vec3, to: Vec3) -> Self {
+    pub fn with_two_points(from: Vec3, to: Vec3) -> Self {
         Self::new(from, to - from)
     }
 
