@@ -44,7 +44,7 @@ impl Hittable for UniformFog {
         if hit_distance < max_distance {
             let hit = Hit {
                 location: by_ray.at(hit_distance),
-                normal: -by_ray.direction,
+                normal: -by_ray.direction.normalize(),
                 distance: hit_distance,
                 type_: HitType::Refract,
                 material: &self.material,

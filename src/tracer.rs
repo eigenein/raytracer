@@ -170,7 +170,8 @@ impl<'a> Tracer<'a> {
 
         if rng.f64() < probability {
             let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector(rng));
-            let attenuation = reflectance.attenuation.at(wavelength);
+            // The «length / 2» accounts for its reflected intensity in the ray's direction (the max length is 1 + 1).
+            let attenuation = reflectance.attenuation.at(wavelength) * ray.direction.length() / 2.0;
             Some((ray, attenuation))
         } else {
             None
