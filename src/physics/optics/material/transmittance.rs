@@ -4,7 +4,6 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 
 use self::refraction::AbsoluteRefractiveIndex;
-use crate::physics::optics::material::attenuation::Attenuation;
 use crate::physics::optics::material::property::Property;
 use crate::physics::units::*;
 
@@ -19,19 +18,13 @@ pub struct Transmittance {
     #[serde(default)]
     pub incident_index: AbsoluteRefractiveIndex,
 
-    /// Attenuation of the body inner material.
-    ///
-    /// FIXME: remove.
-    #[serde(default)]
-    pub attenuation: Attenuation,
-
     /// [Attenuation coefficient][1].
     ///
     /// [1]: https://en.wikipedia.org/wiki/Attenuation_coefficient
     ///
     /// FIXME: rename to `attenuation_coefficient`, alias to `attenuation`.
-    #[serde(default)]
-    pub coefficient: Option<AttenuationCoefficient>,
+    #[serde(alias = "attenuation")]
+    pub attenuation_coefficient: AttenuationCoefficient,
 }
 
 #[derive(Copy, Clone, Deserialize, JsonSchema)]

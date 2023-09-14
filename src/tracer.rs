@@ -255,11 +255,13 @@ impl<'a> Tracer<'a> {
         };
         let ray = Ray::new(hit.location, direction);
 
-        let mut attenuation = transmittance.attenuation.at(wavelength);
-        if hit.type_ == HitType::Leave && let Some(coefficient) = transmittance.coefficient {
-            // Hit from inside, apply the possible exponential decay coefficient:
-            attenuation *= (Length::from(-hit.distance) * coefficient.at(wavelength)).exp();
-        }
+        let attenuation = if hit.type_ == HitType::Leave {
+            // Hit from inside, apply the exponential decay coefficient:
+            (Length::from(-hit.distance) * transmittance.attenuation_coefficient.at(wavelength))
+                .exp()
+        } else {
+            Bare::ONE
+        };
 
         Some((ray, attenuation))
     }

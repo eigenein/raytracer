@@ -70,7 +70,7 @@ radiance = 10e9
 
         [surfaces.material.transmittance]
             refracted_index = { type = "Water" }
-            coefficient = { type = "Water", scale = 0.05 }
+            attenuation = { type = "Water", scale = 0.05 } # FIXME: suspicious scale for a 1-meter ball.
 
 # Another small sphere on the right:
 [[surfaces]]
@@ -86,14 +86,5 @@ radiance = 10e9
             refracted_index = { type = "FusedQuartz" }
 
             [surfaces.material.transmittance.attenuation]
-                type = "Sum"
-
-                [[surfaces.material.transmittance.attenuation.spectra]]
-                    type = "Constant"
-                    intensity = 0.5
-
-                [[surfaces.material.transmittance.attenuation.spectra]]
-                    type = "Lorentzian"
-                    maximum = 480e-9
-                    fwhm = 50e-9
-                    intensity = 0.5
+                type = "Constant"
+                coefficient = 0.5
