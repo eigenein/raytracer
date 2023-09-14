@@ -20,12 +20,12 @@ pub struct Aabb {
 
 impl Aabb {
     #[inline]
-    pub const fn size(&self) -> Vec3 {
+    pub fn size(&self) -> Vec3 {
         self.max_point - self.min_point
     }
 
     #[inline]
-    pub const fn center(&self) -> Vec3 {
+    pub fn center(&self) -> Vec3 {
         self.min_point + self.size() / 2.0
     }
 
@@ -70,7 +70,6 @@ impl BitOr for Aabb {
 }
 
 /// Implement to provide an AABB.
-#[const_trait]
 pub trait Bounded {
     /// Get a boundary box for the surface.
     fn aabb(&self) -> Aabb;

@@ -29,13 +29,13 @@ pub struct Hit<'a> {
     pub material: &'a Material,
 }
 
-impl<'a> const PartialEq for Hit<'a> {
+impl<'a> PartialEq for Hit<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.distance.eq(&other.distance)
     }
 }
 
-impl<'a> const PartialOrd for Hit<'a> {
+impl<'a> PartialOrd for Hit<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.distance.partial_cmp(&other.distance)
     }

@@ -27,7 +27,7 @@ impl UniformFog {
     }
 }
 
-impl const Bounded for UniformFog {
+impl Bounded for UniformFog {
     #[inline]
     fn aabb(&self) -> Aabb {
         self.aabb
@@ -36,7 +36,9 @@ impl const Bounded for UniformFog {
 
 impl Hittable for UniformFog {
     fn hit(&self, by_ray: &Ray, distance_range: &Range<f64>, rng: &Rng) -> Option<Hit> {
-        let Some((min_distance, max_distance)) = self.aabb.hit(by_ray, distance_range) else { return None };
+        let Some((min_distance, max_distance)) = self.aabb.hit(by_ray, distance_range) else {
+            return None;
+        };
         assert!(min_distance.is_finite());
         let hit_distance = min_distance - 1.0 / self.density * rng.f64().ln();
         if hit_distance < max_distance {

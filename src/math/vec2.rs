@@ -12,7 +12,7 @@ pub struct Vec2 {
 
 impl Vec2 {
     #[inline]
-    pub const fn new<V: ~const Into<f64>>(x: V, y: V) -> Self {
+    pub fn new<V: Into<f64>>(x: V, y: V) -> Self {
         Self { x: x.into(), y: y.into() }
     }
 
@@ -27,7 +27,7 @@ impl Vec2 {
     }
 }
 
-impl const Add for Vec2 {
+impl Add for Vec2 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -38,7 +38,7 @@ impl const Add for Vec2 {
     }
 }
 
-impl const Sub for Vec2 {
+impl Sub for Vec2 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {

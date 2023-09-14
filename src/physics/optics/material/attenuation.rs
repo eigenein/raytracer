@@ -36,14 +36,16 @@ pub enum Attenuation {
     Sum { spectra: Vec<Attenuation> },
 }
 
-impl const Default for Attenuation {
+impl Default for Attenuation {
     fn default() -> Self {
-        Attenuation::Constant { intensity: Bare::from(1.0) }
+        Attenuation::Constant {
+            intensity: Self::default_intensity(),
+        }
     }
 }
 
 impl Attenuation {
-    pub const fn default_intensity() -> Bare {
+    pub fn default_intensity() -> Bare {
         Bare::from(1.0)
     }
 }

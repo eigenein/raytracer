@@ -32,7 +32,7 @@ pub enum Emittance {
     },
 }
 
-impl const Default for Emittance {
+impl Default for Emittance {
     fn default() -> Self {
         Self::Constant { radiance: Quantity(0.0) }
     }

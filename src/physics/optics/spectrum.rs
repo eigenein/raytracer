@@ -1,7 +1,7 @@
 use crate::physics::units::*;
 
 /// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
-pub const fn lorentzian(
+pub fn lorentzian(
     wavelength: Length,
     maximum_at: Length,
     full_width_at_half_maximum: Length,

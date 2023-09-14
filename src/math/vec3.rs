@@ -15,7 +15,7 @@ pub struct Vec3 {
     pub z: f64,
 }
 
-impl const Default for Vec3 {
+impl Default for Vec3 {
     #[inline]
     fn default() -> Self {
         Self { x: 0.0, y: 0.0, z: 0.0 }
@@ -28,7 +28,7 @@ impl Display for Vec3 {
     }
 }
 
-impl const Mul<f64> for Vec3 {
+impl Mul<f64> for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -41,7 +41,7 @@ impl const Mul<f64> for Vec3 {
     }
 }
 
-impl const Mul<Vec3> for f64 {
+impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
     #[inline]
@@ -54,7 +54,7 @@ impl const Mul<Vec3> for f64 {
     }
 }
 
-impl const Add for Vec3 {
+impl Add for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -67,7 +67,7 @@ impl const Add for Vec3 {
     }
 }
 
-impl const Sub for Vec3 {
+impl Sub for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -80,7 +80,7 @@ impl const Sub for Vec3 {
     }
 }
 
-impl const Div<f64> for Vec3 {
+impl Div<f64> for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -93,7 +93,7 @@ impl const Div<f64> for Vec3 {
     }
 }
 
-impl const Div for Vec3 {
+impl Div for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -106,7 +106,7 @@ impl const Div for Vec3 {
     }
 }
 
-impl const Neg for Vec3 {
+impl Neg for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -115,7 +115,7 @@ impl const Neg for Vec3 {
     }
 }
 
-impl const Add<f64> for Vec3 {
+impl Add<f64> for Vec3 {
     type Output = Self;
 
     #[inline]
@@ -124,7 +124,7 @@ impl const Add<f64> for Vec3 {
     }
 }
 
-impl const Sub<f64> for Vec3 {
+impl Sub<f64> for Vec3 {
     type Output = Self;
 
     #[inline]

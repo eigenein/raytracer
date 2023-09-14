@@ -6,32 +6,32 @@ use fastrand::Rng;
 use crate::physics::units::quantity::Quantity;
 
 /// Dimensionless quantity: <https://en.wikipedia.org/wiki/Dimensionless_quantity>.
-pub type Bare<V = f64> = Quantity<V, 0, 0, 0, 0, 0, 0, 0>;
+pub type Bare = Quantity<0, 0, 0, 0, 0, 0, 0>;
 
-impl const From<Bare<f64>> for f64 {
-    fn from(value: Bare<f64>) -> Self {
+impl From<Bare> for f64 {
+    fn from(value: Bare) -> Self {
         value.0
     }
 }
 
-impl<V: ~const Add<Output = V>> const Add<V> for Bare<V> {
+impl Add<f64> for Bare {
     type Output = Self;
 
-    fn add(self, rhs: V) -> Self::Output {
+    fn add(self, rhs: f64) -> Self::Output {
         Self(self.0 + rhs)
     }
 }
 
-impl<V: ~const Sub<Output = V>> const Sub<V> for Bare<V> {
+impl Sub<f64> for Bare {
     type Output = Self;
 
-    fn sub(self, rhs: V) -> Self::Output {
+    fn sub(self, rhs: f64) -> Self::Output {
         Self(self.0 - rhs)
     }
 }
 
-impl Bare<f64> {
-    pub const PI: Self = Bare::from(PI);
+impl Bare {
+    pub const PI: Self = Self(PI);
 
     #[inline]
     pub fn random(rng: &Rng) -> Self {

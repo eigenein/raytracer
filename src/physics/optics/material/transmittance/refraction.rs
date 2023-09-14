@@ -17,15 +17,15 @@ pub enum AbsoluteRefractiveIndex {
     /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy2 {
         a: Bare,
-        b: Quantity<f64, 0, 2, 0, 0, 0, 0, 0>,
+        b: Quantity<0, 2, 0, 0, 0, 0, 0>,
     },
 
     /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy4 {
         a: Bare,
-        b: Quantity<f64, 0, 2, 0, 0, 0, 0, 0>,
-        c: Quantity<f64, 0, 4, 0, 0, 0, 0, 0>,
-        d: Quantity<f64, 0, 6, 0, 0, 0, 0, 0>,
+        b: Quantity<0, 2, 0, 0, 0, 0, 0>,
+        c: Quantity<0, 4, 0, 0, 0, 0, 0>,
+        d: Quantity<0, 6, 0, 0, 0, 0, 0>,
     },
 
     /// Alexey N. Bashkatov and Elina A. Genina
@@ -41,7 +41,7 @@ pub enum AbsoluteRefractiveIndex {
 }
 
 /// Refractive index of vacuum.
-impl const Default for AbsoluteRefractiveIndex {
+impl Default for AbsoluteRefractiveIndex {
     #[inline]
     fn default() -> Self {
         Self::VACUUM
@@ -62,7 +62,7 @@ impl AbsoluteRefractiveIndex {
     };
 }
 
-impl const Property<Bare> for AbsoluteRefractiveIndex {
+impl Property<Bare> for AbsoluteRefractiveIndex {
     /// Get the absolute refractive index at the given wavelength.
     fn at(&self, wavelength: Length) -> Bare {
         match self {
@@ -93,13 +93,14 @@ pub struct RelativeRefractiveIndex {
 }
 
 impl RelativeRefractiveIndex {
-    pub const fn relative(&self) -> Bare {
+    pub fn relative(&self) -> Bare {
         self.incident / self.refracted
     }
 
-    /// Calculate Schlick's approximation for reflectance:
-    /// https://en.wikipedia.org/wiki/Schlick%27s_approximation.
-    pub const fn reflectance(&self, cosine_theta_1: f64) -> Bare {
+    /// Calculate [Schlick's approximation][1] for reflectance.
+    ///
+    /// [1]: https://en.wikipedia.org/wiki/Schlick%27s_approximation
+    pub fn reflectance(&self, cosine_theta_1: f64) -> Bare {
         let r0 = ((self.incident - self.refracted) / (self.incident + self.refracted)).squared();
         r0 + (Bare::from(1.0) - r0) * (Bare::from(1.0) - cosine_theta_1).quintic()
     }

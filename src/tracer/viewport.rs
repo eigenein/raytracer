@@ -41,7 +41,7 @@ impl Viewport {
 
     /// Calculate the viewport point based on the image coordinates.
     #[inline]
-    pub const fn at(&self, image_point: Vec2) -> Vec3 {
+    pub fn at(&self, image_point: Vec2) -> Vec3 {
         image_point.x * self.dx + image_point.y * self.dy
     }
 

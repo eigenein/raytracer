@@ -17,7 +17,7 @@ pub struct Sphere {
     material: Material,
 }
 
-impl const Bounded for Sphere {
+impl Bounded for Sphere {
     #[inline]
     fn aabb(&self) -> Aabb {
         Aabb {

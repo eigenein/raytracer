@@ -37,7 +37,7 @@ pub struct Tracer<'a> {
 impl<'a> Tracer<'a> {
     const MAX_WAVELENGTH: Length = Quantity::from_nanos(830.0);
     const MIN_WAVELENGTH: Length = Quantity::from_nanos(360.0);
-    const SPECTRUM_WIDTH: Length = Self::MAX_WAVELENGTH - Self::MIN_WAVELENGTH;
+    const SPECTRUM_WIDTH: Length = Quantity(Self::MAX_WAVELENGTH.0 - Self::MIN_WAVELENGTH.0);
 
     pub fn new(
         bvh: Bvh<'a, Surface>,
@@ -161,8 +161,12 @@ impl<'a> Tracer<'a> {
 
     /// Lambertian reflectance: <https://en.wikipedia.org/wiki/Lambertian_reflectance>.
     fn trace_diffusion(hit: &Hit, wavelength: Length, rng: &Rng) -> Option<(Ray, Bare)> {
-        let Some(reflectance) = &hit.material.reflectance else { return None };
-        let Some(probability) = reflectance.diffusion else { return None };
+        let Some(reflectance) = &hit.material.reflectance else {
+            return None;
+        };
+        let Some(probability) = reflectance.diffusion else {
+            return None;
+        };
 
         if rng.f64() < probability {
             let ray = Ray::new(hit.location, hit.normal + Vec3::random_unit_vector(rng));
@@ -186,7 +190,9 @@ impl<'a> Tracer<'a> {
         rng: &Rng,
     ) -> Option<(Ray, Bare)> {
         // Checking whether the body is dielectric:
-        let Some(transmittance) = &hit.material.transmittance else { return None };
+        let Some(transmittance) = &hit.material.transmittance else {
+            return None;
+        };
 
         let refractive_index = match hit.type_ {
             HitType::Enter | HitType::Refract => RelativeRefractiveIndex {
@@ -237,7 +243,9 @@ impl<'a> Tracer<'a> {
         hit: &Hit,
         rng: &Rng,
     ) -> Option<(Ray, Bare)> {
-        let Some(reflectance) = &hit.material.reflectance else { return None };
+        let Some(reflectance) = &hit.material.reflectance else {
+            return None;
+        };
         let mut ray = Ray::new(hit.location, incident_ray.direction.reflect_about(hit.normal));
         if let Some(fuzz) = reflectance.fuzz {
             ray.direction += Vec3::random_unit_vector(rng) * fuzz;

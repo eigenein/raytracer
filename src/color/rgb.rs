@@ -9,7 +9,7 @@ use crate::physics::units::Length;
 #[derive(Debug)]
 pub struct RgbColor(Vec3);
 
-impl const From<Vec3> for RgbColor {
+impl From<Vec3> for RgbColor {
     #[inline]
     fn from(value: Vec3) -> Self {
         Self(value)
