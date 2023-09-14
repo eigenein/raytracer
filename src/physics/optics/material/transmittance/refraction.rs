@@ -17,15 +17,15 @@ pub enum AbsoluteRefractiveIndex {
     /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy2 {
         a: Bare,
-        b: Quantity<0, 2, 0, 0, 0, 0>,
+        b: Quantity<0, 2, 0, 0, 0>,
     },
 
     /// <https://en.wikipedia.org/wiki/Cauchy%27s_equation>
     Cauchy4 {
         a: Bare,
-        b: Quantity<0, 2, 0, 0, 0, 0>,
-        c: Quantity<0, 4, 0, 0, 0, 0>,
-        d: Quantity<0, 6, 0, 0, 0, 0>,
+        b: Quantity<0, 2, 0, 0, 0>,
+        c: Quantity<0, 4, 0, 0, 0>,
+        d: Quantity<0, 6, 0, 0, 0>,
     },
 
     /// Alexey N. Bashkatov and Elina A. Genina

@@ -8,7 +8,7 @@ use crate::physics::units::quantity::Quantity;
 /// [Dimensionless quantity][1].
 ///
 /// [1]: https://en.wikipedia.org/wiki/Dimensionless_quantity
-pub type Bare = Quantity<0, 0, 0, 0, 0, 0>;
+pub type Bare = Quantity<0, 0, 0, 0, 0>;
 
 impl From<Bare> for f64 {
     fn from(value: Bare) -> Self {
