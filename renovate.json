@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "group:allNonMajor"
+  ],
+  "commitMessagePrefix": "⬆️",
+  "reviewersFromCodeOwners": true,
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mongo"],
+      "enabled": false
+    }
+  ],
+  "timezone": "Europe/Amsterdam",
+  "schedule": ["after 11am every friday"]
+}
