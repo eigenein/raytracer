@@ -46,7 +46,7 @@ impl<S: Sequence<f64>> Hittable<S> for UniformFog {
                 location: by_ray.at(hit_distance),
                 normal: -by_ray.direction.normalize(),
                 distance: hit_distance,
-                type_: HitType::Refract,
+                type_: HitType::Enter, // FIXME: what should go here?
                 material: &self.material,
             };
             Some(hit)

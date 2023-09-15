@@ -10,18 +10,14 @@ use crate::physics::units::*;
 #[serde(tag = "type")]
 pub enum Attenuation {
     Constant {
-        #[serde(default = "Attenuation::default_intensity")]
-        intensity: Bare,
+        #[serde(default = "Attenuation::default_coefficient")]
+        coefficient: Bare,
     },
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
     Lorentzian {
-        #[serde(
-            default = "Attenuation::default_intensity",
-            alias = "intensity",
-            alias = "max_intensity"
-        )]
-        scale: Bare,
+        #[serde(default = "Attenuation::default_coefficient")]
+        coefficient: Bare,
 
         /// Wavelength of the maximum, meters.
         #[serde(alias = "max", alias = "maximum")]
@@ -39,13 +35,13 @@ pub enum Attenuation {
 impl Default for Attenuation {
     fn default() -> Self {
         Attenuation::Constant {
-            intensity: Self::default_intensity(),
+            coefficient: Self::default_coefficient(),
         }
     }
 }
 
 impl Attenuation {
-    pub fn default_intensity() -> Bare {
+    pub fn default_coefficient() -> Bare {
         Bare::from(1.0)
     }
 }
@@ -53,13 +49,13 @@ impl Attenuation {
 impl Property<Bare> for Attenuation {
     fn at(&self, wavelength: Length) -> Bare {
         match self {
-            Self::Constant { intensity } => *intensity,
+            Self::Constant { coefficient: intensity } => *intensity,
 
             Self::Lorentzian {
-                scale,
+                coefficient,
                 maximum_at,
                 full_width_at_half_maximum,
-            } => *scale * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
+            } => *coefficient * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
 
             Self::Sum { spectra } => spectra
                 .iter()
@@ -78,7 +74,7 @@ mod tests {
         let maximum_at = Length::from_nanos(450.0); // blue
         let fwhm = Length::from(1e-14);
         let spectrum = Attenuation::Lorentzian {
-            scale: Bare::from(1.0),
+            coefficient: Bare::from(1.0),
             maximum_at,
             full_width_at_half_maximum: fwhm,
         };

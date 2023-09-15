@@ -13,6 +13,9 @@ use crate::physics::optics::material::Material;
 pub struct Triangle {
     vertices: [Vec3; 3],
     material: Material,
+
+    #[serde(default)]
+    invert_normal: bool,
 }
 
 impl Bounded for Triangle {
@@ -54,15 +57,20 @@ impl<S> Hittable<S> for Triangle {
         let distance = f * edge_2.dot(q);
         if distance_range.contains(&distance) {
             let mut normal = edge_1.cross(edge_2).normalize();
-            if normal.dot(by_ray.direction) > 0.0 {
+            if self.invert_normal {
                 normal = -normal;
             }
+            let (normal, hit_type) = if normal.dot(by_ray.direction) < 0.0 {
+                (normal, HitType::Enter)
+            } else {
+                (-normal, HitType::Leave)
+            };
 
             Some(Hit {
                 location: by_ray.at(distance),
                 normal,
                 distance,
-                type_: HitType::Refract,
+                type_: hit_type,
                 material: &self.material,
             })
         } else {

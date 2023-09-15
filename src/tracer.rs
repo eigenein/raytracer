@@ -97,8 +97,8 @@ impl<'a> Tracer<'a> {
 
     #[inline]
     fn render_pixel(&self, x: u32, y: u32, rng: &Rng) -> XyzColor {
-        let mut subpixel_sequence = Halton2::new(2, 3);
-        let mut wavelength_sequence = VanDerCorput::new(2).offset(rng.f64());
+        let mut subpixel_sequence = Halton2::new(5, 3).offset(Vec2::new(rng.f64(), rng.f64()));
+        let mut wavelength_sequence = VanDerCorput::new(2);
         let mut diffusion_sequence = RandomSequence::new();
         let mut effect_check_sequence = RandomSequence::new();
 
@@ -112,14 +112,14 @@ impl<'a> Tracer<'a> {
                 };
                 let wavelength = Self::MIN_WAVELENGTH
                     + Self::SPECTRUM_WIDTH * Bare::from(wavelength_sequence.next());
-                let radiance = self.trace_ray(
+                let density = self.trace_ray(
                     ray,
                     wavelength,
                     self.options.n_max_bounces,
                     &mut effect_check_sequence,
                     &mut diffusion_sequence,
                 );
-                XyzColor::from_wavelength(wavelength) * radiance.0
+                XyzColor::from_wavelength(wavelength) * density.0
             })
             .sum::<XyzColor>()
     }
@@ -130,7 +130,7 @@ impl<'a> Tracer<'a> {
         &self,
         mut ray: Ray,
         wavelength: Length,
-        n_bounces_left: u16,
+        n_bounces_left: u32,
         effect_check_sequence: &mut impl Sequence<f64>,
         diffusion_sequence: &mut impl Sequence<Vec2>,
     ) -> SpectralFluxDensity {
@@ -224,7 +224,7 @@ impl<'a> Tracer<'a> {
         };
 
         let refractive_index = match hit.type_ {
-            HitType::Enter | HitType::Refract => RelativeRefractiveIndex {
+            HitType::Enter => RelativeRefractiveIndex {
                 incident: transmittance.incident_index.at(wavelength),
                 refracted: transmittance.refracted_index.at(wavelength),
             },
@@ -248,7 +248,7 @@ impl<'a> Tracer<'a> {
             return None;
         }
 
-        // Shell's law:
+        // Snell's law:
         let direction = {
             let cosine_theta_2 = (1.0 - sin_theta_2.powi(2)).sqrt();
             let mu = refractive_index.relative().0;
@@ -281,7 +281,8 @@ impl<'a> Tracer<'a> {
         };
         let mut ray = Ray::new(hit.location, incident_ray.direction.reflect_about(hit.normal));
         if let Some(fuzz) = reflectance.fuzz {
-            ray.direction += Vec3::sample_unit_vector(diffusion_sequence) * fuzz;
+            ray.direction =
+                (ray.direction + Vec3::sample_unit_vector(diffusion_sequence) * fuzz).normalize();
         }
         let attenuation = reflectance.attenuation.at(wavelength);
         Some((ray, attenuation))

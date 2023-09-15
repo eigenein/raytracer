@@ -52,7 +52,4 @@ pub enum HitType {
 
     /// Ray would have left the body.
     Leave,
-
-    /// Ray would refract in an infinitesimally small particle.
-    Refract,
 }

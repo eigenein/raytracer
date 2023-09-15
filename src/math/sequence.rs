@@ -3,6 +3,7 @@ use fastrand::Rng;
 use crate::math::vec2::Vec2;
 
 pub trait Sequence<T> {
+    #[must_use]
     fn next(&mut self) -> T;
 }
 

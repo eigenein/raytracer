@@ -62,8 +62,8 @@ pub struct TracerOptions {
     ///
     /// Each ray's bounce count gets decreased by one when the ray gets scattered.
     /// Once it reaches zero, no scattered rays get traced any more.
-    #[arg(short = 'b', long = "max-bounces", default_value = "5", value_parser = value_parser!(u16).range(1..))]
-    pub n_max_bounces: u16,
+    #[arg(short = 'b', long = "max-bounces", default_value = "5", value_parser = value_parser!(u32).range(1..))]
+    pub n_max_bounces: u32,
 
     /// Minimal distance from a ray's origin point to a possible hit.
     ///
