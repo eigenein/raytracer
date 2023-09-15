@@ -137,7 +137,7 @@ impl<'a> Tracer<'a> {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
         let scene_emittance = self.ambient_emittance.at(wavelength);
 
-        let mut total_radiance = SpectralFluxDensity::ZERO;
+        let mut total_flux_density = SpectralFluxDensity::ZERO;
         let mut total_attenuation = Bare::from(1.0);
 
         for _ in 0..n_bounces_left {
@@ -147,12 +147,12 @@ impl<'a> Tracer<'a> {
             let hit = self.bvh.hit(&ray, &distance_range, effect_check_sequence);
             let Some(hit) = hit else {
                 // The ray didn't hit anything, finish the tracing:
-                total_radiance += total_attenuation * scene_emittance;
+                total_flux_density += total_attenuation * scene_emittance;
                 break;
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                total_radiance += total_attenuation * emittance.at(wavelength);
+                total_flux_density += total_attenuation * emittance.at(wavelength);
             }
 
             let (scattered_ray, attenuation) = if let Some((ray, attenuation)) =
@@ -177,7 +177,7 @@ impl<'a> Tracer<'a> {
             ray = scattered_ray;
         }
 
-        total_radiance
+        total_flux_density
     }
 
     /// Trace [Lambertian reflectance][1].

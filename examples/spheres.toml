@@ -30,7 +30,7 @@ maximum = 10e9
     [surfaces.material]
         [surfaces.material.reflectance]
             attenuation = { type = "Constant" }
-            diffusion = 0.99
+            diffusion = 0.8
             fuzz = 0.02
 
 # Central smaller sphere:

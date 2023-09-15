@@ -304,6 +304,15 @@ impl Vec3 {
     pub const fn is_infinite(self) -> bool {
         self.x.is_infinite() || self.y.is_infinite() || self.z.is_infinite()
     }
+
+    /// [Cosine similarity][1] – cosine of the angle between the vectors.
+    ///
+    /// [1]: https://en.wikipedia.org/wiki/Cosine_similarity
+    #[inline]
+    #[must_use]
+    pub fn cosine_to(self, other: Self) -> f64 {
+        self.dot(other) / self.length() / other.length()
+    }
 }
 
 #[cfg(test)]
