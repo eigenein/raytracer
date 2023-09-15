@@ -36,7 +36,7 @@ impl Bare {
     pub const PI: Self = Self(PI);
 
     #[inline]
-    pub fn random(rng: &Rng) -> Self {
+    pub fn random(rng: &mut Rng) -> Self {
         Self(rng.f64())
     }
 

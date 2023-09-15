@@ -82,9 +82,9 @@ impl<'a> Tracer<'a> {
         y_indices
             .into_par_iter()
             .map(|y| {
-                let rng = Rng::new();
+                let mut rng = Rng::new();
                 let row: Vec<XyzColor> = (0..self.output_width)
-                    .map(|x| self.render_pixel(x, y, &rng))
+                    .map(|x| self.render_pixel(x, y, &mut rng))
                     .collect();
                 progress.lock().unwrap().inc(1);
                 (y, row)
@@ -96,7 +96,7 @@ impl<'a> Tracer<'a> {
     }
 
     #[inline]
-    fn render_pixel(&self, x: u32, y: u32, rng: &Rng) -> XyzColor {
+    fn render_pixel(&self, x: u32, y: u32, rng: &mut Rng) -> XyzColor {
         let mut subpixel_sequence = Halton2::new(5, 3).offset(Vec2::new(rng.f64(), rng.f64()));
         let mut wavelength_sequence = VanDerCorput::new(2);
         let mut diffusion_sequence = RandomSequence::new();
