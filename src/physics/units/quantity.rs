@@ -22,18 +22,18 @@ pub struct Quantity<
     const L: isize = 0,
     const M: isize = 0,
     const TT: isize = 0,
-    const SR: isize = 0,
+    const SA: isize = 0,
 >(pub f64);
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    Quantity<T, L, M, TT, SA>
 {
     pub const ONE: Self = Quantity(1.0);
     pub const ZERO: Self = Quantity(0.0);
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Display
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Display
+    for Quantity<T, L, M, TT, SA>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ", self.0)?;
@@ -42,8 +42,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Debug
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Debug
+    for Quantity<T, L, M, TT, SA>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} ", self.0)?;
@@ -52,15 +52,15 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    Quantity<T, L, M, TT, SA>
 {
     pub fn write_units(f: &mut Formatter<'_>) -> std::fmt::Result {
         Self::write_unit::<T>(f, "s")?;
         Self::write_unit::<L>(f, "m")?;
         Self::write_unit::<M>(f, "kg")?;
         Self::write_unit::<TT>(f, "K")?;
-        Self::write_unit::<SR>(f, "sr")?;
+        Self::write_unit::<SA>(f, "sr")?;
         Ok(())
     }
 
@@ -90,8 +90,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> From<f64>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> From<f64>
+    for Quantity<T, L, M, TT, SA>
 {
     #[inline]
     fn from(value: f64) -> Self {
@@ -99,8 +99,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    Quantity<T, L, M, TT, SA>
 {
     #[inline]
     pub const fn from_millis(value: f64) -> Self {
@@ -118,8 +118,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    Quantity<T, L, M, TT, SA>
 {
     #[inline]
     pub fn abs(self) -> Self {
@@ -127,18 +127,18 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    Quantity<T, L, M, TT, SA>
 {
     #[inline]
     pub const fn squared(
         self,
-    ) -> Quantity<{ T * 2 }, { L * 2 }, { M * 2 }, { TT * 2 }, { SR * 2 }> {
+    ) -> Quantity<{ T * 2 }, { L * 2 }, { M * 2 }, { TT * 2 }, { SA * 2 }> {
         Quantity(self.0 * self.0)
     }
 
     #[inline]
-    pub const fn cubed(self) -> Quantity<{ T * 3 }, { L * 3 }, { M * 3 }, { TT * 3 }, { SR * 3 }> {
+    pub const fn cubed(self) -> Quantity<{ T * 3 }, { L * 3 }, { M * 3 }, { TT * 3 }, { SA * 3 }> {
         Quantity(self.0 * self.0 * self.0)
     }
 
@@ -146,7 +146,7 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     #[inline]
     pub const fn quartic(
         self,
-    ) -> Quantity<{ T * 4 }, { L * 4 }, { M * 4 }, { TT * 4 }, { SR * 4 }> {
+    ) -> Quantity<{ T * 4 }, { L * 4 }, { M * 4 }, { TT * 4 }, { SA * 4 }> {
         Quantity(self.0 * self.0 * self.0 * self.0)
     }
 
@@ -154,19 +154,19 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     #[inline]
     pub const fn quintic(
         self,
-    ) -> Quantity<{ T * 5 }, { L * 5 }, { M * 5 }, { TT * 5 }, { SR * 5 }> {
+    ) -> Quantity<{ T * 5 }, { L * 5 }, { M * 5 }, { TT * 5 }, { SA * 5 }> {
         Quantity(self.0 * self.0 * self.0 * self.0 * self.0)
     }
 
     /// Raise the quantity to the 6-th degree.
     #[inline]
-    pub const fn sextic(self) -> Quantity<{ T * 6 }, { L * 6 }, { M * 6 }, { TT * 6 }, { SR * 6 }> {
+    pub const fn sextic(self) -> Quantity<{ T * 6 }, { L * 6 }, { M * 6 }, { TT * 6 }, { SA * 6 }> {
         Quantity(self.0 * self.0 * self.0 * self.0 * self.0 * self.0)
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Add<Self>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Add<Self>
+    for Quantity<T, L, M, TT, SA>
 {
     type Output = Self;
 
@@ -176,8 +176,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const LI: isize>
-    AddAssign<Self> for Quantity<T, L, M, TT, LI>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    AddAssign<Self> for Quantity<T, L, M, TT, SA>
 {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
@@ -185,8 +185,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const LI: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Sum<Self>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Sum<Self>
+    for Quantity<T, L, M, TT, SA>
 {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         let mut sum = 0.0;
@@ -197,8 +197,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Sub<Self>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Sub<Self>
+    for Quantity<T, L, M, TT, SA>
 {
     type Output = Self;
 
@@ -208,8 +208,8 @@ impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: 
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize>
-    MulAssign<Bare> for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize>
+    MulAssign<Bare> for Quantity<T, L, M, TT, SA>
 {
     #[inline]
     fn mul_assign(&mut self, rhs: Bare) {
@@ -222,26 +222,26 @@ impl<
     const L1: isize,
     const M1: isize,
     const TT1: isize,
-    const SR1: isize,
+    const SA1: isize,
     const T2: isize,
     const L2: isize,
     const M2: isize,
     const TT2: isize,
-    const SR2: isize,
-> Mul<Quantity<T2, L2, M2, TT2, SR2>> for Quantity<T1, L1, M1, TT1, SR1>
+    const SA2: isize,
+> Mul<Quantity<T2, L2, M2, TT2, SA2>> for Quantity<T1, L1, M1, TT1, SA1>
 where
-    Quantity<{ T1 + T2 }, { L1 + L2 }, { M1 + M2 }, { TT1 + TT2 }, { SR1 + SR2 }>: Sized,
+    Quantity<{ T1 + T2 }, { L1 + L2 }, { M1 + M2 }, { TT1 + TT2 }, { SA1 + SA2 }>: Sized,
 {
-    type Output = Quantity<{ T1 + T2 }, { L1 + L2 }, { M1 + M2 }, { TT1 + TT2 }, { SR1 + SR2 }>;
+    type Output = Quantity<{ T1 + T2 }, { L1 + L2 }, { M1 + M2 }, { TT1 + TT2 }, { SA1 + SA2 }>;
 
     #[inline]
-    fn mul(self, rhs: Quantity<T2, L2, M2, TT2, SR2>) -> Self::Output {
+    fn mul(self, rhs: Quantity<T2, L2, M2, TT2, SA2>) -> Self::Output {
         Quantity(self.0 * rhs.0)
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Mul<f64>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Mul<f64>
+    for Quantity<T, L, M, TT, SA>
 {
     type Output = Self;
 
@@ -256,26 +256,26 @@ impl<
     const L1: isize,
     const M1: isize,
     const TT1: isize,
-    const SR1: isize,
+    const SA1: isize,
     const T2: isize,
     const L2: isize,
     const M2: isize,
     const TT2: isize,
-    const SR2: isize,
-> Div<Quantity<T2, L2, M2, TT2, SR2>> for Quantity<T1, L1, M1, TT1, SR1>
+    const SA2: isize,
+> Div<Quantity<T2, L2, M2, TT2, SA2>> for Quantity<T1, L1, M1, TT1, SA1>
 where
-    Quantity<{ T1 - T2 }, { L1 - L2 }, { M1 - M2 }, { TT1 - TT2 }, { SR1 - SR2 }>: Sized,
+    Quantity<{ T1 - T2 }, { L1 - L2 }, { M1 - M2 }, { TT1 - TT2 }, { SA1 - SA2 }>: Sized,
 {
-    type Output = Quantity<{ T1 - T2 }, { L1 - L2 }, { M1 - M2 }, { TT1 - TT2 }, { SR1 - SR2 }>;
+    type Output = Quantity<{ T1 - T2 }, { L1 - L2 }, { M1 - M2 }, { TT1 - TT2 }, { SA1 - SA2 }>;
 
     #[inline]
-    fn div(self, rhs: Quantity<T2, L2, M2, TT2, SR2>) -> Self::Output {
+    fn div(self, rhs: Quantity<T2, L2, M2, TT2, SA2>) -> Self::Output {
         Quantity(self.0 / rhs.0)
     }
 }
 
-impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SR: isize> Div<f64>
-    for Quantity<T, L, M, TT, SR>
+impl<const T: isize, const L: isize, const M: isize, const TT: isize, const SA: isize> Div<f64>
+    for Quantity<T, L, M, TT, SA>
 {
     type Output = Self;
 

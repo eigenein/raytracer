@@ -47,7 +47,7 @@ impl Property<SpectralRadiance> for Emittance {
                 Bare::from(2.0) * PLANCK * LIGHT_SPEED.squared()
                     / wavelength.quintic()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
-                    / Steradian::ONE
+                    / SolidAngle::ONE
             }
 
             Self::Lorentzian {
