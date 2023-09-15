@@ -190,21 +190,22 @@ impl<'a> Tracer<'a> {
         diffusion_sequence: &mut impl Sequence<Vec2>,
     ) -> Option<(Ray, Bare)> {
         let Some(reflectance) = &hit.material.reflectance else {
+            // The material is not reflective.
             return None;
         };
         let Some(probability) = reflectance.diffusion else {
+            // The reflectiveness is not diffuse.
             return None;
         };
-
-        if effect_check_sequence.next() < probability {
-            let ray =
-                Ray::new(hit.location, hit.normal + Vec3::sample_unit_vector(diffusion_sequence));
-            // The «length / 2» accounts for its reflected intensity in the ray's direction (the max length is 1 + 1).
-            let attenuation = reflectance.attenuation.at(wavelength) * ray.direction.length() / 2.0;
-            Some((ray, attenuation))
-        } else {
-            None
+        if effect_check_sequence.next() > probability {
+            // Diffusion is not applied this time.
+            return None;
         }
+
+        let ray = Ray::new(hit.location, hit.normal + Vec3::sample_unit_vector(diffusion_sequence));
+        // The «length / 2» accounts for its reflected intensity in the ray's direction (the max length is 1 + 1).
+        let attenuation = reflectance.attenuation.at(wavelength) * ray.direction.length() / 2.0;
+        Some((ray, attenuation))
     }
 
     /// Trace a possible refraction using [Snell's law][1] in [vector form][2].
