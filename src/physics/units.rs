@@ -47,6 +47,12 @@ pub type RadiantFlux = Quantity<-3, 2, 1, 0, 0>;
 #[allow(dead_code)]
 pub type SpectralFlux = Quantity<-3, 1, 1, 0, 0>;
 
+/// [Spectral flux density][1] per unit wavelength.
+///
+/// [1]: https://en.wikipedia.org/wiki/Spectral_flux_density
+#[allow(dead_code)]
+pub type SpectralFluxDensity = Quantity<-3, -1, 1, 0, 0>;
+
 /// [Spectral radiance][1] per unit wavelength.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Spectral_radiance

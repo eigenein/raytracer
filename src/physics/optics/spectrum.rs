@@ -1,6 +1,8 @@
 use crate::physics::units::*;
 
-/// <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>
+/// [Lorentzian][1] spectral line.
+///
+/// [1]: https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian
 pub fn lorentzian(
     wavelength: Length,
     maximum_at: Length,

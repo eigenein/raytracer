@@ -10,7 +10,7 @@ use crate::physics::units::*;
 #[serde(tag = "type")]
 pub enum Emittance {
     Constant {
-        radiance: SpectralRadiance,
+        density: SpectralFluxDensity,
     },
 
     /// Black body radiation: <https://en.wikipedia.org/wiki/Planck%27s_law>.
@@ -20,7 +20,7 @@ pub enum Emittance {
 
     /// Lorentzian line: <https://en.wikipedia.org/wiki/Spectral_line_shape#Lorentzian>.
     Lorentzian {
-        radiance: SpectralRadiance,
+        maximum: SpectralFluxDensity,
 
         /// Wavelength of the maximum, meters.
         #[serde(alias = "max", alias = "maximum")]
@@ -34,27 +34,26 @@ pub enum Emittance {
 
 impl Default for Emittance {
     fn default() -> Self {
-        Self::Constant { radiance: Quantity::ZERO }
+        Self::Constant { density: Quantity::ZERO }
     }
 }
 
-impl Property<SpectralRadiance> for Emittance {
-    fn at(&self, wavelength: Length) -> SpectralRadiance {
+impl Property<SpectralFluxDensity> for Emittance {
+    fn at(&self, wavelength: Length) -> SpectralFluxDensity {
         match self {
-            Self::Constant { radiance } => *radiance,
+            Self::Constant { density } => *density,
 
             Self::BlackBody { temperature } => {
                 Bare::from(2.0) * PLANCK * LIGHT_SPEED.squared()
                     / wavelength.quintic()
                     / ((PLANCK * LIGHT_SPEED / wavelength / BOLTZMANN / *temperature).exp() - 1.0)
-                    / SolidAngle::ONE
             }
 
             Self::Lorentzian {
-                radiance,
+                maximum,
                 maximum_at,
                 full_width_at_half_maximum,
-            } => *radiance * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
+            } => *maximum * lorentzian(wavelength, *maximum_at, *full_width_at_half_maximum),
         }
     }
 }

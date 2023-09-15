@@ -2,7 +2,7 @@
 type = "Lorentzian"
 maximum_at = 475e-9
 fwhm = 15e-9
-radiance = 10e9
+maximum = 10e9
 
 [camera]
     location = [-1, 2, -6]
@@ -29,7 +29,7 @@ radiance = 10e9
 
     [surfaces.material]
         [surfaces.material.reflectance]
-            attenuation = { type = "Constant", intensity = 1 }
+            attenuation = { type = "Constant" }
             diffusion = 0.99
             fuzz = 0.02
 

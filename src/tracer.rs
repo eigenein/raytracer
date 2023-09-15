@@ -133,11 +133,11 @@ impl<'a> Tracer<'a> {
         n_bounces_left: u16,
         effect_check_sequence: &mut impl Sequence<f64>,
         diffusion_sequence: &mut impl Sequence<Vec2>,
-    ) -> SpectralRadiance {
+    ) -> SpectralFluxDensity {
         let distance_range = self.options.min_hit_distance..f64::INFINITY;
         let scene_emittance = self.ambient_emittance.at(wavelength);
 
-        let mut total_radiance = SpectralRadiance::from(0.0);
+        let mut total_radiance = SpectralFluxDensity::ZERO;
         let mut total_attenuation = Bare::from(1.0);
 
         for _ in 0..n_bounces_left {
@@ -152,7 +152,6 @@ impl<'a> Tracer<'a> {
             };
 
             if hit.type_ == HitType::Enter && let Some(emittance) = &hit.material.emittance {
-                // FIXME: what about the distance?
                 total_radiance += total_attenuation * emittance.at(wavelength);
             }
 
