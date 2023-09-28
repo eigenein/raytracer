@@ -6,15 +6,15 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 
 [dependencies]
 anyhow = { version = "1.0.75", features = ["backtrace"] }
-clap = { version = "4.4.3", features = ["env", "unicode", "derive", "color"] }
-fastrand = "2.0.0"
+clap = { version = "4.4.6", features = ["env", "unicode", "derive", "color"] }
+fastrand = "2.0.1"
 image = { version = "0.24.7", default-features = false, features = ["png"] }
-indicatif = { version = "0.17.6", features = ["improved_unicode"] }
-rayon = "1.7.0"
-schemars = "0.8.13"
+indicatif = { version = "0.17.7", features = ["improved_unicode"] }
+rayon = "1.8.0"
+schemars = "0.8.15"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
-toml = { version = "0.8.0", default-features = false, features = ["parse"] }
+toml = { version = "0.8.1", default-features = false, features = ["parse"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
 
