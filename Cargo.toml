@@ -5,18 +5,18 @@ edition = "2021"
 authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 
 [dependencies]
-anyhow = { version = "1.0.75", features = ["backtrace"] }
-clap = { version = "4.4.6", features = ["env", "unicode", "derive", "color"] }
-fastrand = "2.0.1"
-image = { version = "0.24.7", default-features = false, features = ["png"] }
-indicatif = { version = "0.17.7", features = ["improved_unicode"] }
-rayon = "1.8.0"
-schemars = "0.8.15"
-serde = { version = "1.0.188", features = ["derive"] }
-serde_json = "1.0.107"
-toml = { version = "0.8.1", default-features = false, features = ["parse"] }
-tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
+anyhow = { version = "1.0.81", features = ["backtrace"] }
+clap = { version = "4.5.4", features = ["env", "unicode", "derive", "color"] }
+fastrand = "2.0.2"
+image = { version = "0.25.0", default-features = false, features = ["png"] }
+indicatif = { version = "0.17.8", features = ["improved_unicode"] }
+rayon = "1.10.0"
+schemars = "0.8.16"
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.115"
+toml = { version = "0.8.12", default-features = false, features = ["parse"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
 
 [dev-dependencies]
 approx = "0.5.1"
