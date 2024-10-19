@@ -8,7 +8,7 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 anyhow = { version = "1.0.75", features = ["backtrace"] }
 clap = { version = "4.4.6", features = ["env", "unicode", "derive", "color"] }
 fastrand = "2.0.1"
-image = { version = "0.24.7", default-features = false, features = ["png"] }
+image = { version = "0.25.0", default-features = false, features = ["png"] }
 indicatif = { version = "0.17.7", features = ["improved_unicode"] }
 rayon = "1.8.0"
 schemars = "0.8.15"
